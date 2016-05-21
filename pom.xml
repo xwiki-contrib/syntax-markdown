@@ -23,16 +23,98 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.xwiki.rendering</groupId>
-    <artifactId>xwiki-rendering-syntaxes</artifactId>
-    <version>8.2-SNAPSHOT</version>
+    <groupId>org.xwiki.contrib</groupId>
+    <artifactId>parent</artifactId>
+    <version>7.4</version>
   </parent>
-  <artifactId>xwiki-rendering-syntax-markdown</artifactId>
-  <name>XWiki Rendering - Syntax - Markdown Syntax - Parent POM</name>
-  <description>XWiki Rendering - Syntax - Markdown Syntax - Parent POM</description>
+  <groupId>org.xwiki.contrib.markdown</groupId>
+  <artifactId>syntax-markdown</artifactId>
+  <version>8.2-SNAPSHOT</version>
+  <name>Markdown Syntax - Parent POM</name>
+  <description>Parent POM for Markdown syntax modules</description>
   <packaging>pom</packaging>
+  <scm>
+    <connection>scm:git:git://github.com/xwiki-contrib/syntax-markdown.git</connection>
+    <developerConnection>scm:git:git@github.com:xwiki-contrib/syntax-markdown.git</developerConnection>
+    <url>https://github.com/xwiki-contrib/syntax-markdown</url>
+  </scm>
+  <issueManagement>
+    <system>jira</system>
+    <url>http://jira.xwiki.org/browse/MARKDOWN</url>
+  </issueManagement>
+  <developers>
+    <developer>
+      <id>vmassol</id>
+      <name>Vincent Massol</name>
+    </developer>
+    <developer>
+      <id>xwikidev</id>
+      <name>XWiki Development Team</name>
+    </developer>
+  </developers>
+  <properties>
+    <rendering.version>${commons.version}</rendering.version>
+  </properties>
   <modules>
-    <module>xwiki-rendering-syntax-markdown10</module>
-    <module>xwiki-rendering-syntax-markdown11</module>
+    <module>syntax-markdown-markdown10</module>
+    <module>syntax-markdown-markdown11</module>
   </modules>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <dependencies>
+            <dependency>
+              <groupId>org.xwiki.commons</groupId>
+              <artifactId>xwiki-commons-tool-enforcer-dependencies</artifactId>
+              <version>${commons.version}</version>
+            </dependency>
+          </dependencies>
+          <executions>
+            <execution>
+              <id>enforce-valid-poms</id>
+              <goals>
+                <goal>enforce</goal>
+              </goals>
+              <configuration>
+                <!-- Workaround regression introduced in XCOMMONS-895. See XCOMMONS-979. -->
+                <!-- TODO: use xwiki-commons-tool-enforcer-dependencies 7.4.4 instead when released -->
+                <skip>true</skip>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <!-- Verify that all org.xwiki.commons dependencies have a version specified either as:
+               - ${commons.version}
+               - a value not starting with $ (we want to allow supporting ranges)
+          -->
+          <execution>
+            <id>check-dependency-version</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <validateDependencyVersion implementation="org.xwiki.tool.enforcer.ValidateDependencyVersion">
+                  <versionCheck>
+                    <groupIdPrefix>org.xwiki.commons</groupIdPrefix>
+                    <allowedVersionRegex>\$\{commons.version\}|[^$].*</allowedVersionRegex>
+                  </versionCheck>
+                </validateDependencyVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
