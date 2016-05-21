@@ -1,6 +1,0 @@
-beginDocument [[syntax]=[Event 1.0]]
-beginParagraph
-beginLink [Typed = [false] Type = [url] Reference = [reference]] [false]
-endLink [Typed = [false] Type = [url] Reference = [reference]] [false]
-endParagraph
-endDocument [[syntax]=[Event 1.0]]

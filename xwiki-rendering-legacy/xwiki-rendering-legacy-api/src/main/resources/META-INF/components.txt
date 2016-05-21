@@ -1,2 +1,0 @@
-org.xwiki.rendering.internal.parser.reference.DeprecatedResourceReferenceConverter
-org.xwiki.rendering.internal.syntax.DeprecatedSyntaxConverter

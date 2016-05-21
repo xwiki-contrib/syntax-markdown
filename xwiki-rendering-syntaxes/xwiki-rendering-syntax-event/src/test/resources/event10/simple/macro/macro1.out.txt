@@ -1,4 +1,0 @@
-beginDocument [[syntax]=[Event 1.0]]
-onMacroStandalone [testsimplemacro] []
-onMacroStandalone [testsimplemacro] [param1=value1|param2=value2]
-endDocument [[syntax]=[Event 1.0]]
