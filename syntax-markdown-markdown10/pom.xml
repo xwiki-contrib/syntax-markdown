@@ -31,7 +31,7 @@
   <name>Markdown Syntax - Markdown 1.0</name>
   <description>Markdown 1.0 Syntax Parser and Renderer</description>
   <properties>
-    <xwiki.jacoco.instructionRatio>0.91</xwiki.jacoco.instructionRatio>
+    <xwiki.jacoco.instructionRatio>0.86</xwiki.jacoco.instructionRatio>
     <!-- Old names of this module used for retro compatibility when resolving dependencies of old extensions -->
     <xwiki.extension.features>org.xwiki.rendering:xwiki-rendering-syntax-markdown10</xwiki.extension.features>
   </properties>
@@ -50,6 +50,11 @@
     <dependency>
       <groupId>org.xwiki.rendering</groupId>
       <artifactId>xwiki-rendering-syntax-xhtml</artifactId>
+      <version>${rendering.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-syntax-xwiki21</artifactId>
       <version>${rendering.version}</version>
     </dependency>
     <dependency>

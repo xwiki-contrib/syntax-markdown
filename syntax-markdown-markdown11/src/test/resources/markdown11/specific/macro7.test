@@ -18,3 +18,7 @@ onMacroInline [mymacro] [] [Macro content here]
 onSpecialSymbol [.]
 endParagraph
 endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.1
+.#-----------------------------------------------------
+This is inline #[mymacro]("Macro content here").

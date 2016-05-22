@@ -1,5 +1,5 @@
 .#-----------------------------------------------------
-.input|markdown/1.0
+.inputexpect|markdown/1.0
 .# Markdown supports entering HTML entities
 .#-----------------------------------------------------
 Some html entities &amp; and &#60;

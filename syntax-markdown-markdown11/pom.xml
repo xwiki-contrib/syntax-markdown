@@ -31,7 +31,7 @@
   <name>Markdown Syntax - Markdown 1.1</name>
   <description>Markdown 1.1 Syntax Parser and Renderer</description>
   <properties>
-    <xwiki.jacoco.instructionRatio>0.40</xwiki.jacoco.instructionRatio>
+    <xwiki.jacoco.instructionRatio>0.52</xwiki.jacoco.instructionRatio>
     <!-- Old names of this module used for retro compatibility when resolving dependencies of old extensions -->
     <xwiki.extension.features>org.xwiki.rendering:xwiki-rendering-syntax-markdown11</xwiki.extension.features>
   </properties>

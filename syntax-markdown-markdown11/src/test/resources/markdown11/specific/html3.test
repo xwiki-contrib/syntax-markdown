@@ -51,3 +51,7 @@ endDocument
 .expect|xhtml/1.0
 .#-----------------------------------------------------
 <p>XHTML is more &lt; strong &gt;strict&lt; /strong&gt; and this is &lt;span class="red"&gt;good</span></p>
+.#-----------------------------------------------------
+.expect|markdown/1.1
+.#-----------------------------------------------------
+XHTML is more < strong >strict< /strong> and this is <span class="red">good</span>

@@ -9,3 +9,7 @@
 beginDocument
 onMacroStandalone [mymacro] []
 endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.1
+.#-----------------------------------------------------
+{{mymacro/}}

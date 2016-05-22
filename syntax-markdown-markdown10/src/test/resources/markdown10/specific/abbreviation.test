@@ -30,3 +30,10 @@ onRawText [<abbr title="World Wide Web Consortium">W3C</abbr>] [html/4.01]
 onSpecialSymbol [.]
 endParagraph
 endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.0
+.#-----------------------------------------------------
+The HTML specification is maintained by the W3C.
+
+*[HTML]: Hyper Text Markup Language
+*[W3C]: World Wide Web Consortium

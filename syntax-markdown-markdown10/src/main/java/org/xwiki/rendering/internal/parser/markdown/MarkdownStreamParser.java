@@ -35,7 +35,7 @@ import org.xwiki.rendering.syntax.Syntax;
 /**
  * Markdown Streaming Parser.
  *
- * @version $Id$
+ * @version $Id: fcd59f6c7ae81ffec64f5df3ca333eca4eaf18b3 $
  * @since 4.5M1
  */
 @Component

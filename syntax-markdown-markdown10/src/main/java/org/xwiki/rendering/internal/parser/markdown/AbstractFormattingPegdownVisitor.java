@@ -27,7 +27,7 @@ import org.xwiki.rendering.listener.Format;
 /**
  * Implements Pegdown Visitor's formatting events.
  *
- * @version $Id$
+ * @version $Id: e8eade34d5621dadc151a8caaa0919084c62a279 $
  * @since 4.5M1
  */
 public abstract class AbstractFormattingPegdownVisitor extends AbstractTextPegdownVisitor

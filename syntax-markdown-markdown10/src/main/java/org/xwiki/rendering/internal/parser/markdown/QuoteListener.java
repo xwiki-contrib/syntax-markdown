@@ -26,7 +26,7 @@ import org.xwiki.rendering.listener.WrappingListener;
 /**
  * Special listener for handling blockquotes and converting them from the Pegdown Model to the XWiki Model.
  *
- * @version $Id$
+ * @version $Id: dd01d2b198e30752b5de9476c25cc1bd253cae84 $
  * @since 4.5M1
  */
 public class QuoteListener extends WrappingListener

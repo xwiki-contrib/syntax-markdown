@@ -32,7 +32,7 @@ import org.xwiki.rendering.util.IdGenerator;
 /**
  * Implements Pegdown Visitor's heading events.
  *
- * @version $Id$
+ * @version $Id: 2c673cf04ea0f375c08b6fce94b18eb44b71c615 $
  * @since 4.5M1
  */
 public abstract class AbstractHeadingPegdownVisitor extends AbstractLinkAndImagePegdownVisitor

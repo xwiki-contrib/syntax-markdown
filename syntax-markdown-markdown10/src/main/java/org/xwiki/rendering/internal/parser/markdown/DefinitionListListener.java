@@ -27,7 +27,7 @@ import org.xwiki.rendering.listener.WrappingListener;
  * Special listener for handling Definition Lists: Pegdown issues a Paragraph event for definition description which
  * we don't want (even though it's not technically wrong).
  *
- * @version $Id$
+ * @version $Id: cd25ae5cf0153841b9d995723be979621bfeddb9 $
  * @since 4.5M1
  */
 public class DefinitionListListener extends WrappingListener

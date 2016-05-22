@@ -36,7 +36,7 @@ import org.xwiki.rendering.syntax.Syntax;
 /**
  * Markdown parser based on the <a href="https://github.com/sirthias/pegdown">Pegdown Parser</a>.
  *
- * @version $Id$
+ * @version $Id: 82fb920b4209cb0616bebf0e226334e618a28144 $
  * @since 4.1M1
  */
 @Component

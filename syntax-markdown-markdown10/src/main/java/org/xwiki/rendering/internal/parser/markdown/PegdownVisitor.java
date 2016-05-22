@@ -28,7 +28,7 @@ import org.xwiki.rendering.listener.Listener;
  * <a href="https://github.com/sirthias/pegdown">Pegdown</a> visitor to transform the Pegdown AST into XWiki Rendering
  * Events.
  *
- * @version $Id$
+ * @version $Id: 55b031976b88412e4428d36199babc83727dfe9f $
  * @since 4.5M1
  */
 @Role

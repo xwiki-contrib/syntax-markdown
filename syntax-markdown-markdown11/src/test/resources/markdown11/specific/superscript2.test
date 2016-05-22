@@ -1,5 +1,5 @@
 .#-----------------------------------------------------
-.input|markdown/1.1
+.inputexpect|markdown/1.1
 .# Test superscript with spaces inside
 .#-----------------------------------------------------
 This is ^superscript\ with\ spaces^, this is ^ordinary text^.

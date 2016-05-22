@@ -38,7 +38,7 @@ import org.xwiki.rendering.syntax.Syntax;
 /**
  * Implements Pegdown Visitor's table events.
  *
- * @version $Id$
+ * @version $Id: 5d9f18555ecd442c41239bf5047da7d678f13fb6 $
  * @since 4.5M1
  */
 public abstract class AbstractTablePegdownVisitor extends AbstractListPegdownVisitor

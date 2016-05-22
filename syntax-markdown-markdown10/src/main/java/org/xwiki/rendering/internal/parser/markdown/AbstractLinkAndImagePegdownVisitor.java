@@ -44,7 +44,7 @@ import org.xwiki.rendering.renderer.reference.link.URILabelGenerator;
 /**
  * Implements Pegdown Visitor's link and image events.
  *
- * @version $Id$
+ * @version $Id: e345fcf18b94023111d1afc50b363a154e78a5e2 $
  * @since 4.5M1
  */
 public abstract class AbstractLinkAndImagePegdownVisitor extends AbstractHTMLPegdownVisitor

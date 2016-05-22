@@ -42,7 +42,7 @@ import org.xwiki.rendering.syntax.Syntax;
 /**
  * Default method implementation and useful methods for inheritors.
  *
- * @version $Id$
+ * @version $Id: d0182af707fcf2be629fe4921fe8549dddc45b41 $
  * @since 4.5M1
  */
 public abstract class AbstractPegdownVisitor implements PegdownVisitor

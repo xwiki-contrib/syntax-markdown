@@ -9,3 +9,7 @@
 beginDocument
 onMacroStandalone [mymacro] [par1=val1|par2=val 2]
 endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.1
+.#-----------------------------------------------------
+{{mymacro par1="val1" par2="val 2"/}}

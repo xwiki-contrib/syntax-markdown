@@ -32,7 +32,7 @@ import org.xwiki.rendering.listener.ListType;
 /**
  * Implements Pegdown Visitor's list events.
  *
- * @version $Id$
+ * @version $Id: 6f9ee1bb10933e720d38e32d167f92283089449b $
  * @since 4.5M1
  */
 public abstract class AbstractListPegdownVisitor extends AbstractHeadingPegdownVisitor

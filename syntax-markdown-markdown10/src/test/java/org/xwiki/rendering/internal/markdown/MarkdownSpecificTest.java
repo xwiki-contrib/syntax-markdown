@@ -26,7 +26,7 @@ import org.xwiki.rendering.test.integration.RenderingTestSuite;
  * Run all specific tests found in {@code *.test} files located in the classpath. These {@code *.test} files must follow
  * the conventions described in {@link org.xwiki.rendering.test.integration.TestDataParser}.
  *
- * @version $Id$
+ * @version $Id: 75488eb22c370f55a3e6bd9b38ec599be157b515 $
  * @since 4.1M1
  */
 @RunWith(RenderingTestSuite.class)

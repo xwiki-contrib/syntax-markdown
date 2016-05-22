@@ -12,3 +12,13 @@ beginDocument
 onMacroStandalone [mymacro] [] [There's quotation" mark]
 onMacroStandalone [mymacro] [] [Escape also "single" quotation' mark]
 endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.1
+.#-----------------------------------------------------
+{{mymacro}}
+There's quotation" mark
+{{/mymacro}}
+
+{{mymacro}}
+Escape also "single" quotation' mark
+{{/mymacro}}

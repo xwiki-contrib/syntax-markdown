@@ -1,5 +1,5 @@
 .#-----------------------------------------------------
-.input|markdown/1.1
+.inputexpect|markdown/1.1
 .# Test subscript with spaces inside
 .#-----------------------------------------------------
 This is ~subscript\ with\ spaces~, this is ~ordinary text~.

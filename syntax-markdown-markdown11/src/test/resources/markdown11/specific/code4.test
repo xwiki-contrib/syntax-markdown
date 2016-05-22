@@ -15,3 +15,7 @@ onSpace
 onMacroInline [code] [] [some code]
 endParagraph
 endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.0
+.#-----------------------------------------------------
+This is `some code`

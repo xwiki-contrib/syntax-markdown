@@ -14,8 +14,7 @@ Markdown
 .#-----------------------------------------------------
 beginDocument
 onMacroStandalone [mymacro] [par1=val1|par2=2] [{{/nomacro}} is not end
-and even {{mymacro}} is just plain content
-]
+and even {{mymacro}} is just plain content]
 beginParagraph
 onWord [Markdown]
 onSpace

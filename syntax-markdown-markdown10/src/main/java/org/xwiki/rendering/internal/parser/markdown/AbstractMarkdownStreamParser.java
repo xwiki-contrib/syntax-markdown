@@ -32,7 +32,7 @@ import org.xwiki.rendering.parser.StreamParser;
 /**
  * Common implementation for all Markdown Syntax versions.
  *
- * @version $Id$
+ * @version $Id: 104e58cca7e5dfddce34da3525b95d9ac0fdbda8 $
  * @since 5.2RC1
  */
 public abstract class AbstractMarkdownStreamParser implements StreamParser

@@ -24,3 +24,8 @@ endLink [Typed = [false] Type = [url] Reference = [/simple]] [false]
 onSpecialSymbol [.]
 endParagraph
 endDocument
+.#----------------------------------------------------------------------------------------
+.expect|markdown/1.0
+.# There's no support for reference links in XWiki model and thus we generate normal links
+.#----------------------------------------------------------------------------------------
+This is the [simple case](/simple).

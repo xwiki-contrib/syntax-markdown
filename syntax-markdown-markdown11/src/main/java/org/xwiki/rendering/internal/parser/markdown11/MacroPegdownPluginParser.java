@@ -243,7 +243,7 @@ public class MacroPegdownPluginParser extends Parser implements InlinePluginPars
                     TestNot(XWikiMacroCloseTag(node)),
                     ANY
                 )
-            ), push(new TextNode(match())) && addAsChild()
+            ), push(new TextNode(match().trim())) && addAsChild()
         );
     }
 

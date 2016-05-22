@@ -26,7 +26,7 @@ import org.xwiki.rendering.syntax.Syntax;
 /**
  * Implements Pegdown Visitor's HTML events.
  *
- * @version $Id$
+ * @version $Id: 4ce66b9fa97073ea5865f064b074c25c0cb9317f $
  * @since 4.5M1
  */
 public abstract class AbstractHTMLPegdownVisitor extends AbstractFormattingPegdownVisitor

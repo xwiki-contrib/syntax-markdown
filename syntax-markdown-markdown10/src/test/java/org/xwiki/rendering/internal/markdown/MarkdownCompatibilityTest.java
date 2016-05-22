@@ -26,7 +26,7 @@ import org.xwiki.rendering.test.cts.Syntax;
 /**
  * Run all CTS tests for the Markdown syntax.
  *
- * @version $Id$
+ * @version $Id: abf215a85904c40e156ea90fd124d38d93ebe09e $
  * @since 4.1M1
  */
 @RunWith(CompatibilityTestSuite.class)

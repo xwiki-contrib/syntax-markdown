@@ -27,7 +27,7 @@ import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
  * <a href="https://github.com/sirthias/pegdown">Pegdown</a> visitor to transform the Pegdown AST into XWiki Rendering
  * Events.
  *
- * @version $Id$
+ * @version $Id: bc217ecf4e8fd6294a39b4907d46a7c5f91d1305 $
  * @since 4.5M1
  */
 @Component

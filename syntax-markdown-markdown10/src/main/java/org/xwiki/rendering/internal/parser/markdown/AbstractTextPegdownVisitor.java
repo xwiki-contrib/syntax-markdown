@@ -44,7 +44,7 @@ import org.xwiki.rendering.syntax.Syntax;
 /**
  * Implements Pegdown Visitor's text events.
  *
- * @version $Id$
+ * @version $Id: c9e976921833fda25d5631043707fe355dabfaa1 $
  * @since 4.5M1
  */
 public abstract class AbstractTextPegdownVisitor extends AbstractPegdownVisitor
