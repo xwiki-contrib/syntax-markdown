@@ -24,8 +24,8 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.xwiki.contrib</groupId>
-    <artifactId>parent</artifactId>
-    <version>7.4</version>
+    <artifactId>parent-commons</artifactId>
+    <version>7.4-2</version>
   </parent>
   <groupId>org.xwiki.contrib.markdown</groupId>
   <artifactId>syntax-markdown</artifactId>
@@ -59,62 +59,4 @@
     <module>syntax-markdown-markdown10</module>
     <module>syntax-markdown-markdown11</module>
   </modules>
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-enforcer-plugin</artifactId>
-          <dependencies>
-            <dependency>
-              <groupId>org.xwiki.commons</groupId>
-              <artifactId>xwiki-commons-tool-enforcer-dependencies</artifactId>
-              <version>${commons.version}</version>
-            </dependency>
-          </dependencies>
-          <executions>
-            <execution>
-              <id>enforce-valid-poms</id>
-              <goals>
-                <goal>enforce</goal>
-              </goals>
-              <configuration>
-                <!-- Workaround regression introduced in XCOMMONS-895. See XCOMMONS-979. -->
-                <!-- TODO: use xwiki-commons-tool-enforcer-dependencies 7.4.4 instead when released -->
-                <skip>true</skip>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <!-- Verify that all org.xwiki.commons dependencies have a version specified either as:
-               - ${commons.version}
-               - a value not starting with $ (we want to allow supporting ranges)
-          -->
-          <execution>
-            <id>check-dependency-version</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <validateDependencyVersion implementation="org.xwiki.tool.enforcer.ValidateDependencyVersion">
-                  <versionCheck>
-                    <groupIdPrefix>org.xwiki.commons</groupIdPrefix>
-                    <allowedVersionRegex>\$\{commons.version\}|[^$].*</allowedVersionRegex>
-                  </versionCheck>
-                </validateDependencyVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>
