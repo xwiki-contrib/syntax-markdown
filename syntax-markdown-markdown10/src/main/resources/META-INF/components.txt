@@ -1,8 +1,8 @@
-org.xwiki.rendering.internal.parser.markdown.MarkdownParser
-org.xwiki.rendering.internal.parser.markdown.MarkdownStreamParser
-org.xwiki.rendering.internal.parser.markdown.XWikiPegdownVisitor
-org.xwiki.rendering.internal.renderer.markdown.MarkdownBlockRenderer
-org.xwiki.rendering.internal.renderer.markdown.MarkdownRenderer
-org.xwiki.rendering.internal.renderer.markdown.MarkdownRendererFactory
-org.xwiki.rendering.internal.renderer.markdown.MarkdownImageReferenceSerializer
-org.xwiki.rendering.internal.renderer.markdown.MarkdownLinkReferenceSerializer
+org.xwiki.contrib.rendering.markdown10.internal.parser.MarkdownParser
+org.xwiki.contrib.rendering.markdown10.internal.parser.MarkdownStreamParser
+org.xwiki.contrib.rendering.markdown10.internal.parser.XWikiPegdownVisitor
+org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownBlockRenderer
+org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownRenderer
+org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownRendererFactory
+org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownImageReferenceSerializer
+org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownLinkReferenceSerializer

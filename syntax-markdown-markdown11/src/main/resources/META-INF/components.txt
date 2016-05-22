@@ -1,6 +1,6 @@
-org.xwiki.rendering.internal.parser.markdown11.Markdown11Parser
-org.xwiki.rendering.internal.parser.markdown11.Markdown11StreamParser
-org.xwiki.rendering.internal.parser.markdown11.XWikiPegdownVisitor
-org.xwiki.rendering.internal.renderer.markdown11.Markdown11BlockRenderer
-org.xwiki.rendering.internal.renderer.markdown11.Markdown11Renderer
-org.xwiki.rendering.internal.renderer.markdown11.Markdown11RendererFactory
+org.xwiki.contrib.rendering.markdown11.internal.parser.Markdown11Parser
+org.xwiki.contrib.rendering.markdown11.internal.parser.Markdown11StreamParser
+org.xwiki.contrib.rendering.markdown11.internal.parser.XWikiPegdownVisitor
+org.xwiki.contrib.rendering.markdown11.internal.renderer.Markdown11BlockRenderer
+org.xwiki.contrib.rendering.markdown11.internal.renderer.Markdown11Renderer
+org.xwiki.contrib.rendering.markdown11.internal.renderer.Markdown11RendererFactory
