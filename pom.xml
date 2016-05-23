@@ -54,6 +54,9 @@
   </developers>
   <properties>
     <rendering.version>${commons.version}</rendering.version>
+    <!-- This extension needs to be installed at the farm level (ie in the root namespace) to work fine.
+         This is a limitation currently caused by http://jira.xwiki.org/browse/XWIKI-13437 -->
+    <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
   </properties>
   <modules>
     <module>syntax-markdown-markdown10</module>
