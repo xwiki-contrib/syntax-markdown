@@ -128,11 +128,11 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             case ITALIC:
                 print("_");
                 break;
-            case STRIKEDOUT:
-                print("~~");
-                break;
             case UNDERLINED:
-                print("__");
+                print("<ins>");
+                break;
+            case STRIKEDOUT:
+                print("<del>");
                 break;
             case SUPERSCRIPT:
                 print("<sup>");
@@ -159,11 +159,11 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             case ITALIC:
                 print("_");
                 break;
-            case STRIKEDOUT:
-                print("~~");
-                break;
             case UNDERLINED:
-                print("__");
+                print("</ins>");
+                break;
+            case STRIKEDOUT:
+                print("</del>");
                 break;
             case SUPERSCRIPT:
                 print("</sup>");
