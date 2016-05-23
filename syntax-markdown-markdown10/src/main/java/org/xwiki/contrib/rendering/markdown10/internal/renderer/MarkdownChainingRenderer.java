@@ -198,7 +198,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         printEmptyLine();
         if (level.getAsInt() > 2) {
-            print(StringUtils.repeat("=", level.getAsInt()) + " ");
+            print(StringUtils.repeat("#", level.getAsInt()) + " ");
         }
         pushPrinter(createMarkdownPrinter(new DefaultWikiPrinter()));
     }
@@ -218,7 +218,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             print("\n");
             print(StringUtils.repeat("-", heading.length()));
         } else {
-            print(" " + StringUtils.repeat("=", level.getAsInt()));
+            print(" " + StringUtils.repeat("#", level.getAsInt()));
         }
     }
 
