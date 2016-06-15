@@ -54,6 +54,8 @@
       <artifactId>xwiki-rendering-syntax-xhtml</artifactId>
       <version>${rendering.version}</version>
     </dependency>
+    <!-- TODO: We reuse some code from the XWiki Syntax 2.1 Renderer implementation. We would need to extract them
+         into the Rendering API module to make them generic and reusable and not depend on the XWiki Syntax 2.1 -->
     <dependency>
       <groupId>org.xwiki.rendering</groupId>
       <artifactId>xwiki-rendering-syntax-xwiki21</artifactId>
