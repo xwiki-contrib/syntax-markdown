@@ -36,7 +36,7 @@
   <scm>
     <connection>scm:git:git://github.com/xwiki-contrib/syntax-markdown.git</connection>
     <developerConnection>scm:git:git@github.com:xwiki-contrib/syntax-markdown.git</developerConnection>
-    <url>https://github.com/xwiki-contrib/syntax-markdown</url>
+    <url>https://github.com/xwiki-contrib/syntax-markdown/tree/master</url>
     <tag>HEAD</tag>
   </scm>
   <issueManagement>
