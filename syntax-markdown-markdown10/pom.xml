@@ -36,6 +36,8 @@
     <xwiki.extension.name>Markdown Syntax 1.0</xwiki.extension.name>
     <!-- Old names of this module used for retro compatibility when resolving dependencies of old extensions -->
     <xwiki.extension.features>org.xwiki.rendering:xwiki-rendering-syntax-markdown10</xwiki.extension.features>
+    <!-- List it as a rendering syntax related module -->
+    <xwiki.extension.category>syntax</xwiki.extension.category>
   </properties>
   <dependencies>
     <!-- Fix duplicated files in parboiled until pegdown depend on the right version -->
