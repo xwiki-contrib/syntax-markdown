@@ -197,9 +197,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     public void beginHeader(HeaderLevel level, String id, Map<String, String> parameters)
     {
         printEmptyLine();
-        if (level.getAsInt() > 2) {
-            print(StringUtils.repeat("#", level.getAsInt()) + " ");
-        }
+        print(StringUtils.repeat("#", level.getAsInt()) + " ");
         pushPrinter(createMarkdownPrinter(new DefaultWikiPrinter()));
     }
 
@@ -211,15 +209,6 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         String heading = headingPrinter.toString();
         popPrinter();
         print(heading);
-        if (level.getAsInt() == 1) {
-            print("\n");
-            print(StringUtils.repeat("=", heading.length()));
-        } else if (level.getAsInt() == 2) {
-            print("\n");
-            print(StringUtils.repeat("-", heading.length()));
-        } else {
-            print(" " + StringUtils.repeat("#", level.getAsInt()));
-        }
     }
 
     @Override
