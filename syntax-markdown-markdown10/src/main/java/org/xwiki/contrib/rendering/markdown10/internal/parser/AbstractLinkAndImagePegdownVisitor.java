@@ -55,14 +55,34 @@ public abstract class AbstractLinkAndImagePegdownVisitor extends AbstractHTMLPeg
     private static final String TITLE_ATTRIBUTE = "title";
 
     /**
-     * Character in Markdown syntax to open a link.
+     * Character in Markdown syntax to open a link label.
      */
-    private static final String LINK_OPEN_CHAR = "[";
+    private static final String LINK_LABEL_OPEN_CHARS = "[";
 
     /**
-     * Character in Markdown syntax to close a link.
+     * Character in Markdown syntax to close a link label.
      */
-    private static final String LINK_CLOSE_CHAR = "]";
+    private static final String LINK_LABEL_CLOSE_CHARS = "]";
+
+    /**
+     * Character in Markdown syntax to open a link or image reference.
+     */
+    private static final String REFERENCE_OPEN_CHARS = "[";
+
+    /**
+     * Character in Markdown syntax to close a link or image reference.
+     */
+    private static final String REFERENCE_CLOSE_CHARS = "]";
+
+    /**
+     * Characters in Markdown syntax to open an image.
+     */
+    private static final String IMAGE_LABEL_OPEN_CHARS = "!" + LINK_LABEL_OPEN_CHARS;
+
+    /**
+     * Characters in Markdown syntax to close an image.
+     */
+    private static final String IMAGE_LABEL_CLOSE_CHARS = LINK_LABEL_CLOSE_CHARS;
 
     /**
      * We parse link references with the default reference parser (i.e. the same one used by XWiki Syntax 2.1).
@@ -183,10 +203,22 @@ public abstract class AbstractLinkAndImagePegdownVisitor extends AbstractHTMLPeg
     @Override
     public void visit(RefImageNode refImageNode)
     {
-        // Since XWiki doesn't support reference images, we generate a standard image instead
-        String label = extractText(refImageNode.referenceKey);
+        // It can happen that refImageNode.referenceKey is null (for example when using a reference containing a space
+        // Pegdown seems to silently ignore it and consider that it's an image to a null reference).
+        // See also https://github.com/sirthias/pegdown/issues/216
+        //
+        // When this happens, just do as we do for links and output the syntax unparsed.
 
-        ReferenceNode referenceNode = this.references.get(label);
+        String key;
+        if (refImageNode.referenceKey == null) {
+            // Use the label as the key
+            key = extractText(refImageNode);
+        } else {
+            key = extractText(refImageNode.referenceKey);
+        }
+
+        // Since XWiki doesn't support reference images, we generate a standard image instead
+        ReferenceNode referenceNode = this.references.get(key);
         if (referenceNode != null) {
             ResourceReference reference = this.imageResourceReferenceParser.parse(referenceNode.getUrl());
 
@@ -197,6 +229,19 @@ public abstract class AbstractLinkAndImagePegdownVisitor extends AbstractHTMLPeg
             }
 
             getListener().onImage(reference, false, parameters);
+        } else {
+            // Output an image to reference syntax in plain text... for lack of a better solution...
+            visit(IMAGE_LABEL_OPEN_CHARS);
+            visitChildren(refImageNode);
+            visit(IMAGE_LABEL_CLOSE_CHARS);
+            if (refImageNode.separatorSpace != null) {
+                visit(refImageNode.separatorSpace);
+                visit(REFERENCE_OPEN_CHARS);
+                if (refImageNode.referenceKey != null) {
+                    visit(key);
+                }
+                visit(REFERENCE_CLOSE_CHARS);
+            }
         }
     }
 
@@ -226,16 +271,17 @@ public abstract class AbstractLinkAndImagePegdownVisitor extends AbstractHTMLPeg
             visitChildren(refLinkNode);
             getListener().endLink(reference, false, parameters);
         } else {
-            visit(LINK_OPEN_CHAR);
+            // Output a link to reference syntax in plain text... for lack of a better solution...
+            visit(LINK_LABEL_OPEN_CHARS);
             visitChildren(refLinkNode);
-            visit(LINK_CLOSE_CHAR);
+            visit(LINK_LABEL_CLOSE_CHARS);
             if (refLinkNode.separatorSpace != null) {
                 visit(refLinkNode.separatorSpace);
-                visit(LINK_OPEN_CHAR);
+                visit(REFERENCE_OPEN_CHARS);
                 if (refLinkNode.referenceKey != null) {
                     visit(key);
                 }
-                visit(LINK_CLOSE_CHAR);
+                visit(REFERENCE_CLOSE_CHARS);
             }
         }
     }

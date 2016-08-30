@@ -1,26 +1,31 @@
 .#-----------------------------------------------------------------------------
-.inputexpect|markdown/1.0
-.# Test reference links when the reference doesn't exist
-.# Note that this is also a test when a link points to a url that contains
+.input|markdown/1.0
+.# Test reference images when the reference doesn't exist.
+.# Note that this is also a test when an image points to a url that contains
 .# spaces since in this case Pegdown ignores it and considers it as a null ref.
 .#-----------------------------------------------------------------------------
-[non existing ref]
+![label](non existing ref)
 
-[label][non existing ref]
+![label][non existing ref]
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
 beginDocument
 beginParagraph
+onSpecialSymbol [!]
 onSpecialSymbol [[]
+onWord [label]
+onSpecialSymbol []]
+onSpecialSymbol [(]
 onWord [non]
 onSpace
 onWord [existing]
 onSpace
 onWord [ref]
-onSpecialSymbol []]
+onSpecialSymbol [)]
 endParagraph
 beginParagraph
+onSpecialSymbol [!]
 onSpecialSymbol [[]
 onWord [label]
 onSpecialSymbol []]
@@ -33,3 +38,7 @@ onWord [ref]
 onSpecialSymbol []]
 endParagraph
 endDocument
+.#-----------------------------------------------------
+.expect|xhtml/1.0
+.#-----------------------------------------------------
+<p>![label](non existing ref)</p><p>![label][non existing ref]</p>
