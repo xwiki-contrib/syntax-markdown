@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.xwiki.contrib</groupId>
     <artifactId>parent-commons</artifactId>
-    <version>7.4-2</version>
+    <version>8.4</version>
   </parent>
   <groupId>org.xwiki.contrib.markdown</groupId>
   <artifactId>syntax-markdown</artifactId>
@@ -62,5 +62,6 @@
   <modules>
     <module>syntax-markdown-markdown10</module>
     <module>syntax-markdown-markdown11</module>
+    <module>syntax-markdown-markdown12</module>
   </modules>
 </project>
