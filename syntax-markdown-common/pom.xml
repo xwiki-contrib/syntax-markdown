@@ -27,41 +27,33 @@
     <artifactId>syntax-markdown</artifactId>
     <version>8.4-SNAPSHOT</version>
   </parent>
-  <artifactId>syntax-markdown-markdown12</artifactId>
-  <name>Markdown Syntax - Markdown 1.2</name>
-  <description>Markdown 1.2 Syntax Parser and Renderer</description>
+  <artifactId>syntax-markdown-common</artifactId>
+  <name>Markdown Syntax - Common Code</name>
+  <description>Common Code for the various Markdown flavors</description>
   <properties>
-    <xwiki.jacoco.instructionRatio>0.86</xwiki.jacoco.instructionRatio>
-    <!-- Name to display by the Extension Manager -->
-    <xwiki.extension.name>Markdown Syntax 1.2</xwiki.extension.name>
-    <!-- List it as a rendering syntax related module -->
-    <xwiki.extension.category>syntax</xwiki.extension.category>
+    <flexmark.version>0.7.0</flexmark.version>
   </properties>
   <dependencies>
     <dependency>
-      <groupId>org.xwiki.contrib.markdown</groupId>
-      <artifactId>syntax-markdown-common</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark</artifactId>
+      <version>${flexmark.version}</version>
     </dependency>
-    <!-- Test Dependencies -->
     <dependency>
-      <groupId>org.xwiki.rendering</groupId>
-      <artifactId>xwiki-rendering-test</artifactId>
-      <version>${rendering.version}</version>
-      <scope>test</scope>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-ext-wikilink</artifactId>
+      <version>${flexmark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.xwiki.rendering</groupId>
-      <artifactId>xwiki-rendering-syntax-event</artifactId>
+      <artifactId>xwiki-rendering-api</artifactId>
       <version>${rendering.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.xwiki.contrib.markdown</groupId>
-      <artifactId>syntax-markdown-commonmark027</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-      <type>test-jar</type>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-syntax-plain</artifactId>
+      <version>${rendering.version}</version>
+      <scope>runtime</scope>
     </dependency>
   </dependencies>
 </project>

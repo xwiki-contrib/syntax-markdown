@@ -1,0 +1,60 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
+package org.xwiki.contrib.rendering.markdown.markdown12.internal.parser;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.xwiki.contrib.rendering.markdown.common.internal.parser.AbstractMarkdownParser;
+import org.xwiki.rendering.parser.StreamParser;
+import org.xwiki.rendering.syntax.Syntax;
+import org.xwiki.rendering.syntax.SyntaxType;
+
+/**
+ * Markdown.pl (original markdown from https://daringfireball.net/projects/markdown/syntax) parser based on the
+ * <a href="https://github.com/vsch/flexmark-java">Flexmark Java Parser</a>.
+ *
+ * @version $Id$
+ * @since 8.4
+ */
+@Named("markdown/1.2")
+public class MarkdownParser extends AbstractMarkdownParser
+{
+    static final Syntax MARKDOWN_1_2 = new Syntax(new SyntaxType("markdown", "Markdown"), "1.2");
+
+    /**
+     * Streaming Markdown Parser.
+     */
+    @Inject
+    @Named("markdown/1.2")
+    private StreamParser markdownStreamParser;
+
+    @Override
+    public Syntax getSyntax()
+    {
+        return MARKDOWN_1_2;
+    }
+
+    @Override
+    protected StreamParser getMarkdownStreamParser()
+    {
+        return this.markdownStreamParser;
+    }
+}

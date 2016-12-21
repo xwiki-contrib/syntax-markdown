@@ -1,0 +1,20 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.0
+.# Test strikethrough. Note that MD has not syntax for
+.# strikethrough so we use HTML.
+.#-----------------------------------------------------
+This is <del>strikethrough</del>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [This]
+onSpace
+onWord [is]
+onSpace
+onRawText [<del>] [html/4.01]
+onWord [strikethrough]
+onRawText [</del>] [html/4.01]
+endParagraph
+endDocument

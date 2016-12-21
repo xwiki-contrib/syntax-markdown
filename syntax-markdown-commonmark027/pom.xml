@@ -27,37 +27,21 @@
     <artifactId>syntax-markdown</artifactId>
     <version>8.4-SNAPSHOT</version>
   </parent>
-  <artifactId>syntax-markdown-markdown11</artifactId>
-  <name>Markdown Syntax - Markdown 1.1</name>
-  <description>Markdown 1.1 Syntax Parser and Renderer</description>
+  <artifactId>syntax-markdown-commonmark027</artifactId>
+  <name>Markdown Syntax - Common Mark 0.27</name>
+  <description>Common Mark 0.27 Syntax Parser and Renderer</description>
   <properties>
-    <xwiki.jacoco.instructionRatio>0.52</xwiki.jacoco.instructionRatio>
+    <xwiki.jacoco.instructionRatio>0.86</xwiki.jacoco.instructionRatio>
     <!-- Name to display by the Extension Manager -->
-    <xwiki.extension.name>Markdown Syntax 1.1</xwiki.extension.name>
-    <!-- Old names of this module used for retro compatibility when resolving dependencies of old extensions -->
-    <xwiki.extension.features>org.xwiki.rendering:xwiki-rendering-syntax-markdown11</xwiki.extension.features>
+    <xwiki.extension.name>Common Mark Syntax 0.27</xwiki.extension.name>
     <!-- List it as a rendering syntax related module -->
     <xwiki.extension.category>syntax</xwiki.extension.category>
   </properties>
   <dependencies>
     <dependency>
       <groupId>org.xwiki.contrib.markdown</groupId>
-      <artifactId>syntax-markdown-markdown10</artifactId>
+      <artifactId>syntax-markdown-common</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pegdown</groupId>
-      <artifactId>pegdown</artifactId>
-      <version>1.4.1</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.rendering</groupId>
-      <artifactId>xwiki-rendering-syntax-xhtml</artifactId>
-      <version>${rendering.version}</version>
     </dependency>
     <!-- Test Dependencies -->
     <dependency>
@@ -72,25 +56,19 @@
       <version>${rendering.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.xwiki.contrib.markdown</groupId>
-      <artifactId>syntax-markdown-markdown10</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-      <type>test-jar</type>
-    </dependency>
   </dependencies>
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <configuration>
-          <!-- Parboiled parser classes uses specific naming etc. -->
-          <excludes>
-            org/xwiki/contrib/rendering/markdown11/internal/parser/*PegdownPluginParser.java
-          </excludes>
-        </configuration>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

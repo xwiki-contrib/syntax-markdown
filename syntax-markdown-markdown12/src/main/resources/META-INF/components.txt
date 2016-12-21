@@ -1,3 +1,2 @@
-org.xwiki.contrib.rendering.markdown12.internal.parser.MarkdownParser
-org.xwiki.contrib.rendering.markdown12.internal.parser.MarkdownStreamParser
-org.xwiki.contrib.rendering.markdown12.internal.parser.DefaultFlexmarkNodeVisitor
+org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.MarkdownParser
+org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.MarkdownStreamParser
