@@ -30,13 +30,21 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.rendering.markdown.common.MarkdownConfiguration;
 
+import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
+import com.vladsch.flexmark.ext.definition.DefinitionExtension;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.ext.wikilink.WikiLinkExtension;
 
 @Component
 @Singleton
 public class DefaultMarkdownConfiguration implements MarkdownConfiguration
 {
-    private static final List<Class> DEFAULT_EXTENSIONS = Arrays.asList(WikiLinkExtension.class);
+    private static final List<Class> DEFAULT_EXTENSIONS = Arrays.asList(
+        WikiLinkExtension.class,
+        AutolinkExtension.class,
+        DefinitionExtension.class,
+        TablesExtension.class
+    );
 
     private static final String EXTENSIONS_KEY = "rendering.markdown.extensions";
 

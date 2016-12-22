@@ -24,7 +24,11 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.rendering.listener.Listener;
+import org.xwiki.rendering.renderer.PrintRendererFactory;
+import org.xwiki.rendering.renderer.printer.DefaultWikiPrinter;
+import org.xwiki.rendering.renderer.printer.WikiPrinter;
 
+import com.vladsch.flexmark.ast.Node;
 import com.vladsch.flexmark.ast.NodeVisitor;
 import com.vladsch.flexmark.ast.util.ReferenceRepository;
 
@@ -41,10 +45,19 @@ public abstract class AbstractNodeVisitor
 
     private ReferenceRepository referenceRepository;
 
+    private PrintRendererFactory plainRendererFactory;
+
     public AbstractNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
+    {
+        this(visitor, listeners, null);
+    }
+
+    public AbstractNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners,
+        PrintRendererFactory plainRendererFactory)
     {
         this.visitor = visitor;
         this.listeners = listeners;
+        this.plainRendererFactory = plainRendererFactory;
     }
 
     /**
@@ -92,4 +105,14 @@ public abstract class AbstractNodeVisitor
             parameters.put(TITLE_ATTRIBUTE, title);
         }
     }
+
+    protected String extractText(Node node)
+    {
+        WikiPrinter printer = new DefaultWikiPrinter();
+        pushListener(this.plainRendererFactory.createRenderer(printer));
+        getVisitor().visitChildren(node);
+        popListener();
+        return printer.toString();
+    }
+
 }

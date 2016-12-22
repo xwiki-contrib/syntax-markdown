@@ -72,7 +72,15 @@ import com.vladsch.flexmark.ast.StrongEmphasis;
 import com.vladsch.flexmark.ast.Text;
 import com.vladsch.flexmark.ast.ThematicBreak;
 import com.vladsch.flexmark.ast.VisitHandler;
-import com.vladsch.flexmark.ast.WhiteSpace;
+import com.vladsch.flexmark.ext.definition.DefinitionItem;
+import com.vladsch.flexmark.ext.definition.DefinitionList;
+import com.vladsch.flexmark.ext.definition.DefinitionTerm;
+import com.vladsch.flexmark.ext.tables.TableBlock;
+import com.vladsch.flexmark.ext.tables.TableCaption;
+import com.vladsch.flexmark.ext.tables.TableCell;
+import com.vladsch.flexmark.ext.tables.TableHead;
+import com.vladsch.flexmark.ext.tables.TableRow;
+import com.vladsch.flexmark.ext.tables.TableSeparator;
 import com.vladsch.flexmark.ext.wikilink.WikiLink;
 import com.vladsch.flexmark.parser.Parser;
 
@@ -172,17 +180,44 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
         // Handle list nodes
         ListNodeVisitor listNodeVisitor = new ListNodeVisitor(this.visitor, this.listeners);
         this.visitor.addHandlers(
-                new VisitHandler<>(BulletList.class, listNodeVisitor::visit),
-                new VisitHandler<>(BulletListItem.class, listNodeVisitor::visit),
-                new VisitHandler<>(OrderedList.class, listNodeVisitor::visit),
-                new VisitHandler<>(OrderedListItem.class, listNodeVisitor::visit)
+            new VisitHandler<>(BulletList.class, listNodeVisitor::visit),
+            new VisitHandler<>(BulletListItem.class, listNodeVisitor::visit),
+            new VisitHandler<>(OrderedList.class, listNodeVisitor::visit),
+            new VisitHandler<>(OrderedListItem.class, listNodeVisitor::visit),
+            new VisitHandler<>(DefinitionList.class, listNodeVisitor::visit),
+            new VisitHandler<>(DefinitionItem.class, listNodeVisitor::visit),
+            new VisitHandler<>(DefinitionTerm.class, listNodeVisitor::visit)
         );
 
+        // Handle quote nodes
+        QuoteNodeVisitor quoteNodeVisitor = new QuoteNodeVisitor(this.visitor, this.listeners);
+        this.visitor.addHandlers(
+            new VisitHandler<>(BlockQuote.class, quoteNodeVisitor::visit)
+        );
+
+        // Handle Heading nodes
+        HeadingNodeVisitor headingNodeVisitor = new HeadingNodeVisitor(this.visitor, this.listeners,
+            this.plainRendererFactory);
+        this.visitor.addHandlers(
+            new VisitHandler<>(Heading.class, headingNodeVisitor::visit)
+        );
+
+        // Handle Table nodes
+        TableNodeVisitor tableNodeVisitor = new TableNodeVisitor(this.visitor, this.listeners,
+            this.plainRendererFactory);
+        this.visitor.addHandlers(
+            new VisitHandler<>(TableBlock.class, tableNodeVisitor::visit),
+            new VisitHandler<>(TableHead.class, tableNodeVisitor::visit),
+            new VisitHandler<>(TableRow.class, tableNodeVisitor::visit),
+            new VisitHandler<>(TableCell.class, tableNodeVisitor::visit),
+            new VisitHandler<>(TableCaption.class, tableNodeVisitor::visit),
+            new VisitHandler<>(TableSeparator.class, tableNodeVisitor::visit)
+        );
+
+        // Handle other node types
         this.visitor.addHandlers(
             new VisitHandler<>(Document.class, this::visit),
-            new VisitHandler<>(BlockQuote.class, this::visit),
             new VisitHandler<>(FencedCodeBlock.class, this::visit),
-            new VisitHandler<>(Heading.class, this::visit),
             new VisitHandler<>(HtmlBlock.class, this::visit),
             new VisitHandler<>(HtmlCommentBlock.class, this::visit),
             new VisitHandler<>(IndentedCodeBlock.class, this::visit),

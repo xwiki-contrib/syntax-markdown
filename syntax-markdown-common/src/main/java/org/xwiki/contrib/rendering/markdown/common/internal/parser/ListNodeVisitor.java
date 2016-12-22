@@ -21,9 +21,11 @@ package org.xwiki.contrib.rendering.markdown.common.internal.parser;
 
 import java.util.Collections;
 import java.util.Deque;
+import java.util.Map;
 
 import org.xwiki.rendering.listener.ListType;
 import org.xwiki.rendering.listener.Listener;
+import org.xwiki.rendering.listener.WrappingListener;
 
 import com.vladsch.flexmark.ast.BulletList;
 import com.vladsch.flexmark.ast.BulletListItem;
@@ -31,6 +33,9 @@ import com.vladsch.flexmark.ast.Node;
 import com.vladsch.flexmark.ast.NodeVisitor;
 import com.vladsch.flexmark.ast.OrderedList;
 import com.vladsch.flexmark.ast.OrderedListItem;
+import com.vladsch.flexmark.ext.definition.DefinitionItem;
+import com.vladsch.flexmark.ext.definition.DefinitionList;
+import com.vladsch.flexmark.ext.definition.DefinitionTerm;
 
 public class ListNodeVisitor extends AbstractNodeVisitor
 {
@@ -63,10 +68,54 @@ public class ListNodeVisitor extends AbstractNodeVisitor
         visitListItem(node);
     }
 
+    public void visit(DefinitionList node)
+    {
+        getListener().beginDefinitionList(Collections.EMPTY_MAP);
+        getVisitor().visitChildren(node);
+        getListener().endDefinitionList(Collections.EMPTY_MAP);
+    }
+
+    public void visit(DefinitionTerm node)
+    {
+        getListener().beginDefinitionTerm();
+        getVisitor().visitChildren(node);
+        getListener().endDefinitionTerm();
+    }
+
+    public void visit(DefinitionItem node)
+    {
+        getListener().beginDefinitionDescription();
+        visitChildrenAndSwallowParagraphs(node);
+        getListener().endDefinitionDescription();
+    }
+
     private void visitListItem(Node node)
     {
         getListener().beginListItem();
-        getVisitor().visitChildren(node);
+        visitChildrenAndSwallowParagraphs(node);
         getListener().endListItem();
+    }
+
+    private void visitChildrenAndSwallowParagraphs(Node node)
+    {
+        // Don't generate paragraphs for list items since the XWiki model doesn't wrap list item content inside
+        // paragraphs.
+        WrappingListener listener = new WrappingListener() {
+            @Override
+            public void beginParagraph(Map<String, String> parameters)
+            {
+                // Ignore
+            }
+
+            @Override
+            public void endParagraph(Map<String, String> parameters)
+            {
+                // Ignore
+            }
+        };
+        listener.setWrappedListener(getListener());
+        pushListener(listener);
+        getVisitor().visitChildren(node);
+        popListener();
     }
 }

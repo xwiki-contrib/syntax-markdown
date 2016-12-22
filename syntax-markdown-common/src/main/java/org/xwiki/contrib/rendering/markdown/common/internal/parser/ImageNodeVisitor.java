@@ -31,13 +31,10 @@ import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.listener.reference.ResourceReference;
 import org.xwiki.rendering.parser.ResourceReferenceParser;
 import org.xwiki.rendering.renderer.PrintRendererFactory;
-import org.xwiki.rendering.renderer.printer.DefaultWikiPrinter;
-import org.xwiki.rendering.renderer.printer.WikiPrinter;
 import org.xwiki.rendering.renderer.reference.link.URILabelGenerator;
 
 import com.vladsch.flexmark.ast.Image;
 import com.vladsch.flexmark.ast.ImageRef;
-import com.vladsch.flexmark.ast.Node;
 import com.vladsch.flexmark.ast.NodeVisitor;
 import com.vladsch.flexmark.ast.Reference;
 
@@ -45,17 +42,14 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
 {
     private ResourceReferenceParser imageResourceReferenceParser;
 
-    private PrintRendererFactory plainRendererFactory;
-
     private ComponentManager componentManager;
 
     public ImageNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners,
             ResourceReferenceParser imageResourceReferenceParser, ComponentManager componentManager,
             PrintRendererFactory plainRendererFactory)
     {
-        super(visitor, listeners);
+        super(visitor, listeners, plainRendererFactory);
         this.imageResourceReferenceParser = imageResourceReferenceParser;
-        this.plainRendererFactory = plainRendererFactory;
         this.componentManager = componentManager;
     }
 
@@ -97,21 +91,6 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
 
             getListener().onImage(resourceReference, false, parameters);
         }
-    }
-
-    /**
-     * Extracts the content of the passed Node as a String.
-     *
-     * @param node the node from which to extract the content
-     * @return the textual content of the passed node and children
-     */
-    private String extractText(Node node)
-    {
-        WikiPrinter printer = new DefaultWikiPrinter();
-        pushListener(this.plainRendererFactory.createRenderer(printer));
-        getVisitor().visitChildren(node);
-        popListener();
-        return printer.toString();
     }
 
     /**
