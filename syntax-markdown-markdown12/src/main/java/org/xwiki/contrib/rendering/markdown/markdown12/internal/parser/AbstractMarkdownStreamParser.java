@@ -74,8 +74,9 @@ public abstract class AbstractMarkdownStreamParser implements StreamParser
                 Extension extension = (Extension) method.invoke(null);
                 extensions.add(extension);
             }
+            options.set(Parser.EXTENSIONS, extensions);
 
-            Parser parser = Parser.builder(options).extensions(extensions).build();
+            Parser parser = Parser.builder(options).build();
             document = parser.parse(IOUtils.toString(source));
         } catch (Exception e) {
             throw new ParseException(String.format("Failed to parse Markdown content for family [%s]",

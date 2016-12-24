@@ -75,6 +75,7 @@ import com.vladsch.flexmark.ast.VisitHandler;
 import com.vladsch.flexmark.ext.definition.DefinitionItem;
 import com.vladsch.flexmark.ext.definition.DefinitionList;
 import com.vladsch.flexmark.ext.definition.DefinitionTerm;
+import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough;
 import com.vladsch.flexmark.ext.tables.TableBlock;
 import com.vladsch.flexmark.ext.tables.TableCaption;
 import com.vladsch.flexmark.ext.tables.TableCell;
@@ -212,6 +213,13 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
             new VisitHandler<>(TableCell.class, tableNodeVisitor::visit),
             new VisitHandler<>(TableCaption.class, tableNodeVisitor::visit),
             new VisitHandler<>(TableSeparator.class, tableNodeVisitor::visit)
+        );
+
+        // Handle strikethrough nodes
+        StrikethroughNodeVisitor strikethroughNodeVisitor =
+            new StrikethroughNodeVisitor(this.visitor, this.listeners);
+        this.visitor.addHandlers(
+            new VisitHandler<>(Strikethrough.class, strikethroughNodeVisitor::visit)
         );
 
         // Handle other node types
