@@ -89,7 +89,7 @@ public abstract class AbstractPluginsPegdownVisitor extends AbstractTablePegdown
     }
 
     /**
-     * Handles formatted text node. This is common code for superscript and subscript visitor.
+     * Handles formatted text node. This is markdown12 code for superscript and subscript visitor.
      *
      * @param node any text node
      * @param format formatting style

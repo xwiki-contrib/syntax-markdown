@@ -31,7 +31,8 @@
   <name>Markdown Syntax - Markdown 1.2</name>
   <description>Markdown 1.2 Syntax Parser and Renderer</description>
   <properties>
-    <xwiki.jacoco.instructionRatio>0.86</xwiki.jacoco.instructionRatio>
+    <flexmark.version>0.7.0</flexmark.version>
+    <xwiki.jacoco.instructionRatio>1.00</xwiki.jacoco.instructionRatio>
     <!-- Name to display by the Extension Manager -->
     <xwiki.extension.name>Markdown Syntax 1.2</xwiki.extension.name>
     <!-- List it as a rendering syntax related module -->
@@ -39,9 +40,40 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>org.xwiki.contrib.markdown</groupId>
-      <artifactId>syntax-markdown-common</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark</artifactId>
+      <version>${flexmark.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-ext-wikilink</artifactId>
+      <version>${flexmark.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-ext-autolink</artifactId>
+      <version>${flexmark.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-ext-definition</artifactId>
+      <version>${flexmark.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-ext-tables</artifactId>
+      <version>${flexmark.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-api</artifactId>
+      <version>${rendering.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-syntax-plain</artifactId>
+      <version>${rendering.version}</version>
+      <scope>runtime</scope>
     </dependency>
     <!-- Test Dependencies -->
     <dependency>
@@ -55,13 +87,6 @@
       <artifactId>xwiki-rendering-syntax-event</artifactId>
       <version>${rendering.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.contrib.markdown</groupId>
-      <artifactId>syntax-markdown-commonmark027</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-      <type>test-jar</type>
     </dependency>
   </dependencies>
 </project>

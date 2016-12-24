@@ -1,2 +1,0 @@
-org.xwiki.contrib.rendering.markdown.common.internal.parser.DefaultFlexmarkNodeVisitor
-org.xwiki.contrib.rendering.markdown.common.internal.DefaultMarkdownConfiguration

@@ -60,8 +60,6 @@
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
   </properties>
   <modules>
-    <module>syntax-markdown-common</module>
-    <module>syntax-markdown-commonmark027</module>
     <module>syntax-markdown-markdown10</module>
     <module>syntax-markdown-markdown11</module>
     <module>syntax-markdown-markdown12</module>

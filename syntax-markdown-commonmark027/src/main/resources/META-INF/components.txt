@@ -1,2 +1,0 @@
-org.xwiki.contrib.rendering.markdown.commonmark027.internal.parser.CommonMark027Parser
-org.xwiki.contrib.rendering.markdown.commonmark027.internal.parser.CommonMark027StreamParser

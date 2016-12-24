@@ -1,5 +1,5 @@
 .#-----------------------------------------------------
-.input|markdown/1.0
+.input|markdown/1.2
 .# Test reference links
 .#-----------------------------------------------------
 This is the [simple case].
@@ -25,7 +25,7 @@ onSpecialSymbol [.]
 endParagraph
 endDocument
 .#----------------------------------------------------------------------------------------
-.expect|markdown/1.0
+.expect|markdown/1.2
 .# There's no support for reference links in XWiki model and thus we generate normal links
 .#----------------------------------------------------------------------------------------
 This is the [simple case](/simple).
