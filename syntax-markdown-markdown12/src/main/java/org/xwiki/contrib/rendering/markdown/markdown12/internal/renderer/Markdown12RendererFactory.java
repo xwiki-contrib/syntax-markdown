@@ -17,39 +17,28 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.rendering.markdown.markdown12.internal.parser;
+package org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer;
 
-import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
-import org.xwiki.rendering.parser.StreamParser;
+import org.xwiki.component.annotation.Component;
+import org.xwiki.rendering.internal.renderer.AbstractPrintRendererFactory;
 import org.xwiki.rendering.syntax.Syntax;
-import org.xwiki.rendering.syntax.SyntaxType;
+
+import static org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.Markdown12Parser.MARKDOWN_12;
 
 /**
- * Markdown Parser using <a href="https://github.com/vsch/flexmark-java">flexmark-java</a>.
+ * Create Markdown 1.2 Renderers.
  *
  * @version $Id$
  * @since 8.4
  */
+@Component
 @Named("markdown/1.2")
-public class Markdown12Parser extends AbstractMarkdownParser
+@Singleton
+public class Markdown12RendererFactory extends AbstractPrintRendererFactory
 {
-    public static final Syntax MARKDOWN_12 = new Syntax(new SyntaxType("markdown", "Markdown"), "1.2");
-
-    /**
-     * Streaming Markdown Parser.
-     */
-    @Inject
-    @Named("markdown/1.2")
-    private StreamParser commonMarkStreamParser;
-
-    @Override
-    protected StreamParser getMarkdownStreamParser()
-    {
-        return this.commonMarkStreamParser;
-    }
-
     @Override
     public Syntax getSyntax()
     {

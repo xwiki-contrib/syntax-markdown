@@ -1,27 +1,24 @@
 .#-----------------------------------------------------
-.inputexpect|markdown/1.2
-.# Test inline XHTML
+.input|markdown/1.2
+.# Test Markdown-style macro without parameters
 .#-----------------------------------------------------
-hello **<del>world</del>** <sup>beta</sup>
+This is inline #[mymacro](Macro content here).
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
 beginDocument
 beginParagraph
-onWord [hello]
+onWord [This]
 onSpace
-beginFormat [BOLD]
-onRawText [<del>] [xhtml/1.0]
-onWord [world]
-onRawText [</del>] [xhtml/1.0]
-endFormat [BOLD]
+onWord [is]
 onSpace
-onRawText [<sup>] [xhtml/1.0]
-onWord [beta]
-onRawText [</sup>] [xhtml/1.0]
+onWord [inline]
+onSpace
+onMacroInline [mymacro] [] [Macro content here]
+onSpecialSymbol [.]
 endParagraph
 endDocument
 .#-----------------------------------------------------
-.expect|xhtml/1.0
+.expect|markdown/1.2
 .#-----------------------------------------------------
-<p>hello <strong><del>world</del></strong> <sup>beta</sup></p>
+This is inline #[mymacro]("Macro content here").

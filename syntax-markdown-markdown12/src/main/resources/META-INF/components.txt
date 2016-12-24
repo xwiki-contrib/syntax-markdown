@@ -2,3 +2,6 @@ org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.DefaultFlexmarkN
 org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.Markdown12Parser
 org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.Markdown12StreamParser
 org.xwiki.contrib.rendering.markdown.markdown12.internal.DefaultMarkdownConfiguration
+org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12BlockRenderer
+org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12Renderer
+org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12RendererFactory

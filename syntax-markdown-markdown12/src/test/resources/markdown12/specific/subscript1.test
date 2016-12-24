@@ -1,14 +1,24 @@
 .#-----------------------------------------------------
 .inputexpect|markdown/1.2
-.# Make sure special characters are properly handled
+.# Test subscript without spaces around
 .#-----------------------------------------------------
-'&
+H~2~O is a liquid.
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
 beginDocument
 beginParagraph
-onSpecialSymbol [']
-onSpecialSymbol [&]
+onWord [H]
+beginFormat [SUBSCRIPT]
+onWord [2]
+endFormat [SUBSCRIPT]
+onWord [O]
+onSpace
+onWord [is]
+onSpace
+onWord [a]
+onSpace
+onWord [liquid]
+onSpecialSymbol [.]
 endParagraph
 endDocument

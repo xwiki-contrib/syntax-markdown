@@ -1,5 +1,5 @@
 .#-----------------------------------------------------
-.inputexpect|markdown/1.0
+.inputexpect|markdown/1.2
 .# Code syntax using PHP Markdown Extra, see
 .# http://www.decodified.com/pegdown/api/org/pegdown/Extensions.html#FENCED_CODE_BLOCKS
 .#-----------------------------------------------------

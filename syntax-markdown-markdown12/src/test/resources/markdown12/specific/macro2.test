@@ -1,21 +1,15 @@
 .#-----------------------------------------------------
 .input|markdown/1.2
-.# Test inline code using alternate syntax
+.# Test XWiki-style macro without parameters and content
 .#-----------------------------------------------------
-This is ``some code``
+{{mymacro}}{{/mymacro}}
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
 beginDocument
-beginParagraph
-onWord [This]
-onSpace
-onWord [is]
-onSpace
-onMacroInline [code] [] [some code]
-endParagraph
+onMacroStandalone [mymacro] []
 endDocument
 .#-----------------------------------------------------
-.expect|markdown/1.0
+.expect|markdown/1.2
 .#-----------------------------------------------------
-This is `some code`
+{{mymacro/}}

@@ -17,42 +17,31 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.rendering.markdown.markdown12.internal.parser;
+package org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.xwiki.rendering.parser.StreamParser;
-import org.xwiki.rendering.syntax.Syntax;
-import org.xwiki.rendering.syntax.SyntaxType;
+import org.xwiki.component.annotation.Component;
+import org.xwiki.component.annotation.InstantiationStrategy;
+import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
+import org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownRenderer;
+import org.xwiki.rendering.listener.chaining.ChainingListener;
+import org.xwiki.rendering.listener.chaining.ListenerChain;
 
 /**
- * Markdown Parser using <a href="https://github.com/vsch/flexmark-java">flexmark-java</a>.
+ * Generates Markdown 1.2 from a {@link org.xwiki.rendering.block.XDOM} object being traversed.
  *
  * @version $Id$
  * @since 8.4
  */
+@Component
 @Named("markdown/1.2")
-public class Markdown12Parser extends AbstractMarkdownParser
+@InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
+public class Markdown12Renderer extends MarkdownRenderer
 {
-    public static final Syntax MARKDOWN_12 = new Syntax(new SyntaxType("markdown", "Markdown"), "1.2");
-
-    /**
-     * Streaming Markdown Parser.
-     */
-    @Inject
-    @Named("markdown/1.2")
-    private StreamParser commonMarkStreamParser;
-
     @Override
-    protected StreamParser getMarkdownStreamParser()
+    protected ChainingListener createXWikiSyntaxChainingRenderer(ListenerChain chain)
     {
-        return this.commonMarkStreamParser;
-    }
-
-    @Override
-    public Syntax getSyntax()
-    {
-        return MARKDOWN_12;
+        return new Markdown12ChainingRenderer(chain, this.linkReferenceSerializer, this.imageReferenceSerializer);
     }
 }

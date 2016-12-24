@@ -40,6 +40,11 @@
   </properties>
   <dependencies>
     <dependency>
+      <groupId>org.xwiki.contrib.markdown</groupId>
+      <artifactId>syntax-markdown-markdown11</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.vladsch.flexmark</groupId>
       <artifactId>flexmark</artifactId>
       <version>${flexmark.version}</version>

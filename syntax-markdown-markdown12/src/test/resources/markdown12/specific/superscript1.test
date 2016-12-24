@@ -1,20 +1,21 @@
 .#-----------------------------------------------------
-.inputexpect|markdown/1.0
-.# Test strikethrough. Note that MD has not syntax for
-.# strikethrough so we use HTML.
+.inputexpect|markdown/1.2
+.# Test superscript without spaces around
 .#-----------------------------------------------------
-This is <del>strikethrough</del>
+2^10^ is 1024.
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
 beginDocument
 beginParagraph
-onWord [This]
+onWord [2]
+beginFormat [SUPERSCRIPT]
+onWord [10]
+endFormat [SUPERSCRIPT]
 onSpace
 onWord [is]
 onSpace
-onRawText [<del>] [html/4.01]
-onWord [strikethrough]
-onRawText [</del>] [html/4.01]
+onWord [1024]
+onSpecialSymbol [.]
 endParagraph
 endDocument

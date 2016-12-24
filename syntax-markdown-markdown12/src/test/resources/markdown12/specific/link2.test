@@ -1,9 +1,7 @@
-.#-----------------------------------------------------------------------------
+.#-----------------------------------------------------
 .inputexpect|markdown/1.2
 .# Test reference links when the reference doesn't exist
-.# Note that this is also a test when a link points to a url that contains
-.# spaces since in this case Pegdown ignores it and considers it as a null ref.
-.#-----------------------------------------------------------------------------
+.#-----------------------------------------------------
 [non existing ref]
 
 [label][non existing ref]

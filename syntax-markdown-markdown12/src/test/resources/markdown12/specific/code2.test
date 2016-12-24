@@ -1,5 +1,5 @@
 .#-----------------------------------------------------
-.inputexpect|markdown/1.0
+.inputexpect|markdown/1.2
 .# Test standalone code using fenced blocks
 .#-----------------------------------------------------
     code line1
