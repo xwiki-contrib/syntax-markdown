@@ -33,9 +33,12 @@ import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
 import com.vladsch.flexmark.ext.definition.DefinitionExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
+import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughSubscriptExtension;
+import com.vladsch.flexmark.ext.gfm.strikethrough.SubscriptExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.ext.wikilink.WikiLinkExtension;
 import com.vladsch.flexmark.parser.ParserEmulationFamily;
+import com.vladsch.flexmark.superscript.SuperscriptExtension;
 
 @Component
 @Singleton
@@ -46,7 +49,8 @@ public class DefaultMarkdownConfiguration implements MarkdownConfiguration
         AutolinkExtension.class,
         DefinitionExtension.class,
         TablesExtension.class,
-        StrikethroughExtension.class
+        StrikethroughSubscriptExtension.class,
+        SuperscriptExtension.class
     );
 
     private static final ParserEmulationFamily DEFAULT_FAMILY = ParserEmulationFamily.valueOf("COMMONMARK");

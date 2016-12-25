@@ -29,9 +29,9 @@ import com.vladsch.flexmark.ast.Emphasis;
 import com.vladsch.flexmark.ast.NodeVisitor;
 import com.vladsch.flexmark.ast.StrongEmphasis;
 
-public class FormatNodeVisitor extends AbstractNodeVisitor
+public class EmphasisNodeVisitor extends AbstractNodeVisitor
 {
-    public FormatNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
+    public EmphasisNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
     {
         super(visitor, listeners);
     }

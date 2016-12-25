@@ -76,6 +76,7 @@ import com.vladsch.flexmark.ext.definition.DefinitionItem;
 import com.vladsch.flexmark.ext.definition.DefinitionList;
 import com.vladsch.flexmark.ext.definition.DefinitionTerm;
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough;
+import com.vladsch.flexmark.ext.gfm.strikethrough.Subscript;
 import com.vladsch.flexmark.ext.tables.TableBlock;
 import com.vladsch.flexmark.ext.tables.TableCaption;
 import com.vladsch.flexmark.ext.tables.TableCell;
@@ -84,6 +85,7 @@ import com.vladsch.flexmark.ext.tables.TableRow;
 import com.vladsch.flexmark.ext.tables.TableSeparator;
 import com.vladsch.flexmark.ext.wikilink.WikiLink;
 import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.superscript.Superscript;
 
 @Component
 @InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
@@ -147,11 +149,11 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
 
         this.visitor = new NodeVisitor(new VisitHandler<>(Document.class, this::visit));
 
-        // Handle formatting nodes
-        FormatNodeVisitor formatNodeVisitor = new FormatNodeVisitor(this.visitor, this.listeners);
+        // Handle Emphasis nodes
+        EmphasisNodeVisitor emphasisNodeVisitor = new EmphasisNodeVisitor(this.visitor, this.listeners);
         this.visitor.addHandlers(
-            new VisitHandler<>(Emphasis.class, formatNodeVisitor::visit),
-            new VisitHandler<>(StrongEmphasis.class, formatNodeVisitor::visit)
+            new VisitHandler<>(Emphasis.class, emphasisNodeVisitor::visit),
+            new VisitHandler<>(StrongEmphasis.class, emphasisNodeVisitor::visit)
         );
 
         // Handle Paragraph nodes
@@ -220,6 +222,14 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
             new StrikethroughNodeVisitor(this.visitor, this.listeners);
         this.visitor.addHandlers(
             new VisitHandler<>(Strikethrough.class, strikethroughNodeVisitor::visit)
+        );
+
+        // Handle superscript and subscript nodes
+        SubSuperscriptNodeVisitor subSuperscriptNodeVisitor =
+            new SubSuperscriptNodeVisitor(this.visitor, this.listeners);
+        this.visitor.addHandlers(
+            new VisitHandler<>(Subscript.class, subSuperscriptNodeVisitor::visit),
+            new VisitHandler<>(Superscript.class, subSuperscriptNodeVisitor::visit)
         );
 
         // Handle other node types

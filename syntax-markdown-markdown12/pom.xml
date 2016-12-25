@@ -31,7 +31,7 @@
   <name>Markdown Syntax - Markdown 1.2</name>
   <description>Markdown 1.2 Syntax Parser and Renderer</description>
   <properties>
-    <flexmark.version>0.7.0</flexmark.version>
+    <flexmark.version>0.9.0</flexmark.version>
     <xwiki.jacoco.instructionRatio>1.00</xwiki.jacoco.instructionRatio>
     <!-- Name to display by the Extension Manager -->
     <xwiki.extension.name>Markdown Syntax 1.2</xwiki.extension.name>
@@ -72,6 +72,11 @@
     <dependency>
       <groupId>com.vladsch.flexmark</groupId>
       <artifactId>flexmark-ext-gfm-strikethrough</artifactId>
+      <version>${flexmark.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-ext-superscript</artifactId>
       <version>${flexmark.version}</version>
     </dependency>
     <dependency>
