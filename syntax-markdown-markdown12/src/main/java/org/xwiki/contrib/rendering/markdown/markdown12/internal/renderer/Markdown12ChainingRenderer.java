@@ -19,10 +19,17 @@
  */
 package org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer;
 
+import java.util.Map;
+
+import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 import org.xwiki.contrib.rendering.markdown11.internal.renderer.Markdown11ChainingRenderer;
+import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
 import org.xwiki.rendering.listener.reference.ResourceReference;
 import org.xwiki.rendering.renderer.reference.ResourceReferenceSerializer;
+
+import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
+import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughSubscriptExtension;
 
 /**
  * Convert listener events to Markdown 1.2.
@@ -32,14 +39,46 @@ import org.xwiki.rendering.renderer.reference.ResourceReferenceSerializer;
  */
 public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 {
+    private static final String STRIKEDOUT_SYMBOL = "~~";
+
+    private MarkdownConfiguration configuration;
+
     /**
      * @param listenerChain the chain of listener filters used to compute various states
      * @param linkReferenceSerializer the component to use for converting {@link ResourceReference} links to strings
      * @param imageReferenceSerializer the component to use for converting {@link ResourceReference} images to strings
      */
     public Markdown12ChainingRenderer(ListenerChain listenerChain,
-        ResourceReferenceSerializer linkReferenceSerializer, ResourceReferenceSerializer imageReferenceSerializer)
+        ResourceReferenceSerializer linkReferenceSerializer, ResourceReferenceSerializer imageReferenceSerializer,
+            MarkdownConfiguration configuration)
     {
         super(listenerChain, linkReferenceSerializer, imageReferenceSerializer);
+        this.configuration = configuration;
+    }
+
+    @Override
+    public void beginFormat(Format format, Map<String, String> parameters)
+    {
+        if (format.equals(Format.STRIKEDOUT)
+            && (this.configuration.getExtensionClasses().contains(StrikethroughExtension.class)
+            || this.configuration.getExtensionClasses().contains(StrikethroughSubscriptExtension.class)))
+        {
+            print(STRIKEDOUT_SYMBOL);
+        } else {
+            super.beginFormat(format, parameters);
+        }
+    }
+
+    @Override
+    public void endFormat(Format format, Map<String, String> parameters)
+    {
+        if (format.equals(Format.STRIKEDOUT)
+                && (this.configuration.getExtensionClasses().contains(StrikethroughExtension.class)
+                || this.configuration.getExtensionClasses().contains(StrikethroughSubscriptExtension.class)))
+        {
+            print(STRIKEDOUT_SYMBOL);
+        } else {
+            super.endFormat(format, parameters);
+        }
     }
 }

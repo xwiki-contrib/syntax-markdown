@@ -19,11 +19,13 @@
  */
 package org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.InstantiationStrategy;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
+import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 import org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownRenderer;
 import org.xwiki.rendering.listener.chaining.ChainingListener;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
@@ -39,9 +41,13 @@ import org.xwiki.rendering.listener.chaining.ListenerChain;
 @InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
 public class Markdown12Renderer extends MarkdownRenderer
 {
+    @Inject
+    private MarkdownConfiguration configuration;
+
     @Override
     protected ChainingListener createXWikiSyntaxChainingRenderer(ListenerChain chain)
     {
-        return new Markdown12ChainingRenderer(chain, this.linkReferenceSerializer, this.imageReferenceSerializer);
+        return new Markdown12ChainingRenderer(chain, this.linkReferenceSerializer, this.imageReferenceSerializer,
+            this.configuration);
     }
 }
