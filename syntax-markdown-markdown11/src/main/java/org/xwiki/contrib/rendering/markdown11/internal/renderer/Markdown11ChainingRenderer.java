@@ -39,9 +39,9 @@ import org.xwiki.rendering.renderer.reference.ResourceReferenceSerializer;
  */
 public class Markdown11ChainingRenderer extends MarkdownChainingRenderer
 {
-    private static final String SUPERSCRIPT_SYMBOL = "^";
+    protected static final String SUPERSCRIPT_SYMBOL = "^";
 
-    private static final String SUBSCRIPT_SYMBOL = "~";
+    protected static final String SUBSCRIPT_SYMBOL = "~";
 
     private MarkdownMacroRenderer macroPrinter;
 
@@ -71,7 +71,7 @@ public class Markdown11ChainingRenderer extends MarkdownChainingRenderer
                 super.beginFormat(format, parameters);
         }
 
-        // Accumulate all content thereafter so that we can escape any space inside superscript or subscriptin since
+        // Accumulate all content thereafter so that we can escape any space inside superscript or subscript since
         // MD Extra doesn't support this.
         switch (format) {
             case SUPERSCRIPT:

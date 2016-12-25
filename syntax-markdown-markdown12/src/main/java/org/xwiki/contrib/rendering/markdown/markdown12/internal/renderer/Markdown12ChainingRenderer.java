@@ -65,7 +65,18 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         {
             print(STRIKEDOUT_SYMBOL);
         } else {
-            super.beginFormat(format, parameters);
+            // Override from Markdown11ChainingRenderer since there's no need to escape space characters with
+            //flexmark-java.
+            switch (format) {
+                case SUPERSCRIPT:
+                    print(SUPERSCRIPT_SYMBOL);
+                    break;
+                case SUBSCRIPT:
+                    print(SUBSCRIPT_SYMBOL);
+                    break;
+                default:
+                    super.beginFormat(format, parameters);
+            }
         }
     }
 
@@ -78,7 +89,18 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         {
             print(STRIKEDOUT_SYMBOL);
         } else {
-            super.endFormat(format, parameters);
+            // Override from Markdown11ChainingRenderer since there's no need to escape space characters with
+            //flexmark-java.
+            switch (format) {
+                case SUPERSCRIPT:
+                    print(SUPERSCRIPT_SYMBOL);
+                    break;
+                case SUBSCRIPT:
+                    print(SUBSCRIPT_SYMBOL);
+                    break;
+                default:
+                    super.endFormat(format, parameters);
+            }
         }
     }
 }

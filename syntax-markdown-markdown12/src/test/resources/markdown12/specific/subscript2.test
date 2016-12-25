@@ -2,7 +2,7 @@
 .inputexpect|markdown/1.2
 .# Test subscript with spaces inside
 .#-----------------------------------------------------
-This is ~subscript\ with\ spaces~, this is ~ordinary text~.
+This is ~subscript with spaces~.
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -19,17 +19,6 @@ onWord [with]
 onSpace
 onWord [spaces]
 endFormat [SUBSCRIPT]
-onSpecialSymbol [,]
-onSpace
-onWord [this]
-onSpace
-onWord [is]
-onSpace
-onSpecialSymbol [~]
-onWord [ordinary]
-onSpace
-onWord [text]
-onSpecialSymbol [~]
 onSpecialSymbol [.]
 endParagraph
 endDocument
