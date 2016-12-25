@@ -232,19 +232,24 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
             new VisitHandler<>(Superscript.class, subSuperscriptNodeVisitor::visit)
         );
 
+        // Handle HTML nodes
+        HTMLNodeVisitor htmlNodeVisitor = new HTMLNodeVisitor(this.visitor, this.listeners);
+        this.visitor.addHandlers(
+            new VisitHandler<>(HtmlBlock.class, htmlNodeVisitor::visit),
+            new VisitHandler<>(HtmlCommentBlock.class, htmlNodeVisitor::visit),
+            new VisitHandler<>(HtmlEntity.class, htmlNodeVisitor::visit),
+            new VisitHandler<>(HtmlInline.class, htmlNodeVisitor::visit),
+            new VisitHandler<>(HtmlInlineComment.class, htmlNodeVisitor::visit)
+        );
+
         // Handle other node types
         this.visitor.addHandlers(
             new VisitHandler<>(Document.class, this::visit),
             new VisitHandler<>(FencedCodeBlock.class, this::visit),
-            new VisitHandler<>(HtmlBlock.class, this::visit),
-            new VisitHandler<>(HtmlCommentBlock.class, this::visit),
             new VisitHandler<>(IndentedCodeBlock.class, this::visit),
             new VisitHandler<>(ThematicBreak.class, this::visit),
             new VisitHandler<>(Code.class, this::visit),
             new VisitHandler<>(HardLineBreak.class, this::visit),
-            new VisitHandler<>(HtmlEntity.class, this::visit),
-            new VisitHandler<>(HtmlInline.class, this::visit),
-            new VisitHandler<>(HtmlInlineComment.class, this::visit),
             new VisitHandler<>(SoftLineBreak.class, this::visit),
             new VisitHandler<>(Text.class, this::visit)
         );
