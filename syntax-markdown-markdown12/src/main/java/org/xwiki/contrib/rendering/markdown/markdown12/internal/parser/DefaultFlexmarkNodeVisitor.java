@@ -72,6 +72,7 @@ import com.vladsch.flexmark.ast.StrongEmphasis;
 import com.vladsch.flexmark.ast.Text;
 import com.vladsch.flexmark.ast.ThematicBreak;
 import com.vladsch.flexmark.ast.VisitHandler;
+import com.vladsch.flexmark.ext.abbreviation.Abbreviation;
 import com.vladsch.flexmark.ext.definition.DefinitionItem;
 import com.vladsch.flexmark.ext.definition.DefinitionList;
 import com.vladsch.flexmark.ext.definition.DefinitionTerm;
@@ -248,6 +249,12 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
             new VisitHandler<>(Code.class, codeNodeVisitor::visit),
             new VisitHandler<>(FencedCodeBlock.class, codeNodeVisitor::visit),
             new VisitHandler<>(IndentedCodeBlock.class, codeNodeVisitor::visit)
+        );
+
+        // Handle Abbreviation nodes
+        AbbreviationNodeVisitor abbreviationNodeVisitor = new AbbreviationNodeVisitor(this.visitor, this.listeners);
+        this.visitor.addHandlers(
+            new VisitHandler<>(Abbreviation.class, abbreviationNodeVisitor::visit)
         );
 
         // Handle other node types

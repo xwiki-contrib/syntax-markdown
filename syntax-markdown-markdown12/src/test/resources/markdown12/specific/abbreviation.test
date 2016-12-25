@@ -2,11 +2,11 @@
 .input|markdown/1.2
 .# Test abbreviations
 .#-----------------------------------------------------
-The HTML specification
-is maintained by the W3C.
+The HTML specification is maintained by the W3C.
 
 *[HTML]: Hyper Text Markup Language
 *[W3C]:  World Wide Web Consortium
+
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -31,7 +31,7 @@ onSpecialSymbol [.]
 endParagraph
 endDocument
 .#-----------------------------------------------------
-.expect|markdown/1.0
+.expect|markdown/1.2
 .#-----------------------------------------------------
 The HTML specification is maintained by the W3C.
 
