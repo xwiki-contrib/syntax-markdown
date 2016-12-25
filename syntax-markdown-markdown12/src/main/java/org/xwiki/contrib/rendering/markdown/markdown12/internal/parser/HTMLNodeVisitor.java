@@ -45,7 +45,7 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
 
     public void visit(HtmlBlock node)
     {
-        // Flexmark puts any trailing newline in the HTML block so we need to remove it.
+        // Flexmark puts trailing newline in the HTML block so we need to remove it.
         String html = String.valueOf(node.getChars()).trim();
         getListener().onRawText(html, Syntax.HTML_4_01);
     }
@@ -56,6 +56,7 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
 
     public void visit(HtmlEntity node)
     {
+        getListener().onRawText(String.valueOf(node.getChars()), Syntax.HTML_4_01);
     }
 
     public void visit(HtmlInlineComment node)

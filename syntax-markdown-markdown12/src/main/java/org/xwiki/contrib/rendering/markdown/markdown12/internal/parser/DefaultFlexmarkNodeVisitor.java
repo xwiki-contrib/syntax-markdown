@@ -242,13 +242,18 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
             new VisitHandler<>(HtmlInlineComment.class, htmlNodeVisitor::visit)
         );
 
+        // Handle Code nodes
+        CodeNodeVisitor codeNodeVisitor = new CodeNodeVisitor(this.visitor, this.listeners);
+        this.visitor.addHandlers(
+            new VisitHandler<>(Code.class, codeNodeVisitor::visit),
+            new VisitHandler<>(FencedCodeBlock.class, codeNodeVisitor::visit),
+            new VisitHandler<>(IndentedCodeBlock.class, codeNodeVisitor::visit)
+        );
+
         // Handle other node types
         this.visitor.addHandlers(
             new VisitHandler<>(Document.class, this::visit),
-            new VisitHandler<>(FencedCodeBlock.class, this::visit),
-            new VisitHandler<>(IndentedCodeBlock.class, this::visit),
             new VisitHandler<>(ThematicBreak.class, this::visit),
-            new VisitHandler<>(Code.class, this::visit),
             new VisitHandler<>(HardLineBreak.class, this::visit),
             new VisitHandler<>(SoftLineBreak.class, this::visit),
             new VisitHandler<>(Text.class, this::visit)
