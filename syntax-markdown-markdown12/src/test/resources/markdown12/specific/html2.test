@@ -11,14 +11,14 @@ beginParagraph
 onWord [hello]
 onSpace
 beginFormat [BOLD]
-onRawText [<del>] [xhtml/1.0]
+onRawText [<del>] [html/4.01]
 onWord [world]
-onRawText [</del>] [xhtml/1.0]
+onRawText [</del>] [html/4.01]
 endFormat [BOLD]
 onSpace
-onRawText [<sup>] [xhtml/1.0]
+onRawText [<sup>] [html/4.01]
 onWord [beta]
-onRawText [</sup>] [xhtml/1.0]
+onRawText [</sup>] [html/4.01]
 endParagraph
 endDocument
 .#-----------------------------------------------------
