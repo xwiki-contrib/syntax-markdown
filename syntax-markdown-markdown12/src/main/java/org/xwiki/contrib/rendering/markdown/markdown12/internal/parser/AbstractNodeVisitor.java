@@ -19,11 +19,16 @@
  */
 package org.xwiki.contrib.rendering.markdown.markdown12.internal.parser;
 
+import java.io.StringReader;
 import java.util.Deque;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.xwiki.rendering.listener.InlineFilterListener;
 import org.xwiki.rendering.listener.Listener;
+import org.xwiki.rendering.listener.WrappingListener;
+import org.xwiki.rendering.parser.ParseException;
+import org.xwiki.rendering.parser.StreamParser;
 import org.xwiki.rendering.renderer.PrintRendererFactory;
 import org.xwiki.rendering.renderer.printer.DefaultWikiPrinter;
 import org.xwiki.rendering.renderer.printer.WikiPrinter;
@@ -47,6 +52,8 @@ public abstract class AbstractNodeVisitor
 
     private PrintRendererFactory plainRendererFactory;
 
+    private StreamParser plainTextStreamParser;
+
     public AbstractNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
     {
         this(visitor, listeners, null);
@@ -55,9 +62,16 @@ public abstract class AbstractNodeVisitor
     public AbstractNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners,
         PrintRendererFactory plainRendererFactory)
     {
+        this(visitor, listeners, plainRendererFactory, null);
+    }
+
+    public AbstractNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners,
+        PrintRendererFactory plainRendererFactory, StreamParser plainTextStreamParser)
+    {
         this.visitor = visitor;
         this.listeners = listeners;
         this.plainRendererFactory = plainRendererFactory;
+        this.plainTextStreamParser = plainTextStreamParser;
     }
 
     /**
@@ -115,4 +129,17 @@ public abstract class AbstractNodeVisitor
         return printer.toString();
     }
 
+    /**
+     * @param text the text to parse and for which to return XWiki events
+     */
+    protected void parseInline(String text)
+    {
+        try {
+            WrappingListener inlineListener = new InlineFilterListener();
+            inlineListener.setWrappedListener(getListener());
+            this.plainTextStreamParser.parse(new StringReader(text), inlineListener);
+        } catch (ParseException e) {
+            throw new RuntimeException(String.format("Error parsing content [%s]", text), e);
+        }
+    }
 }

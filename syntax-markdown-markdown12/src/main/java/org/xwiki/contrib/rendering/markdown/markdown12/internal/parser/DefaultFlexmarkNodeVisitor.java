@@ -19,7 +19,6 @@
  */
 package org.xwiki.contrib.rendering.markdown.markdown12.internal.parser;
 
-import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
@@ -31,11 +30,8 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.InstantiationStrategy;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.rendering.listener.InlineFilterListener;
 import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.listener.MetaData;
-import org.xwiki.rendering.listener.WrappingListener;
-import org.xwiki.rendering.parser.ParseException;
 import org.xwiki.rendering.parser.ResourceReferenceParser;
 import org.xwiki.rendering.parser.StreamParser;
 import org.xwiki.rendering.renderer.PrintRendererFactory;
@@ -150,6 +146,12 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
 
         this.visitor = new NodeVisitor(new VisitHandler<>(Document.class, this::visit));
 
+        // Handle Text nodes
+        TextNodeVisitor textNodeVisitor = new TextNodeVisitor(this.visitor, this.listeners, this.plainTextStreamParser);
+        this.visitor.addHandlers(
+            new VisitHandler<>(Text.class, textNodeVisitor::visit)
+        );
+
         // Handle Emphasis nodes
         EmphasisNodeVisitor emphasisNodeVisitor = new EmphasisNodeVisitor(this.visitor, this.listeners);
         this.visitor.addHandlers(
@@ -172,7 +174,8 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
         );
 
         // Handle Link nodes
-        this.linkNodeVisitor = new LinkNodeVisitor(this.visitor, this.listeners, this.linkResourceReferenceParser);
+        this.linkNodeVisitor = new LinkNodeVisitor(this.visitor, this.listeners, this.linkResourceReferenceParser,
+            this.plainTextStreamParser);
         this.visitor.addHandlers(
             new VisitHandler<>(Link.class, this.linkNodeVisitor::visit),
             new VisitHandler<>(LinkRef.class, this.linkNodeVisitor::visit),
@@ -262,27 +265,11 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
             new VisitHandler<>(Document.class, this::visit),
             new VisitHandler<>(ThematicBreak.class, this::visit),
             new VisitHandler<>(HardLineBreak.class, this::visit),
-            new VisitHandler<>(SoftLineBreak.class, this::visit),
-            new VisitHandler<>(Text.class, this::visit)
+            new VisitHandler<>(SoftLineBreak.class, this::visit)
         );
 
         this.visitor.visit(node);
         getListener().endDocument(metaData);
-    }
-
-    public void visit(Text node)
-    {
-        String content = node.getChars().toString();
-        try {
-            WrappingListener inlineListener = new InlineFilterListener();
-            inlineListener.setWrappedListener(getListener());
-            this.plainTextStreamParser.parse(new StringReader(content), inlineListener);
-        } catch (ParseException e) {
-            throw new RuntimeException(String.format("Error parsing content [%s]", content), e);
-        }
-
-        // Descend into children (could be omitted in this case because Text nodes don't have children).
-        this.visitor.visitChildren(node);
     }
 
     public void visit(HtmlEntity node)

@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.listener.reference.ResourceReference;
 import org.xwiki.rendering.parser.ResourceReferenceParser;
+import org.xwiki.rendering.parser.StreamParser;
 
 import com.vladsch.flexmark.ast.AutoLink;
 import com.vladsch.flexmark.ast.Link;
@@ -42,9 +43,9 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
     private ResourceReferenceParser linkResourceReferenceParser;
 
     public LinkNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners,
-        ResourceReferenceParser linkResourceReferenceParser)
+        ResourceReferenceParser linkResourceReferenceParser, StreamParser plainTextStreamParser)
     {
-        super(visitor, listeners);
+        super(visitor, listeners, null, plainTextStreamParser);
         this.linkResourceReferenceParser = linkResourceReferenceParser;
     }
 
@@ -79,13 +80,13 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
     public void visit(LinkRef node)
     {
         if (!node.isDefined()) {
-            // Non-existing reference, output the link reference as is, as plain text, e.g. "[label][1]".
-            getListener().onVerbatim(node.getChars().unescape(), true, Collections.emptyMap());
+            // Non-existing reference, output the link reference as is
+            parseInline(node.getChars().unescape());
         } else {
             // Since XWiki doesn't support reference links, we generate a standard link instead
             Reference reference = node.getReferenceNode(getReferenceRepository());
             ResourceReference resourceReference = this.linkResourceReferenceParser.parse(
-                    String.valueOf(reference.getUrl()));
+                String.valueOf(reference.getUrl()));
 
             // Handle an optional link title
             Map<String, String> parameters = Collections.EMPTY_MAP;
