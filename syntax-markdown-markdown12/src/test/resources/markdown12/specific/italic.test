@@ -1,0 +1,16 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test italic without space after the symbol
+.#-----------------------------------------------------
+*italic*ok
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginFormat [ITALIC]
+onWord [italic]
+endFormat [ITALIC]
+onWord [ok]
+endParagraph
+endDocument
