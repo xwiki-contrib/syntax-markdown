@@ -65,7 +65,7 @@ public class Markdown12ConfigurationTest
     @BeforeComponent
     public void setUpComponents() throws Exception
     {
-        MarkdownConfiguration configuration = this.mocker.registerMockComponent(MarkdownConfiguration.class);
+        this.mocker.registerMockComponent(MarkdownConfiguration.class);
     }
 
     @Test
@@ -78,6 +78,6 @@ public class Markdown12ConfigurationTest
         DefaultWikiPrinter printer = new DefaultWikiPrinter();
         renderer.render(xdom, printer);
 
-        assertEquals("xx", printer.toString());
+        assertEquals("<del>hello</del>", printer.toString());
     }
 }
