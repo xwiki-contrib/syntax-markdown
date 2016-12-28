@@ -17,22 +17,24 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.rendering.markdown.markdown12.internal;
+package org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.extension.macro;
 
-import org.junit.runner.RunWith;
-import org.xwiki.rendering.test.cts.CompatibilityTestSuite;
-import org.xwiki.rendering.test.cts.Scope;
-import org.xwiki.rendering.test.cts.Syntax;
+import java.util.Deque;
 
-/**
- * Run all CTS tests for the Markdown syntax.
- *
- * @version $Id$
- * @since 8.4
- */
-@RunWith(CompatibilityTestSuite.class)
-@Syntax(value = "markdown/1.2")
-@Scope(pattern = ".*macro1.*")
-public class Markdown12CompatibilityTest
+import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.AbstractNodeVisitor;
+import org.xwiki.rendering.listener.Listener;
+
+import com.vladsch.flexmark.ast.NodeVisitor;
+
+public class MacroNodeVisitor extends AbstractNodeVisitor
 {
+    public MacroNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
+    {
+        super(visitor, listeners);
+    }
+
+    public void visit(MacroBlock node)
+    {
+        getVisitor().visitChildren(node);
+    }
 }

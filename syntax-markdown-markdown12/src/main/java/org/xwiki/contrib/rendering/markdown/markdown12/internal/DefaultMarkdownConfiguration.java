@@ -29,6 +29,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
+import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.extension.macro.MacroExtension;
 
 import com.vladsch.flexmark.ext.abbreviation.AbbreviationExtension;
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
@@ -50,7 +51,8 @@ public class DefaultMarkdownConfiguration implements MarkdownConfiguration
         TablesExtension.class,
         StrikethroughSubscriptExtension.class,
         SuperscriptExtension.class,
-        AbbreviationExtension.class
+        AbbreviationExtension.class,
+        MacroExtension.class
     );
 
     private static final ParserEmulationFamily DEFAULT_FAMILY = ParserEmulationFamily.valueOf("COMMONMARK");

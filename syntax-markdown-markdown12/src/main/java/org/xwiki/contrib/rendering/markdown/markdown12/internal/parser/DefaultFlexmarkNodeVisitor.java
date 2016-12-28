@@ -30,6 +30,8 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.InstantiationStrategy;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.extension.macro.MacroBlock;
+import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.extension.macro.MacroNodeVisitor;
 import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.listener.MetaData;
 import org.xwiki.rendering.parser.ResourceReferenceParser;
@@ -258,6 +260,12 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
         AbbreviationNodeVisitor abbreviationNodeVisitor = new AbbreviationNodeVisitor(this.visitor, this.listeners);
         this.visitor.addHandlers(
             new VisitHandler<>(Abbreviation.class, abbreviationNodeVisitor::visit)
+        );
+
+        // Handle Macro nodes
+        MacroNodeVisitor macroNodeVisitor = new MacroNodeVisitor(this.visitor, this.listeners);
+        this.visitor.addHandlers(
+            new VisitHandler<>(MacroBlock.class, macroNodeVisitor::visit)
         );
 
         // Handle other node types
