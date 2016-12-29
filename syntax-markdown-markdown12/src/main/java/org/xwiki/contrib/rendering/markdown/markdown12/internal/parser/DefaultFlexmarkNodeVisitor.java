@@ -82,6 +82,7 @@ import com.vladsch.flexmark.ext.tables.TableCell;
 import com.vladsch.flexmark.ext.tables.TableHead;
 import com.vladsch.flexmark.ext.tables.TableRow;
 import com.vladsch.flexmark.ext.tables.TableSeparator;
+import com.vladsch.flexmark.ext.wikilink.WikiImage;
 import com.vladsch.flexmark.ext.wikilink.WikiLink;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.superscript.Superscript;
@@ -172,7 +173,8 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
             this.componentManager, this.plainRendererFactory);
         this.visitor.addHandlers(
             new VisitHandler<>(Image.class, this.imageNodeVisitor::visit),
-            new VisitHandler<>(ImageRef.class, this.imageNodeVisitor::visit)
+            new VisitHandler<>(ImageRef.class, this.imageNodeVisitor::visit),
+            new VisitHandler<>(WikiImage.class, this.imageNodeVisitor::visit)
         );
 
         // Handle Link nodes

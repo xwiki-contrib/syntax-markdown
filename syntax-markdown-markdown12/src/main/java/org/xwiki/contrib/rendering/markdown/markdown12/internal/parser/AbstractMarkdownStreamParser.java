@@ -20,9 +20,6 @@
 package org.xwiki.contrib.rendering.markdown.markdown12.internal.parser;
 
 import java.io.Reader;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -35,11 +32,9 @@ import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.parser.ParseException;
 import org.xwiki.rendering.parser.StreamParser;
 
-import com.vladsch.flexmark.Extension;
 import com.vladsch.flexmark.ast.Node;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.options.MutableDataHolder;
-import com.vladsch.flexmark.util.options.MutableDataSet;
 
 /**
  * Base class for Markdown Streaming Parsers for the various Markdown flavors. Implemented using the
@@ -62,25 +57,12 @@ public abstract class AbstractMarkdownStreamParser implements StreamParser
     public void parse(Reader source, Listener listener) throws ParseException
     {
         Node document;
+        MutableDataHolder options = this.configuration.getOptions();
+        Parser parser = Parser.builder(options).build();
         try {
-            // Configure options
-            MutableDataHolder options = new MutableDataSet();
-            options.setFrom(this.configuration.getEmulationFamily().getOptions());
-
-            // Configure extensions
-            List<Extension> extensions = new ArrayList<>();
-            for (Class extensionClass : this.configuration.getExtensionClasses()) {
-                Method method = extensionClass.getMethod("create");
-                Extension extension = (Extension) method.invoke(null);
-                extensions.add(extension);
-            }
-            options.set(Parser.EXTENSIONS, extensions);
-
-            Parser parser = Parser.builder(options).build();
             document = parser.parse(IOUtils.toString(source));
         } catch (Exception e) {
-            throw new ParseException(String.format("Failed to parse Markdown content for family [%s]",
-                this.configuration.getEmulationFamily()), e);
+            throw new ParseException("Failed to parse Markdown content", e);
         }
 
         this.visitorProvider.get().visit(document, listener, getSyntax());

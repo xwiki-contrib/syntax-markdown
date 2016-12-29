@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.rendering.markdown.markdown12.internal;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -26,19 +28,25 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.extension.macro.MacroExtension;
 
+import com.vladsch.flexmark.Extension;
 import com.vladsch.flexmark.ext.abbreviation.AbbreviationExtension;
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
 import com.vladsch.flexmark.ext.definition.DefinitionExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughSubscriptExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.ext.wikilink.WikiLinkExtension;
+import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.parser.ParserEmulationFamily;
 import com.vladsch.flexmark.superscript.SuperscriptExtension;
+import com.vladsch.flexmark.util.options.MutableDataHolder;
+import com.vladsch.flexmark.util.options.MutableDataSet;
 
 @Component
 @Singleton
@@ -59,28 +67,44 @@ public class DefaultMarkdownConfiguration implements MarkdownConfiguration
 
     private static final String PREFIX = "rendering.markdown.";
 
-    private static final String EXTENSIONS_KEY = PREFIX + "extensions";
-
-    private static final String FAMILY_KEY = PREFIX + "family";
+    @Inject
+    private Logger logger;
 
     @Inject
     @Named("xwikiproperties")
     private ConfigurationSource configurationSource;
 
     @Override
-    public ParserEmulationFamily getEmulationFamily()
+    public MutableDataHolder getOptions()
     {
-        ParserEmulationFamily family = DEFAULT_FAMILY;
-        String familyAsString = this.configurationSource.getProperty(FAMILY_KEY);
-        if (familyAsString != null) {
-            family = ParserEmulationFamily.valueOf(familyAsString);
-        }
-        return family;
+        //TODO: Implement getting the options from a xwiki config source.
+        return getDefaultOptions();
     }
 
-    @Override
-    public List<Class> getExtensionClasses()
+    private MutableDataHolder getDefaultOptions()
     {
-        return this.configurationSource.getProperty(EXTENSIONS_KEY, DEFAULT_EXTENSIONS);
+        // Configure Parser Family
+        MutableDataHolder options = new MutableDataSet();
+        options.setFrom(DEFAULT_FAMILY.getOptions());
+
+        // Configure other options
+        options.set(WikiLinkExtension.IMAGE_LINKS, true);
+
+        // Configure extensions
+        List<Extension> extensions = new ArrayList<>();
+        for (Class extensionClass : DEFAULT_EXTENSIONS) {
+            try {
+                Method method = extensionClass.getMethod("create");
+                Extension extension = (Extension) method.invoke(null);
+                extensions.add(extension);
+            } catch (Exception e) {
+                // Invalid extension, skip it
+                this.logger.warn("Invalid extension: [{}]. Root cause: [{}]", extensionClass.getName(),
+                        ExceptionUtils.getRootCauseMessage(e));
+            }
+            options.set(Parser.EXTENSIONS, extensions);
+        }
+
+        return options;
     }
 }

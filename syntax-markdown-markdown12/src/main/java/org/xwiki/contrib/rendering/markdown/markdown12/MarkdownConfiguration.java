@@ -19,16 +19,12 @@
  */
 package org.xwiki.contrib.rendering.markdown.markdown12;
 
-import java.util.List;
-
 import org.xwiki.component.annotation.Role;
 
-import com.vladsch.flexmark.parser.ParserEmulationFamily;
+import com.vladsch.flexmark.util.options.MutableDataHolder;
 
 @Role
 public interface MarkdownConfiguration
 {
-    ParserEmulationFamily getEmulationFamily();
-
-    List<Class> getExtensionClasses();
+    MutableDataHolder getOptions();
 }

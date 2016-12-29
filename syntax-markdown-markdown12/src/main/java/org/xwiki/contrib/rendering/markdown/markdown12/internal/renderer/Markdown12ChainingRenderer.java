@@ -28,8 +28,10 @@ import org.xwiki.rendering.listener.chaining.ListenerChain;
 import org.xwiki.rendering.listener.reference.ResourceReference;
 import org.xwiki.rendering.renderer.reference.ResourceReferenceSerializer;
 
+import com.vladsch.flexmark.Extension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughSubscriptExtension;
+import com.vladsch.flexmark.parser.Parser;
 
 /**
  * Convert listener events to Markdown 1.2.
@@ -43,6 +45,8 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     private MarkdownConfiguration configuration;
 
+    private boolean isStrikethroughSupported;
+
     /**
      * @param listenerChain the chain of listener filters used to compute various states
      * @param linkReferenceSerializer the component to use for converting {@link ResourceReference} links to strings
@@ -54,15 +58,13 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     {
         super(listenerChain, linkReferenceSerializer, imageReferenceSerializer);
         this.configuration = configuration;
+        this.isStrikethroughSupported = isStrikethroughSupported();
     }
 
     @Override
     public void beginFormat(Format format, Map<String, String> parameters)
     {
-        if (format.equals(Format.STRIKEDOUT)
-            && (this.configuration.getExtensionClasses().contains(StrikethroughExtension.class)
-            || this.configuration.getExtensionClasses().contains(StrikethroughSubscriptExtension.class)))
-        {
+        if (format.equals(Format.STRIKEDOUT) && this.isStrikethroughSupported) {
             print(STRIKEDOUT_SYMBOL);
         } else {
             // Override from Markdown11ChainingRenderer since there's no need to escape space characters with
@@ -83,10 +85,7 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     @Override
     public void endFormat(Format format, Map<String, String> parameters)
     {
-        if (format.equals(Format.STRIKEDOUT)
-                && (this.configuration.getExtensionClasses().contains(StrikethroughExtension.class)
-                || this.configuration.getExtensionClasses().contains(StrikethroughSubscriptExtension.class)))
-        {
+        if (format.equals(Format.STRIKEDOUT) && this.isStrikethroughSupported) {
             print(STRIKEDOUT_SYMBOL);
         } else {
             // Override from Markdown11ChainingRenderer since there's no need to escape space characters with
@@ -102,5 +101,15 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
                     super.endFormat(format, parameters);
             }
         }
+    }
+
+    private boolean isStrikethroughSupported()
+    {
+        for (Extension extension : this.configuration.getOptions().get(Parser.EXTENSIONS)) {
+             if (extension instanceof StrikethroughExtension || extension instanceof StrikethroughSubscriptExtension) {
+                 return true;
+             }
+        }
+        return false;
     }
 }
