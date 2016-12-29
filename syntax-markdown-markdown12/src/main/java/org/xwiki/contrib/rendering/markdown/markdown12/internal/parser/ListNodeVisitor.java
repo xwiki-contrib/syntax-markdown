@@ -39,6 +39,25 @@ import com.vladsch.flexmark.ext.definition.DefinitionTerm;
 
 public class ListNodeVisitor extends AbstractNodeVisitor
 {
+    /**
+     * Swallow paragraphs (for example we don't want to generate paragraphs for list items since the XWiki model
+     * doesn't wrap list item content inside paragraphs).
+     */
+    private class ParagraphWrappingListener extends WrappingListener
+    {
+        @Override
+        public void beginParagraph(Map<String, String> parameters)
+        {
+            // Ignore
+        }
+
+        @Override
+        public void endParagraph(Map<String, String> parameters)
+        {
+            // Ignore
+        }
+    }
+
     public ListNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
     {
         super(visitor, listeners);
@@ -78,7 +97,11 @@ public class ListNodeVisitor extends AbstractNodeVisitor
     public void visit(DefinitionTerm node)
     {
         getListener().beginDefinitionTerm();
+        WrappingListener paragraphListener = new ParagraphWrappingListener();
+        paragraphListener.setWrappedListener(getListener());
+        pushListener(paragraphListener);
         getVisitor().visitChildren(node);
+        popListener();
         getListener().endDefinitionTerm();
     }
 
@@ -98,23 +121,9 @@ public class ListNodeVisitor extends AbstractNodeVisitor
 
     private void visitChildrenAndSwallowParagraphs(Node node)
     {
-        // Don't generate paragraphs for list items since the XWiki model doesn't wrap list item content inside
-        // paragraphs.
-        WrappingListener listener = new WrappingListener() {
-            @Override
-            public void beginParagraph(Map<String, String> parameters)
-            {
-                // Ignore
-            }
-
-            @Override
-            public void endParagraph(Map<String, String> parameters)
-            {
-                // Ignore
-            }
-        };
-        listener.setWrappedListener(getListener());
-        pushListener(listener);
+        WrappingListener paragraphListener = new ParagraphWrappingListener();
+        paragraphListener.setWrappedListener(getListener());
+        pushListener(paragraphListener);
         getVisitor().visitChildren(node);
         popListener();
     }
