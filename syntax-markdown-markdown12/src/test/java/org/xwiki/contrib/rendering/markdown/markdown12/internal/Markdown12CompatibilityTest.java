@@ -21,7 +21,6 @@ package org.xwiki.contrib.rendering.markdown.markdown12.internal;
 
 import org.junit.runner.RunWith;
 import org.xwiki.rendering.test.cts.CompatibilityTestSuite;
-import org.xwiki.rendering.test.cts.Scope;
 import org.xwiki.rendering.test.cts.Syntax;
 
 /**
@@ -32,7 +31,6 @@ import org.xwiki.rendering.test.cts.Syntax;
  */
 @RunWith(CompatibilityTestSuite.class)
 @Syntax(value = "markdown/1.2")
-@Scope(pattern = ".*macro1.*")
 public class Markdown12CompatibilityTest
 {
 }
