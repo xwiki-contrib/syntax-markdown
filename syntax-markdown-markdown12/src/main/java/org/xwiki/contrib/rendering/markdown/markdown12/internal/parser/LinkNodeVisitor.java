@@ -104,8 +104,8 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
     {
         ResourceReference reference = this.linkResourceReferenceParser.parse(String.valueOf(node.getLink()));
         getListener().beginLink(reference, false, Collections.EMPTY_MAP);
-        String label = String.valueOf(node.getText());
-        if (label != null) {
+        if (node.getText() != null) {
+            String label = String.valueOf(node.getText());
             parseInline(label);
         }
         getListener().endLink(reference, false, Collections.EMPTY_MAP);
