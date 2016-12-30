@@ -12,15 +12,12 @@ beginTable
 beginTableRow
 beginTableCell [[align]=[left]]
 onWord [Cool]
-onSpace
 endTableCell [[align]=[left]]
 beginTableCell [[align]=[right]]
 onWord [Shit]
-onSpace
 endTableCell [[align]=[right]]
 beginTableCell
 onWord [in]
-onSpace
 endTableCell
 beginTableCell [[align]=[center]]
 onWord [here]

@@ -15,17 +15,14 @@ beginTable
 beginTableRow
 beginTableHeadCell [[colspan]=[2]]
 onWord [Names]
-onSpace
 endTableHeadCell [[colspan]=[2]]
 endTableRow
 beginTableRow
 beginTableHeadCell
 onWord [Name]
-onSpace
 endTableHeadCell
 beginTableHeadCell
 onWord [Firstname]
-onSpace
 endTableHeadCell
 beginTableHeadCell [[align]=[right]]
 onWord [Age]
@@ -34,11 +31,9 @@ endTableRow
 beginTableRow
 beginTableCell
 onWord [Fox]
-onSpace
 endTableCell
 beginTableCell
 onWord [Peter]
-onSpace
 endTableCell
 beginTableCell [[align]=[right]]
 onWord [42]
@@ -47,11 +42,9 @@ endTableRow
 beginTableRow
 beginTableCell
 onWord [Guy]
-onSpace
 endTableCell
 beginTableCell
 onWord [Ritchie]
-onSpace
 endTableCell
 beginTableCell [[align]=[right]]
 onWord [60]
