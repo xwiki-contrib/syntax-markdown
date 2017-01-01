@@ -41,7 +41,13 @@ import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.mockito.MockitoComponentManagerRule;
 
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.options.MutableDataHolder;
+
+import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Integration tests exercising the Markdown Renderer with various configuration settings.
@@ -65,7 +71,11 @@ public class Markdown12ConfigurationTest
     @BeforeComponent
     public void setUpComponents() throws Exception
     {
-        this.mocker.registerMockComponent(MarkdownConfiguration.class);
+        // Simulate an empty configuration
+        MarkdownConfiguration configuration = this.mocker.registerMockComponent(MarkdownConfiguration.class);
+        MutableDataHolder options = mock(MutableDataHolder.class);
+        when(options.get(Parser.EXTENSIONS)).thenReturn(emptyList());
+        when(configuration.getOptions()).thenReturn(options);
     }
 
     @Test

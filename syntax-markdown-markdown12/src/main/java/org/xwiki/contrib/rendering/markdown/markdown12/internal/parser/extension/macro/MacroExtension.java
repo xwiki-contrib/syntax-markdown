@@ -2,6 +2,7 @@ package org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.extensio
 
 import com.vladsch.flexmark.Extension;
 import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.options.MutableDataHolder;
 
 public class MacroExtension implements Parser.ParserExtension
 {
@@ -18,5 +19,10 @@ public class MacroExtension implements Parser.ParserExtension
     public void extend(Parser.Builder parserBuilder)
     {
         parserBuilder.customBlockParserFactory(new MacroBlockParser.Factory());
+    }
+
+    @Override
+    public void parserOptions(MutableDataHolder mutableDataHolder)
+    {
     }
 }
