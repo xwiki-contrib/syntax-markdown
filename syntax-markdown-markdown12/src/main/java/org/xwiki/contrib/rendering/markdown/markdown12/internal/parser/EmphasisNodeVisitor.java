@@ -28,9 +28,39 @@ import org.xwiki.rendering.listener.Listener;
 import com.vladsch.flexmark.ast.Emphasis;
 import com.vladsch.flexmark.ast.NodeVisitor;
 import com.vladsch.flexmark.ast.StrongEmphasis;
+import com.vladsch.flexmark.ast.VisitHandler;
+import com.vladsch.flexmark.ast.Visitor;
 
+/**
+ * Handle emphasis events.
+ *
+ * @version $Id$
+ * @since 8.4
+ */
 public class EmphasisNodeVisitor extends AbstractNodeVisitor
 {
+    static <V extends EmphasisNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
+    {
+        return new VisitHandler<?>[]{
+                new VisitHandler<>(Emphasis.class, new Visitor<Emphasis>()
+                {
+                    @Override
+                    public void visit(Emphasis node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(StrongEmphasis.class, new Visitor<StrongEmphasis>()
+                {
+                    @Override
+                    public void visit(StrongEmphasis node)
+                    {
+                        visitor.visit(node);
+                    }
+                })
+        };
+    }
+
     public EmphasisNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
     {
         super(visitor, listeners);

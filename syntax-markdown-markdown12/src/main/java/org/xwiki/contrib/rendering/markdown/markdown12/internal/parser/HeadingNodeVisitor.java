@@ -33,9 +33,31 @@ import org.xwiki.rendering.util.IdGenerator;
 
 import com.vladsch.flexmark.ast.Heading;
 import com.vladsch.flexmark.ast.NodeVisitor;
+import com.vladsch.flexmark.ast.VisitHandler;
+import com.vladsch.flexmark.ast.Visitor;
 
+/**
+ * Handle heading events.
+ *
+ * @version $Id$
+ * @since 8.4
+ */
 public class HeadingNodeVisitor extends AbstractNodeVisitor
 {
+    static <V extends HeadingNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
+    {
+        return new VisitHandler<?>[]{
+                new VisitHandler<>(Heading.class, new Visitor<Heading>()
+                {
+                    @Override
+                    public void visit(Heading node)
+                    {
+                        visitor.visit(node);
+                    }
+                })
+        };
+    }
+
     /**
      * Used to generate a unique id for Headings.
      */

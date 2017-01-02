@@ -26,9 +26,31 @@ import org.xwiki.rendering.listener.Listener;
 
 import com.vladsch.flexmark.ast.NodeVisitor;
 import com.vladsch.flexmark.ast.Paragraph;
+import com.vladsch.flexmark.ast.VisitHandler;
+import com.vladsch.flexmark.ast.Visitor;
 
+/**
+ * Handle paragraph events.
+ *
+ * @version $Id$
+ * @since 8.4
+ */
 public class ParagraphNodeVisitor extends AbstractNodeVisitor
 {
+    static <V extends ParagraphNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
+    {
+        return new VisitHandler<?>[]{
+                new VisitHandler<>(Paragraph.class, new Visitor<Paragraph>()
+                {
+                    @Override
+                    public void visit(Paragraph node)
+                    {
+                        visitor.visit(node);
+                    }
+                })
+        };
+    }
+
     public ParagraphNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
     {
         super(visitor, listeners);

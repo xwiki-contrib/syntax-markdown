@@ -29,10 +29,65 @@ import com.vladsch.flexmark.ast.HtmlCommentBlock;
 import com.vladsch.flexmark.ast.HtmlEntity;
 import com.vladsch.flexmark.ast.HtmlInline;
 import com.vladsch.flexmark.ast.HtmlInlineComment;
+import com.vladsch.flexmark.ast.Node;
 import com.vladsch.flexmark.ast.NodeVisitor;
+import com.vladsch.flexmark.ast.VisitHandler;
+import com.vladsch.flexmark.ast.Visitor;
 
+/**
+ * Handle HTML events.
+ *
+ * @version $Id$
+ * @since 8.4
+ */
 public class HTMLNodeVisitor extends AbstractNodeVisitor
 {
+    static <V extends HTMLNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
+    {
+        return new VisitHandler<?>[]{
+                new VisitHandler<>(HtmlInline.class, new Visitor<HtmlInline>()
+                {
+                    @Override
+                    public void visit(HtmlInline node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(HtmlBlock.class, new Visitor<HtmlBlock>()
+                {
+                    @Override
+                    public void visit(HtmlBlock node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(HtmlCommentBlock.class, new Visitor<HtmlCommentBlock>()
+                {
+                    @Override
+                    public void visit(HtmlCommentBlock node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(HtmlEntity.class, new Visitor<HtmlEntity>()
+                {
+                    @Override
+                    public void visit(HtmlEntity node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(HtmlInlineComment.class, new Visitor<HtmlInlineComment>()
+                {
+                    @Override
+                    public void visit(HtmlInlineComment node)
+                    {
+                        visitor.visit(node);
+                    }
+                })
+        };
+    }
+
     public HTMLNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
     {
         super(visitor, listeners);
@@ -40,7 +95,7 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
 
     public void visit(HtmlInline node)
     {
-        getListener().onRawText(String.valueOf(node.getChars()), Syntax.HTML_4_01);
+        visit((Node) node);
     }
 
     public void visit(HtmlBlock node)
@@ -52,14 +107,21 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
 
     public void visit(HtmlCommentBlock node)
     {
+        visit((Node) node);
     }
 
     public void visit(HtmlEntity node)
     {
-        getListener().onRawText(String.valueOf(node.getChars()), Syntax.HTML_4_01);
+        visit((Node) node);
     }
 
     public void visit(HtmlInlineComment node)
     {
+        visit((Node) node);
+    }
+
+    private void visit(Node node)
+    {
+        getListener().onRawText(String.valueOf(node.getChars()), Syntax.HTML_4_01);
     }
 }

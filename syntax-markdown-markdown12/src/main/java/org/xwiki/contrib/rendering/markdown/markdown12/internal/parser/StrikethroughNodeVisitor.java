@@ -26,10 +26,32 @@ import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.Listener;
 
 import com.vladsch.flexmark.ast.NodeVisitor;
+import com.vladsch.flexmark.ast.VisitHandler;
+import com.vladsch.flexmark.ast.Visitor;
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough;
 
+/**
+ * Handle strikethrough events.
+ *
+ * @version $Id$
+ * @since 8.4
+ */
 public class StrikethroughNodeVisitor extends AbstractNodeVisitor
 {
+    static <V extends StrikethroughNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
+    {
+        return new VisitHandler<?>[]{
+                new VisitHandler<>(Strikethrough.class, new Visitor<Strikethrough>()
+                {
+                    @Override
+                    public void visit(Strikethrough node)
+                    {
+                        visitor.visit(node);
+                    }
+                })
+        };
+    }
+
     public StrikethroughNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
     {
         super(visitor, listeners);

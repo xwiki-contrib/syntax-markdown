@@ -26,10 +26,32 @@ import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.syntax.Syntax;
 
 import com.vladsch.flexmark.ast.NodeVisitor;
+import com.vladsch.flexmark.ast.VisitHandler;
+import com.vladsch.flexmark.ast.Visitor;
 import com.vladsch.flexmark.ext.abbreviation.Abbreviation;
 
+/**
+ * Handle abbreviation events.
+ *
+ * @version $Id$
+ * @since 8.4
+ */
 public class AbbreviationNodeVisitor extends AbstractNodeVisitor
 {
+    static <V extends AbbreviationNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
+    {
+        return new VisitHandler<?>[]{
+                new VisitHandler<>(Abbreviation.class, new Visitor<Abbreviation>()
+                {
+                    @Override
+                    public void visit(Abbreviation node)
+                    {
+                        visitor.visit(node);
+                    }
+                })
+        };
+    }
+
     public AbbreviationNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
     {
         super(visitor, listeners);

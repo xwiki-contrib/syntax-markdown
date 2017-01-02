@@ -127,7 +127,7 @@ public class MacroBlockParser extends AbstractBlockParser
         @Override
         public Set<Class<? extends CustomBlockParserFactory>> getAfterDependents()
         {
-            return new HashSet<>(Arrays.asList(
+            return new HashSet<>(Arrays.<Class<? extends CustomBlockParserFactory>>asList(
                     //BlockQuoteParser.Factory.class,
                     //HeadingParser.Factory.class,
                     //FencedCodeBlockParser.Factory.class

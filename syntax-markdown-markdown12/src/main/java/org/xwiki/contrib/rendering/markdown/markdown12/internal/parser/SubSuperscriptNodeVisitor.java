@@ -25,13 +25,42 @@ import java.util.Deque;
 import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.Listener;
 
-import com.vladsch.flexmark.ast.BlockQuote;
 import com.vladsch.flexmark.ast.NodeVisitor;
+import com.vladsch.flexmark.ast.VisitHandler;
+import com.vladsch.flexmark.ast.Visitor;
 import com.vladsch.flexmark.ext.gfm.strikethrough.Subscript;
 import com.vladsch.flexmark.superscript.Superscript;
 
+/**
+ * Handle subscript and superscript events.
+ *
+ * @version $Id$
+ * @since 8.4
+ */
 public class SubSuperscriptNodeVisitor extends AbstractNodeVisitor
 {
+    static <V extends SubSuperscriptNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
+    {
+        return new VisitHandler<?>[]{
+                new VisitHandler<>(Superscript.class, new Visitor<Superscript>()
+                {
+                    @Override
+                    public void visit(Superscript node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(Subscript.class, new Visitor<Subscript>()
+                {
+                    @Override
+                    public void visit(Subscript node)
+                    {
+                        visitor.visit(node);
+                    }
+                })
+        };
+    }
+
     public SubSuperscriptNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
     {
         super(visitor, listeners);

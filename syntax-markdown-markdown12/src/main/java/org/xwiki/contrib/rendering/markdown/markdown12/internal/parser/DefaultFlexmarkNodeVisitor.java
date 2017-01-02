@@ -30,7 +30,6 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.InstantiationStrategy;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.extension.macro.MacroBlock;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.extension.macro.MacroNodeVisitor;
 import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.listener.MetaData;
@@ -39,53 +38,15 @@ import org.xwiki.rendering.parser.StreamParser;
 import org.xwiki.rendering.renderer.PrintRendererFactory;
 import org.xwiki.rendering.syntax.Syntax;
 
-import com.vladsch.flexmark.ast.AutoLink;
-import com.vladsch.flexmark.ast.BlockQuote;
-import com.vladsch.flexmark.ast.BulletList;
-import com.vladsch.flexmark.ast.BulletListItem;
-import com.vladsch.flexmark.ast.Code;
 import com.vladsch.flexmark.ast.Document;
-import com.vladsch.flexmark.ast.Emphasis;
-import com.vladsch.flexmark.ast.FencedCodeBlock;
 import com.vladsch.flexmark.ast.HardLineBreak;
-import com.vladsch.flexmark.ast.Heading;
-import com.vladsch.flexmark.ast.HtmlBlock;
-import com.vladsch.flexmark.ast.HtmlCommentBlock;
-import com.vladsch.flexmark.ast.HtmlEntity;
-import com.vladsch.flexmark.ast.HtmlInline;
-import com.vladsch.flexmark.ast.HtmlInlineComment;
-import com.vladsch.flexmark.ast.Image;
-import com.vladsch.flexmark.ast.ImageRef;
-import com.vladsch.flexmark.ast.IndentedCodeBlock;
-import com.vladsch.flexmark.ast.Link;
-import com.vladsch.flexmark.ast.LinkRef;
-import com.vladsch.flexmark.ast.MailLink;
 import com.vladsch.flexmark.ast.Node;
 import com.vladsch.flexmark.ast.NodeVisitor;
-import com.vladsch.flexmark.ast.OrderedList;
-import com.vladsch.flexmark.ast.OrderedListItem;
-import com.vladsch.flexmark.ast.Paragraph;
 import com.vladsch.flexmark.ast.SoftLineBreak;
-import com.vladsch.flexmark.ast.StrongEmphasis;
-import com.vladsch.flexmark.ast.Text;
 import com.vladsch.flexmark.ast.ThematicBreak;
 import com.vladsch.flexmark.ast.VisitHandler;
-import com.vladsch.flexmark.ext.abbreviation.Abbreviation;
-import com.vladsch.flexmark.ext.definition.DefinitionItem;
-import com.vladsch.flexmark.ext.definition.DefinitionList;
-import com.vladsch.flexmark.ext.definition.DefinitionTerm;
-import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough;
-import com.vladsch.flexmark.ext.gfm.strikethrough.Subscript;
-import com.vladsch.flexmark.ext.tables.TableBlock;
-import com.vladsch.flexmark.ext.tables.TableCaption;
-import com.vladsch.flexmark.ext.tables.TableCell;
-import com.vladsch.flexmark.ext.tables.TableHead;
-import com.vladsch.flexmark.ext.tables.TableRow;
-import com.vladsch.flexmark.ext.tables.TableSeparator;
-import com.vladsch.flexmark.ext.wikilink.WikiImage;
-import com.vladsch.flexmark.ext.wikilink.WikiLink;
+import com.vladsch.flexmark.ast.Visitor;
 import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.superscript.Superscript;
 
 @Component
 @InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
@@ -127,6 +88,47 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
     private ComponentManager componentManager;
 
     /**
+     * Handle Document nodes.
+     */
+    static <V extends DefaultFlexmarkNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
+    {
+        return new VisitHandler<?>[]{
+                new VisitHandler<>(Document.class, new Visitor<Document>()
+                {
+                    @Override
+                    public void visit(Document node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(ThematicBreak.class, new Visitor<ThematicBreak>()
+                {
+                    @Override
+                    public void visit(ThematicBreak node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(HardLineBreak.class, new Visitor<HardLineBreak>()
+                {
+                    @Override
+                    public void visit(HardLineBreak node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(SoftLineBreak.class, new Visitor<SoftLineBreak>()
+                {
+                    @Override
+                    public void visit(SoftLineBreak node)
+                    {
+                        visitor.visit(node);
+                    }
+                })
+        };
+    }
+
+    /**
      * Listener(s) for the generated XWiki Events. Organized as a stack so that a buffering listener can hijack all
      * events for a while, for example. All generated events are sent to the top of the stack.
      */
@@ -144,147 +146,80 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
         sectionListener.setWrappedListener(listener);
         this.listeners.push(sectionListener);
 
-        MetaData metaData = new MetaData(Collections.singletonMap(MetaData.SYNTAX, syntax));
+        MetaData metaData = new MetaData(Collections.<String, Object>singletonMap(MetaData.SYNTAX, syntax));
         getListener().beginDocument(metaData);
 
-        this.visitor = new NodeVisitor(new VisitHandler<>(Document.class, this::visit));
+        // Handle nodes not handled by a specific visitor
+        this.visitor = new NodeVisitor(VISIT_HANDLERS(this));
 
         // Handle Text nodes
         TextNodeVisitor textNodeVisitor = new TextNodeVisitor(this.visitor, this.listeners, this.plainTextStreamParser);
-        this.visitor.addHandlers(
-            new VisitHandler<>(Text.class, textNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(TextNodeVisitor.VISIT_HANDLERS(textNodeVisitor));
 
         // Handle Emphasis nodes
         EmphasisNodeVisitor emphasisNodeVisitor = new EmphasisNodeVisitor(this.visitor, this.listeners);
-        this.visitor.addHandlers(
-            new VisitHandler<>(Emphasis.class, emphasisNodeVisitor::visit),
-            new VisitHandler<>(StrongEmphasis.class, emphasisNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(EmphasisNodeVisitor.VISIT_HANDLERS(emphasisNodeVisitor));
 
         // Handle Paragraph nodes
         ParagraphNodeVisitor paragraphNodeVisitor = new ParagraphNodeVisitor(this.visitor, this.listeners);
-        this.visitor.addHandlers(
-            new VisitHandler<>(Paragraph.class, paragraphNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(ParagraphNodeVisitor.VISIT_HANDLERS(paragraphNodeVisitor));
 
         // Handle Image nodes
         this.imageNodeVisitor = new ImageNodeVisitor(this.visitor, this.listeners, this.imageResourceReferenceParser,
             this.componentManager, this.plainRendererFactory);
-        this.visitor.addHandlers(
-            new VisitHandler<>(Image.class, this.imageNodeVisitor::visit),
-            new VisitHandler<>(ImageRef.class, this.imageNodeVisitor::visit),
-            new VisitHandler<>(WikiImage.class, this.imageNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(ImageNodeVisitor.VISIT_HANDLERS(this.imageNodeVisitor));
 
         // Handle Link nodes
         this.linkNodeVisitor = new LinkNodeVisitor(this.visitor, this.listeners, this.linkResourceReferenceParser,
             this.plainTextStreamParser);
-        this.visitor.addHandlers(
-            new VisitHandler<>(Link.class, this.linkNodeVisitor::visit),
-            new VisitHandler<>(LinkRef.class, this.linkNodeVisitor::visit),
-            new VisitHandler<>(AutoLink.class, this.linkNodeVisitor::visit),
-            new VisitHandler<>(MailLink.class, this.linkNodeVisitor::visit),
-            new VisitHandler<>(WikiLink.class, this.linkNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(LinkNodeVisitor.VISIT_HANDLERS(this.linkNodeVisitor));
 
         // Handle list nodes
         ListNodeVisitor listNodeVisitor = new ListNodeVisitor(this.visitor, this.listeners);
-        this.visitor.addHandlers(
-            new VisitHandler<>(BulletList.class, listNodeVisitor::visit),
-            new VisitHandler<>(BulletListItem.class, listNodeVisitor::visit),
-            new VisitHandler<>(OrderedList.class, listNodeVisitor::visit),
-            new VisitHandler<>(OrderedListItem.class, listNodeVisitor::visit),
-            new VisitHandler<>(DefinitionList.class, listNodeVisitor::visit),
-            new VisitHandler<>(DefinitionItem.class, listNodeVisitor::visit),
-            new VisitHandler<>(DefinitionTerm.class, listNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(ListNodeVisitor.VISIT_HANDLERS(listNodeVisitor));
 
         // Handle quote nodes
         QuoteNodeVisitor quoteNodeVisitor = new QuoteNodeVisitor(this.visitor, this.listeners);
-        this.visitor.addHandlers(
-            new VisitHandler<>(BlockQuote.class, quoteNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(QuoteNodeVisitor.VISIT_HANDLERS(quoteNodeVisitor));
 
         // Handle Heading nodes
         HeadingNodeVisitor headingNodeVisitor = new HeadingNodeVisitor(this.visitor, this.listeners,
             this.plainRendererFactory);
-        this.visitor.addHandlers(
-            new VisitHandler<>(Heading.class, headingNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(HeadingNodeVisitor.VISIT_HANDLERS(headingNodeVisitor));
 
         // Handle Table nodes
         TableNodeVisitor tableNodeVisitor = new TableNodeVisitor(this.visitor, this.listeners,
             this.plainRendererFactory);
-        this.visitor.addHandlers(
-            new VisitHandler<>(TableBlock.class, tableNodeVisitor::visit),
-            new VisitHandler<>(TableHead.class, tableNodeVisitor::visit),
-            new VisitHandler<>(TableRow.class, tableNodeVisitor::visit),
-            new VisitHandler<>(TableCell.class, tableNodeVisitor::visit),
-            new VisitHandler<>(TableCaption.class, tableNodeVisitor::visit),
-            new VisitHandler<>(TableSeparator.class, tableNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(TableNodeVisitor.VISIT_HANDLERS(tableNodeVisitor));
 
         // Handle strikethrough nodes
         StrikethroughNodeVisitor strikethroughNodeVisitor =
             new StrikethroughNodeVisitor(this.visitor, this.listeners);
-        this.visitor.addHandlers(
-            new VisitHandler<>(Strikethrough.class, strikethroughNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(StrikethroughNodeVisitor.VISIT_HANDLERS(strikethroughNodeVisitor));
 
         // Handle superscript and subscript nodes
         SubSuperscriptNodeVisitor subSuperscriptNodeVisitor =
             new SubSuperscriptNodeVisitor(this.visitor, this.listeners);
-        this.visitor.addHandlers(
-            new VisitHandler<>(Subscript.class, subSuperscriptNodeVisitor::visit),
-            new VisitHandler<>(Superscript.class, subSuperscriptNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(SubSuperscriptNodeVisitor.VISIT_HANDLERS(subSuperscriptNodeVisitor));
 
         // Handle HTML nodes
         HTMLNodeVisitor htmlNodeVisitor = new HTMLNodeVisitor(this.visitor, this.listeners);
-        this.visitor.addHandlers(
-            new VisitHandler<>(HtmlBlock.class, htmlNodeVisitor::visit),
-            new VisitHandler<>(HtmlCommentBlock.class, htmlNodeVisitor::visit),
-            new VisitHandler<>(HtmlEntity.class, htmlNodeVisitor::visit),
-            new VisitHandler<>(HtmlInline.class, htmlNodeVisitor::visit),
-            new VisitHandler<>(HtmlInlineComment.class, htmlNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(HTMLNodeVisitor.VISIT_HANDLERS(htmlNodeVisitor));
 
         // Handle Code nodes
         CodeNodeVisitor codeNodeVisitor = new CodeNodeVisitor(this.visitor, this.listeners);
-        this.visitor.addHandlers(
-            new VisitHandler<>(Code.class, codeNodeVisitor::visit),
-            new VisitHandler<>(FencedCodeBlock.class, codeNodeVisitor::visit),
-            new VisitHandler<>(IndentedCodeBlock.class, codeNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(CodeNodeVisitor.VISIT_HANDLERS(codeNodeVisitor));
 
         // Handle Abbreviation nodes
         AbbreviationNodeVisitor abbreviationNodeVisitor = new AbbreviationNodeVisitor(this.visitor, this.listeners);
-        this.visitor.addHandlers(
-            new VisitHandler<>(Abbreviation.class, abbreviationNodeVisitor::visit)
-        );
+        this.visitor.addHandlers(AbbreviationNodeVisitor.VISIT_HANDLERS(abbreviationNodeVisitor));
 
         // Handle Macro nodes
         MacroNodeVisitor macroNodeVisitor = new MacroNodeVisitor(this.visitor, this.listeners);
-        this.visitor.addHandlers(
-            new VisitHandler<>(MacroBlock.class, macroNodeVisitor::visit)
-        );
-
-        // Handle other node types
-        this.visitor.addHandlers(
-            new VisitHandler<>(Document.class, this::visit),
-            new VisitHandler<>(ThematicBreak.class, this::visit),
-            new VisitHandler<>(HardLineBreak.class, this::visit),
-            new VisitHandler<>(SoftLineBreak.class, this::visit)
-        );
+        this.visitor.addHandlers(MacroNodeVisitor.VISIT_HANDLERS(macroNodeVisitor));
 
         this.visitor.visit(node);
         getListener().endDocument(metaData);
-    }
-
-    public void visit(HtmlEntity node)
-    {
-        this.visitor.visitChildren(node);
     }
 
     public void visit(SoftLineBreak node)
@@ -297,11 +232,6 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
         getListener().onNewLine();
     }
 
-    public void visit(BlockQuote node)
-    {
-        this.visitor.visitChildren(node);
-    }
-
     public void visit(Document node)
     {
         this.imageNodeVisitor.setReferenceRepository(node.get(Parser.REFERENCES));
@@ -309,49 +239,9 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
         this.visitor.visitChildren(node);
     }
 
-    public void visit(FencedCodeBlock node)
-    {
-        this.visitor.visitChildren(node);
-    }
-
-    public void visit(Heading node)
-    {
-        this.visitor.visitChildren(node);
-    }
-
-    public void visit(HtmlBlock node)
-    {
-        this.visitor.visitChildren(node);
-    }
-
-    public void visit(HtmlCommentBlock node)
-    {
-        this.visitor.visitChildren(node);
-    }
-
-    public void visit(IndentedCodeBlock node)
-    {
-        this.visitor.visitChildren(node);
-    }
-
     public void visit(ThematicBreak node)
     {
         getListener().onHorizontalLine(Collections.EMPTY_MAP);
-    }
-
-    public void visit(Code node)
-    {
-        this.visitor.visitChildren(node);
-    }
-
-    public void visit(HtmlInline node)
-    {
-        this.visitor.visitChildren(node);
-    }
-
-    public void visit(HtmlInlineComment node)
-    {
-        this.visitor.visitChildren(node);
     }
 
     /**

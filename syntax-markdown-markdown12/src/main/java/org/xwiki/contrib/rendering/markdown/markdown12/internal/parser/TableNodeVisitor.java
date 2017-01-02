@@ -30,6 +30,8 @@ import org.xwiki.rendering.renderer.PrintRendererFactory;
 import org.xwiki.rendering.syntax.Syntax;
 
 import com.vladsch.flexmark.ast.NodeVisitor;
+import com.vladsch.flexmark.ast.VisitHandler;
+import com.vladsch.flexmark.ast.Visitor;
 import com.vladsch.flexmark.ext.tables.TableBlock;
 import com.vladsch.flexmark.ext.tables.TableCaption;
 import com.vladsch.flexmark.ext.tables.TableCell;
@@ -37,8 +39,68 @@ import com.vladsch.flexmark.ext.tables.TableHead;
 import com.vladsch.flexmark.ext.tables.TableRow;
 import com.vladsch.flexmark.ext.tables.TableSeparator;
 
+/**
+ * Handle table events.
+ *
+ * @version $Id$
+ * @since 8.4
+ */
 public class TableNodeVisitor extends AbstractNodeVisitor
 {
+    static <V extends TableNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
+    {
+        return new VisitHandler<?>[]{
+                new VisitHandler<>(TableBlock.class, new Visitor<TableBlock>()
+                {
+                    @Override
+                    public void visit(TableBlock node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(TableHead.class, new Visitor<TableHead>()
+                {
+                    @Override
+                    public void visit(TableHead node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(TableRow.class, new Visitor<TableRow>()
+                {
+                    @Override
+                    public void visit(TableRow node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(TableCell.class, new Visitor<TableCell>()
+                {
+                    @Override
+                    public void visit(TableCell node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(TableCaption.class, new Visitor<TableCaption>()
+                {
+                    @Override
+                    public void visit(TableCaption node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(TableSeparator.class, new Visitor<TableSeparator>()
+                {
+                    @Override
+                    public void visit(TableSeparator node)
+                    {
+                        visitor.visit(node);
+                    }
+                })
+        };
+    }
+
     /**
      * HTML Align attribute for table cells.
      */

@@ -52,7 +52,7 @@ import com.vladsch.flexmark.util.options.MutableDataSet;
 @Singleton
 public class DefaultMarkdownConfiguration implements MarkdownConfiguration
 {
-    private static final List<Class> DEFAULT_EXTENSIONS = Arrays.asList(
+    private static final List<Class> DEFAULT_EXTENSIONS = Arrays.<Class>asList(
         WikiLinkExtension.class,
         AutolinkExtension.class,
         DefinitionExtension.class,

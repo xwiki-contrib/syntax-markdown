@@ -25,9 +25,25 @@ import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.AbstractN
 import org.xwiki.rendering.listener.Listener;
 
 import com.vladsch.flexmark.ast.NodeVisitor;
+import com.vladsch.flexmark.ast.VisitHandler;
+import com.vladsch.flexmark.ast.Visitor;
 
 public class MacroNodeVisitor extends AbstractNodeVisitor
 {
+    public static <V extends MacroNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
+    {
+        return new VisitHandler<?>[]{
+                new VisitHandler<>(MacroBlock.class, new Visitor<MacroBlock>()
+                {
+                    @Override
+                    public void visit(MacroBlock node)
+                    {
+                        visitor.visit(node);
+                    }
+                })
+        };
+    }
+
     public MacroNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
     {
         super(visitor, listeners);

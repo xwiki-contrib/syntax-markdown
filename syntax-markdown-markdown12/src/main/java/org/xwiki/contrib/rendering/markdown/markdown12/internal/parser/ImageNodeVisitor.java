@@ -37,10 +37,48 @@ import com.vladsch.flexmark.ast.Image;
 import com.vladsch.flexmark.ast.ImageRef;
 import com.vladsch.flexmark.ast.NodeVisitor;
 import com.vladsch.flexmark.ast.Reference;
+import com.vladsch.flexmark.ast.VisitHandler;
+import com.vladsch.flexmark.ast.Visitor;
 import com.vladsch.flexmark.ext.wikilink.WikiImage;
 
+/**
+ * Handle image events.
+ *
+ * @version $Id$
+ * @since 8.4
+ */
 public class ImageNodeVisitor extends AbstractNodeVisitor
 {
+    static <V extends ImageNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
+    {
+        return new VisitHandler<?>[]{
+                new VisitHandler<>(Image.class, new Visitor<Image>()
+                {
+                    @Override
+                    public void visit(Image node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(ImageRef.class, new Visitor<ImageRef>()
+                {
+                    @Override
+                    public void visit(ImageRef node)
+                    {
+                        visitor.visit(node);
+                    }
+                }),
+                new VisitHandler<>(WikiImage.class, new Visitor<WikiImage>()
+                {
+                    @Override
+                    public void visit(WikiImage node)
+                    {
+                        visitor.visit(node);
+                    }
+                })
+        };
+    }
+
     private ResourceReferenceParser imageResourceReferenceParser;
 
     private ComponentManager componentManager;
@@ -77,7 +115,7 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
     {
         if (!node.isDefined()) {
             // Non-existing reference, output the image reference as is, as plain text, e.g. "![image.png][invalidref]".
-            getListener().onVerbatim(node.getChars().unescape(), true, Collections.emptyMap());
+            getListener().onVerbatim(node.getChars().unescape(), true, Collections.<String, String>emptyMap());
         } else {
             // Since XWiki doesn't support reference images, we generate a standard image instead
             Reference reference = node.getReferenceNode(getReferenceRepository());
