@@ -1,0 +1,15 @@
+.#-----------------------------------------------------------------------------
+.inputexpect|markdown/1.2
+.# Verify that links to wiki pages are using the wikilink syntax for example.
+.#-----------------------------------------------------------------------------
+[[label|doc:wiki page with space]]
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [true] Type = [doc] Reference = [wiki page with space]] [false]
+onWord [label]
+endLink [Typed = [true] Type = [doc] Reference = [wiki page with space]] [false]
+endParagraph
+endDocument

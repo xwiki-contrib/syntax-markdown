@@ -21,6 +21,9 @@ package org.xwiki.contrib.rendering.markdown.markdown12.internal;
 
 import org.junit.runner.RunWith;
 import org.xwiki.rendering.test.integration.RenderingTestSuite;
+import org.xwiki.rendering.wiki.WikiModel;
+import org.xwiki.test.annotation.AllComponents;
+import org.xwiki.test.mockito.MockitoComponentManager;
 
 /**
  * Run all specific tests found in {@code *.test} files located in the classpath. These {@code *.test} files must follow
@@ -30,7 +33,15 @@ import org.xwiki.rendering.test.integration.RenderingTestSuite;
  * @since 8.4
  */
 @RunWith(RenderingTestSuite.class)
-@RenderingTestSuite.Scope("markdown12.specific")
+@RenderingTestSuite.Scope(value = "markdown12.specific")
+@AllComponents
 public class Markdown12SpecificTest
 {
+    @RenderingTestSuite.Initialized
+    public void initialize(MockitoComponentManager componentManager) throws Exception
+    {
+        // Make sure we're in Wiki Mode so that parsed resource reference of type "doc:" (for example) are not
+        // considered as URL types.
+        componentManager.registerMockComponent(WikiModel.class);
+    }
 }

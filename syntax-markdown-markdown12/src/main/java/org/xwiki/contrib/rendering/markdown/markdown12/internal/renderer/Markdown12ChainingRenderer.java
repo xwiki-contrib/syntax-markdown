@@ -21,11 +21,14 @@ package org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer;
 
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
+import org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownEscapeWikiPrinter;
 import org.xwiki.contrib.rendering.markdown11.internal.renderer.Markdown11ChainingRenderer;
 import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
 import org.xwiki.rendering.listener.reference.ResourceReference;
+import org.xwiki.rendering.listener.reference.ResourceType;
 import org.xwiki.rendering.renderer.reference.ResourceReferenceSerializer;
 
 import com.vladsch.flexmark.Extension;
@@ -100,6 +103,65 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
                 default:
                     super.endFormat(format, parameters);
             }
+        }
+    }
+
+    @Override
+    public void endLink(ResourceReference reference, boolean isFreeStandingURI, Map<String, String> parameters)
+    {
+        // Overridden from Markdown11ChainingRenderer since in markdown/1.2 we've changed the link syntax to use
+        // depending on the reference type:
+        // - [...](...) and <...> for URL and mailto
+        // - [[...]] for Document, UNC, DataURI and all other types or references
+
+        MarkdownEscapeWikiPrinter linkBlocksPrinter = getMarkdownPrinter();
+        linkBlocksPrinter.flush();
+        String label = linkBlocksPrinter.toString();
+        popPrinter();
+
+        if (ResourceType.URL.equals(reference.getType()) || ResourceType.MAILTO.equals(reference.getType())) {
+            // Now decide if we should use an autolink or not
+            // TODO: Handle escapes (for example if the label contains a "]")
+            if (StringUtils.isEmpty(label)) {
+                // Don't output the type prefix.
+                printAutoLink(reference.getReference());
+            } else {
+                printLink(label, this.linkReferenceSerializer.serialize(reference));
+            }
+        } else {
+            // TODO: Handle escapes (for example if the label contains a "|")
+            printWikiLink(label, this.linkReferenceSerializer.serialize(reference));
+        }
+    }
+
+    @Override
+    public void onImage(ResourceReference reference, boolean isFreeStandingURI, Map<String, String> parameters)
+    {
+        // Overridden from Markdown11ChainingRenderer since in markdown/1.2 we've changed the image syntax to use
+        // depending on the reference type:
+        // - [...](...) and <...> for URL
+        // - [[...]] for Attach and all other types or references
+
+        String alt = parameters.get("alt");
+        if (StringUtils.isBlank(alt)) {
+            alt = reference.getReference();
+        }
+
+        // TODO: Handle escapes
+        if (ResourceType.URL.equals(reference.getType())) {
+            print(String.format("![%s](%s)", alt, reference.getReference()));
+        } else {
+            print(String.format("![[%s|%s]]", alt, reference.getReference()));
+        }
+    }
+
+    protected void printWikiLink(String label, String serializedReference)
+    {
+        // TODO: Handle escapes (for example if the label contains a "|")
+        if (StringUtils.isEmpty(label)) {
+            printWikiLink(serializedReference);
+        } else {
+            print(String.format("[[%s|%s]]", label, serializedReference));
         }
     }
 

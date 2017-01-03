@@ -4,7 +4,7 @@
 .#-----------------------------------------------------
 This is the [simple case].
 
-[simple case]: /simple
+[simple case]: http://xwiki.org
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -16,11 +16,11 @@ onWord [is]
 onSpace
 onWord [the]
 onSpace
-beginLink [Typed = [false] Type = [url] Reference = [/simple]] [false]
+beginLink [Typed = [false] Type = [url] Reference = [http://xwiki.org]] [false]
 onWord [simple]
 onSpace
 onWord [case]
-endLink [Typed = [false] Type = [url] Reference = [/simple]] [false]
+endLink [Typed = [false] Type = [url] Reference = [http://xwiki.org]] [false]
 onSpecialSymbol [.]
 endParagraph
 endDocument
@@ -28,4 +28,4 @@ endDocument
 .expect|markdown/1.2
 .# There's no support for reference links in XWiki model and thus we generate normal links
 .#----------------------------------------------------------------------------------------
-This is the [simple case](/simple).
+This is the [simple case](http://xwiki.org).

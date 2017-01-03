@@ -1,5 +1,5 @@
 .#-----------------------------------------------------
-.input|markdown/1.2
+.inputexpect|markdown/1.2
 .# Test image with space in reference (and with alt)
 .#-----------------------------------------------------
 ![[alt|ref with space]]
@@ -8,6 +8,6 @@
 .#-----------------------------------------------------
 beginDocument
 beginParagraph
-onImage [Typed = [false] Type = [url] Reference = [ref with space]] [false] [[alt]=[alt]]
+onImage [Typed = [false] Type = [attach] Reference = [ref with space]] [false] [[alt]=[alt]]
 endParagraph
 endDocument
