@@ -29,6 +29,7 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.listener.reference.ResourceReference;
+import org.xwiki.rendering.listener.reference.ResourceType;
 import org.xwiki.rendering.parser.ResourceReferenceParser;
 import org.xwiki.rendering.renderer.PrintRendererFactory;
 import org.xwiki.rendering.renderer.reference.link.URILabelGenerator;
@@ -94,7 +95,10 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
 
     public void visit(Image node)
     {
-        ResourceReference reference = this.imageResourceReferenceParser.parse(String.valueOf(node.getUrl()));
+        // We consider all images to be referencing an URL
+        ResourceReference reference = new ResourceReference(String.valueOf(node.getUrl()), ResourceType.URL);
+        reference.setTyped(false);
+
         Map<String, String> parameters = new HashMap<>();
 
         // Handle alt text. Note that in order to have the same behavior as the XWiki Syntax 2.0+ we don't add the alt
@@ -118,9 +122,11 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
             getListener().onVerbatim(node.getChars().unescape(), true, Collections.<String, String>emptyMap());
         } else {
             // Since XWiki doesn't support reference images, we generate a standard image instead
+            // We consider all images to be referencing an URL
             Reference reference = node.getReferenceNode(getReferenceRepository());
-            ResourceReference resourceReference = this.imageResourceReferenceParser.parse(
-                String.valueOf(reference.getUrl()));
+            ResourceReference resourceReference =
+                new ResourceReference(String.valueOf(reference.getUrl()), ResourceType.URL);
+            resourceReference.setTyped(false);
 
             // Handle an optional image title
             Map<String, String> parameters = Collections.EMPTY_MAP;

@@ -27,6 +27,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.listener.reference.ResourceReference;
+import org.xwiki.rendering.listener.reference.ResourceType;
 import org.xwiki.rendering.parser.ResourceReferenceParser;
 import org.xwiki.rendering.parser.StreamParser;
 
@@ -105,22 +106,33 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
 
     public void visit(AutoLink node)
     {
-        ResourceReference reference = this.linkResourceReferenceParser.parse(String.valueOf(node.getText()));
+        // This is an autolink to a URL. Autolinks to emails are calling visit(MailLink).
+        ResourceReference reference = new ResourceReference(String.valueOf(node.getText()), ResourceType.URL);
+        reference.setTyped(false);
+
         getListener().beginLink(reference, true, Collections.EMPTY_MAP);
         getListener().endLink(reference, true, Collections.EMPTY_MAP);
     }
 
     public void visit(MailLink node)
     {
-        ResourceReference reference = this.linkResourceReferenceParser.parse(
-            "mailto:" + String.valueOf(node.getText()));
+        // This is an autolink to an email address.
+        ResourceReference reference = new ResourceReference(String.valueOf(node.getText()), ResourceType.MAILTO);
+
         getListener().beginLink(reference, true, Collections.EMPTY_MAP);
         getListener().endLink(reference, true, Collections.EMPTY_MAP);
     }
 
     public void visit(Link node)
     {
-        ResourceReference reference = this.linkResourceReferenceParser.parse(String.valueOf(node.getUrl()));
+        // This can be a link to a URL or a link to an email address but since links to an email address will need to
+        // be prefixed with "mailto:" we can consider them URL links. Also, there's always a label since otherwise it
+        // would be an autolink.
+
+        // We consider all links to be URLs.
+        ResourceReference reference = new ResourceReference(String.valueOf(node.getUrl()), ResourceType.URL);
+        reference.setTyped(false);
+
         Map<String, String> parameters = new HashMap<>();
 
         // Handle optional title
@@ -137,10 +149,12 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
             // Non-existing reference, output the link reference as is
             parseInline(node.getChars().unescape());
         } else {
-            // Since XWiki doesn't support reference links, we generate a standard link instead
+            // Since XWiki doesn't support reference links, we generate a standard link instead.
+            // We consider all reference links to be URL links (ie not wikilinks).
             Reference reference = node.getReferenceNode(getReferenceRepository());
-            ResourceReference resourceReference = this.linkResourceReferenceParser.parse(
-                String.valueOf(reference.getUrl()));
+            ResourceReference resourceReference =
+                new ResourceReference(String.valueOf(reference.getUrl()), ResourceType.URL);
+            resourceReference.setTyped(false);
 
             // Handle an optional link title
             Map<String, String> parameters = Collections.EMPTY_MAP;
