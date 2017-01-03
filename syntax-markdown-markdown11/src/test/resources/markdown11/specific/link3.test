@@ -1,0 +1,16 @@
+.#-----------------------------------------------------------------------------
+.inputexpect|markdown/1.1
+.# Test autolinks. Note that pegdown doesn't recognize "<reference>" as an
+.# autolink (it needs a hierarchical URI, i.e. scheme + "//" or an email address
+.# but without the "mailto:" prefix).
+.#-----------------------------------------------------------------------------
+<scheme://reference>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [false] Type = [url] Reference = [scheme://reference]] [true]
+endLink [Typed = [false] Type = [url] Reference = [scheme://reference]] [true]
+endParagraph
+endDocument

@@ -40,6 +40,7 @@ import org.xwiki.rendering.listener.MetaData;
 import org.xwiki.rendering.listener.chaining.BlockStateChainingListener;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
 import org.xwiki.rendering.listener.reference.ResourceReference;
+import org.xwiki.rendering.listener.reference.ResourceType;
 import org.xwiki.rendering.renderer.AbstractChainingPrintRenderer;
 import org.xwiki.rendering.renderer.printer.DefaultWikiPrinter;
 import org.xwiki.rendering.renderer.printer.WikiPrinter;
@@ -332,12 +333,40 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
         String serializedReference = this.imageReferenceSerializer.serialize(reference);
 
-        // When the label is empty use the [[...]] form
+        // When the label is empty and the reference is a URL or an email address then use an autolink syntax,
+        // otherwise use the wikilink syntax.
+        // Note that we don't use the autolink syntax for mailto, UNC or Data URIs since that's not supported by the
+        // MD spec and by pegdown.
         if (StringUtils.isEmpty(label)) {
-            print("[[" + serializedReference + "]]");
+            // Special case for mailto URLs since we need to not output the scheme for autolinks.
+            if (ResourceType.MAILTO.equals(reference.getType())) {
+                printAutoLink(reference.getReference());
+            } else if (ResourceType.URL.equals(reference.getType())) {
+                printAutoLink(serializedReference);
+            } else {
+                printWikiLink(serializedReference);
+            }
         } else {
+            // Note: if the reference contains a space it'll generate an invalid link syntax. This is fixed with
+            // markdown/1.2.
             print("[" + label + "](" + serializedReference + ")");
         }
+    }
+
+    private void printWikiLink(String serializedReference)
+    {
+        print("[[" + serializedReference + "]]");
+    }
+
+    private void printAutoLink(String serializedReference)
+    {
+        print("<" + serializedReference + ">");
+    }
+
+    private boolean isExternalReference(ResourceReference reference)
+    {
+        return ResourceType.URL.equals(reference.getType()) || ResourceType.MAILTO.equals(reference.getType())
+                || ResourceType.DATA.equals(reference.getType()) || ResourceType.UNC.equals(reference.getType());
     }
 
     @Override

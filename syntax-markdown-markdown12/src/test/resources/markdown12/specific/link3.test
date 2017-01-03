@@ -1,0 +1,16 @@
+.#-----------------------------------------------------------------------------
+.inputexpect|markdown/1.0
+.# Test autolinks.
+.# Autolinks can only contain absolute URIs and email addresses
+.# (see http://spec.commonmark.org/0.27/#autolinks)
+.#-----------------------------------------------------------------------------
+<scheme://reference>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [false] Type = [url] Reference = [scheme://reference]] [true]
+endLink [Typed = [false] Type = [url] Reference = [scheme://reference]] [true]
+endParagraph
+endDocument
