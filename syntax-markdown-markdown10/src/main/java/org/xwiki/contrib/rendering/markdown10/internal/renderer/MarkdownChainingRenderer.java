@@ -63,9 +63,9 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private MarkdownResourceRenderer imageResourceRenderer;
 
-    private ResourceReferenceSerializer linkReferenceSerializer;
+    protected ResourceReferenceSerializer linkReferenceSerializer;
 
-    private ResourceReferenceSerializer imageReferenceSerializer;
+    protected ResourceReferenceSerializer imageReferenceSerializer;
 
     // Custom States
 
@@ -331,34 +331,37 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         String label = linkBlocksPrinter.toString();
         popPrinter();
 
-        String serializedReference = this.imageReferenceSerializer.serialize(reference);
+        String serializedReference = this.linkReferenceSerializer.serialize(reference);
 
         // When the label is empty and the reference is a URL or an email address then use an autolink syntax,
         // otherwise use the wikilink syntax.
         // Note that we don't use the autolink syntax for mailto, UNC or Data URIs since that's not supported by the
         // MD spec and by pegdown.
         if (StringUtils.isEmpty(label)) {
-            // Special case for mailto URLs since we need to not output the scheme for autolinks.
-            if (ResourceType.MAILTO.equals(reference.getType())) {
+            // Don't output the type prefix.
+            if (ResourceType.MAILTO.equals(reference.getType()) || ResourceType.URL.equals(reference.getType())) {
                 printAutoLink(reference.getReference());
-            } else if (ResourceType.URL.equals(reference.getType())) {
-                printAutoLink(serializedReference);
             } else {
                 printWikiLink(serializedReference);
             }
         } else {
             // Note: if the reference contains a space it'll generate an invalid link syntax. This is fixed with
             // markdown/1.2.
-            print("[" + label + "](" + serializedReference + ")");
+            printLink(label, serializedReference);
         }
     }
 
-    private void printWikiLink(String serializedReference)
+    protected void printLink(String label, String serializedReference)
+    {
+        print("[" + label + "](" + serializedReference + ")");
+    }
+
+    protected void printWikiLink(String serializedReference)
     {
         print("[[" + serializedReference + "]]");
     }
 
-    private void printAutoLink(String serializedReference)
+    protected void printAutoLink(String serializedReference)
     {
         print("<" + serializedReference + ">");
     }
