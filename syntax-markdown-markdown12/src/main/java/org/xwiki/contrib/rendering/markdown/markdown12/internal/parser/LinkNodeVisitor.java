@@ -107,7 +107,8 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
     public void visit(AutoLink node)
     {
         // This is an autolink to a URL. Autolinks to emails are calling visit(MailLink).
-        ResourceReference reference = new ResourceReference(String.valueOf(node.getText()), ResourceType.URL);
+        ResourceReference reference =
+                new ResourceReference(String.valueOf(node.getText().unescape()), ResourceType.URL);
         reference.setTyped(false);
 
         getListener().beginLink(reference, true, Collections.EMPTY_MAP);
@@ -117,7 +118,8 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
     public void visit(MailLink node)
     {
         // This is an autolink to an email address.
-        ResourceReference reference = new ResourceReference(String.valueOf(node.getText()), ResourceType.MAILTO);
+        ResourceReference reference =
+            new ResourceReference(String.valueOf(node.getText().unescape()), ResourceType.MAILTO);
 
         getListener().beginLink(reference, true, Collections.EMPTY_MAP);
         getListener().endLink(reference, true, Collections.EMPTY_MAP);
@@ -130,7 +132,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         // would be an autolink.
 
         // We consider all links to be URLs.
-        ResourceReference reference = new ResourceReference(String.valueOf(node.getUrl()), ResourceType.URL);
+        ResourceReference reference = new ResourceReference(String.valueOf(node.getUrl().unescape()), ResourceType.URL);
         reference.setTyped(false);
 
         Map<String, String> parameters = new HashMap<>();
@@ -170,10 +172,10 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
 
     public void visit(WikiLink node)
     {
-        ResourceReference reference = this.linkResourceReferenceParser.parse(String.valueOf(node.getLink()));
+        ResourceReference reference = this.linkResourceReferenceParser.parse(String.valueOf(node.getLink().unescape()));
         getListener().beginLink(reference, false, Collections.EMPTY_MAP);
         if (node.getText() != null) {
-            String label = String.valueOf(node.getText());
+            String label = String.valueOf(node.getText().unescape());
             parseInline(label);
         }
         getListener().endLink(reference, false, Collections.EMPTY_MAP);
