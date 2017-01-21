@@ -1,6 +1,6 @@
 .#-----------------------------------------------------
 .input|markdown/1.2
-.# Test proper pair matching of XWiki-style macro
+.# Test proper pair matching of macro
 .#-----------------------------------------------------
 {{mymacro par1="val1" par2=2}}
 {{/nomacro}} is not end

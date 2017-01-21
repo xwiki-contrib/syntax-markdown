@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 import org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownEscapeWikiPrinter;
 import org.xwiki.contrib.rendering.markdown11.internal.renderer.Markdown11ChainingRenderer;
+import org.xwiki.contrib.rendering.markdown11.internal.renderer.MarkdownMacroRenderer;
 import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
 import org.xwiki.rendering.listener.reference.ResourceReference;
@@ -155,6 +156,7 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         }
     }
 
+
     protected void printWikiLink(String label, String serializedReference)
     {
         // TODO: Handle escapes (for example if the label contains a "|")
@@ -163,6 +165,12 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         } else {
             print(String.format("[[%s|%s]]", label, serializedReference));
         }
+    }
+
+    @Override
+    protected MarkdownMacroRenderer createMacroPrinter()
+    {
+        return new Markdown12MacroRenderer();
     }
 
     private boolean isStrikethroughSupported()

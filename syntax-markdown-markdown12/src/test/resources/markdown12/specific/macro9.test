@@ -1,8 +1,8 @@
 .#-----------------------------------------------------
 .inputexpect|markdown/1.2
-.# Test Markdown-style macro without parameters and content
+.# Test inline macro without parameters and content
 .#-----------------------------------------------------
-This is inline #[mymacro], look at it!
+This is inline {{mymacro/}}, look at it!
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------

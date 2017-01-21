@@ -1,8 +1,8 @@
 .#-----------------------------------------------------
 .input|markdown/1.2
-.# Test Markdown-style macro with parameters and content
+.# Test inline macro with parameters and content
 .#-----------------------------------------------------
-This is inline #[mymacro](par1="val 1" par2=2 "Macro content here").
+This is inline {{mymacro par1="val 1" par2=2}}Macro content here{{/mymacro}}.
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -21,4 +21,4 @@ endDocument
 .#-----------------------------------------------------
 .expect|markdown/1.2
 .#-----------------------------------------------------
-This is inline #[mymacro](par1="val 1" par2="2" "Macro content here").
+This is inline {{mymacro par1="val 1" par2="2"}}Macro content here{{/mymacro}}.

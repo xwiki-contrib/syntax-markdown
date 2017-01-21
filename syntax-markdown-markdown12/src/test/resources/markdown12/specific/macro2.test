@@ -1,6 +1,6 @@
 .#-----------------------------------------------------
 .input|markdown/1.2
-.# Test XWiki-style macro without parameters and content
+.# Test macro without parameters and content
 .#-----------------------------------------------------
 {{mymacro}}{{/mymacro}}
 .#-----------------------------------------------------

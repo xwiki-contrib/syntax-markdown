@@ -54,7 +54,7 @@ public class Markdown11ChainingRenderer extends MarkdownChainingRenderer
         ResourceReferenceSerializer linkReferenceSerializer, ResourceReferenceSerializer imageReferenceSerializer)
     {
         super(listenerChain, linkReferenceSerializer, imageReferenceSerializer);
-        this.macroPrinter = new MarkdownMacroRenderer();
+        this.macroPrinter = createMacroPrinter();
     }
 
     @Override
@@ -128,5 +128,10 @@ public class Markdown11ChainingRenderer extends MarkdownChainingRenderer
     private MarkdownMacroRenderer getMacroPrinter()
     {
         return this.macroPrinter;
+    }
+
+    protected MarkdownMacroRenderer createMacroPrinter()
+    {
+        return new MarkdownMacroRenderer();
     }
 }

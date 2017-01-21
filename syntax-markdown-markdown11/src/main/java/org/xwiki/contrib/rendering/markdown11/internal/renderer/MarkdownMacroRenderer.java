@@ -67,7 +67,7 @@ public class MarkdownMacroRenderer
      * @param id the macro id
      * @param parameters the macro parameters
      * @param content the macro content
-     * @return the serialized macro such as {@code {{macroid param1="value1"}}content{{/macroid}}}
+     * @return the serialized macro such as {@code #[testsimplemacro](param1=value1 param2=value2)}
      */
     public String renderInlineMacro(String id, Map<String, String> parameters, String content)
     {
@@ -107,6 +107,11 @@ public class MarkdownMacroRenderer
      */
     public String renderBlockMacro(String id, Map<String, String> parameters, String content)
     {
+        return renderBlockMacro(id, parameters, content, true);
+    }
+
+    protected String renderBlockMacro(String id, Map<String, String> parameters, String content, boolean withNewLines)
+    {
         StringBuffer buffer = new StringBuffer();
 
         // Print begin macro
@@ -125,9 +130,13 @@ public class MarkdownMacroRenderer
         } else {
             buffer.append(MACRO_CLOSE_SYMBOL);
             if (content.length() > 0) {
-                buffer.append(NEWLINE);
+                if (withNewLines) {
+                    buffer.append(NEWLINE);
+                }
                 buffer.append(content);
-                buffer.append(NEWLINE);
+                if (withNewLines) {
+                    buffer.append(NEWLINE);
+                }
             }
             buffer.append(MACRO_OPEN_SYMBOL + SLASH).append(id).append(MACRO_CLOSE_SYMBOL);
         }

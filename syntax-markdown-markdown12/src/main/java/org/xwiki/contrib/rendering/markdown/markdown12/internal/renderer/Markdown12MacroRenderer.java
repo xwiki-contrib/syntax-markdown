@@ -17,21 +17,30 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.rendering.markdown.markdown12.internal;
+package org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer;
 
-import org.junit.runner.RunWith;
-import org.xwiki.rendering.test.cts.CompatibilityTestSuite;
-import org.xwiki.rendering.test.cts.Scope;
-import org.xwiki.rendering.test.cts.Syntax;
+import java.util.Map;
+
+import org.xwiki.contrib.rendering.markdown11.internal.renderer.MarkdownMacroRenderer;
 
 /**
- * Run all CTS tests for the Markdown syntax.
+ * Generates Markdown syntax for a Macro Block.
  *
- * @version $Id$
- * @since 8.4
+ * @version $Id: edd3c4900f7ec0aa1cc17bc7cd339626de1cd128 $
+ * @since 8.1RC1
  */
-@RunWith(CompatibilityTestSuite.class)
-@Syntax(value = "markdown/1.2")
-public class Markdown12CompatibilityTest
+public class Markdown12MacroRenderer extends MarkdownMacroRenderer
 {
+    /**
+     * Serializes an inline macro to text.
+     *
+     * @param id the macro id
+     * @param parameters the macro parameters
+     * @param content the macro content
+     * @return the serialized macro such as {@code {{macroid param1="value1"}}content{{/macroid}}}
+     */
+    public String renderInlineMacro(String id, Map<String, String> parameters, String content)
+    {
+        return renderBlockMacro(id, parameters, content, false);
+    }
 }

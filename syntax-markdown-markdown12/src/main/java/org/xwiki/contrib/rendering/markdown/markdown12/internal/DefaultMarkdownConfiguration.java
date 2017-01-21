@@ -33,7 +33,6 @@ import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
-import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.extension.macro.MacroExtension;
 
 import com.vladsch.flexmark.Extension;
 import com.vladsch.flexmark.ext.abbreviation.AbbreviationExtension;
@@ -42,8 +41,9 @@ import com.vladsch.flexmark.ext.definition.DefinitionExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughSubscriptExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.ext.wikilink.WikiLinkExtension;
+import com.vladsch.flexmark.ext.xwiki.macros.MacroExtension;
 import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.parser.ParserEmulationFamily;
+import com.vladsch.flexmark.parser.ParserEmulationProfile;
 import com.vladsch.flexmark.superscript.SuperscriptExtension;
 import com.vladsch.flexmark.util.options.MutableDataHolder;
 import com.vladsch.flexmark.util.options.MutableDataSet;
@@ -62,8 +62,6 @@ public class DefaultMarkdownConfiguration implements MarkdownConfiguration
         AbbreviationExtension.class,
         MacroExtension.class
     );
-
-    private static final ParserEmulationFamily DEFAULT_FAMILY = ParserEmulationFamily.valueOf("COMMONMARK");
 
     private static final String PREFIX = "rendering.markdown.";
 
@@ -85,7 +83,7 @@ public class DefaultMarkdownConfiguration implements MarkdownConfiguration
     {
         // Configure Parser Family
         MutableDataHolder options = new MutableDataSet();
-        options.setFrom(DEFAULT_FAMILY.getOptions());
+        options.setFrom(ParserEmulationProfile.COMMONMARK);
 
         // Configure other options
         options.set(WikiLinkExtension.IMAGE_LINKS, true);
