@@ -139,6 +139,7 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
         // Escape any ( or ) to avoid issue with the link syntax.
         // e.g. [label](https://en.wikipedia.org/Some_Subject_\(With_Title\))
+        // See http://spec.commonmark.org/0.27/#links
         escapedReference = rawReference.replaceAll("\\(", "\\\\(");
         escapedReference = escapedReference.replaceAll("\\)", "\\\\)");
 

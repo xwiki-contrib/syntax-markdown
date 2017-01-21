@@ -92,6 +92,7 @@ public class MarkdownEscapeHandler
         }
 
         // TODO: Handle escaping link syntax, i.e. |(?<!\)[.*]\(.*\)
+        // See http://spec.commonmark.org/0.27/#links
     }
 
     private void replaceAll(StringBuffer accumulatedBuffer, String match, String replacement)

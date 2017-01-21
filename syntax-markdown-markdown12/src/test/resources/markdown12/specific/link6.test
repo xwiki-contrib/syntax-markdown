@@ -2,6 +2,7 @@
 .input|markdown/1.2
 .# Verify link escapes
 .#-----------------------------------------------------------------------------
+[label](<foo\<bar\>>)
 [label](https://en.wikipedia.org/Some_Subject_(With_Title))
 [label](https://en.wikipedia.org/Some_Subject_\(With_Title\))
 .#-----------------------------------------------------
@@ -9,6 +10,10 @@
 .#-----------------------------------------------------
 beginDocument
 beginParagraph
+beginLink [Typed = [false] Type = [url] Reference = [foo<bar>]] [false]
+onWord [label]
+endLink [Typed = [false] Type = [url] Reference = [foo<bar>]] [false]
+onNewLine
 beginLink [Typed = [false] Type = [url] Reference = [https://en.wikipedia.org/Some_Subject_(With_Title)]] [false]
 onWord [label]
 endLink [Typed = [false] Type = [url] Reference = [https://en.wikipedia.org/Some_Subject_(With_Title)]] [false]
@@ -21,5 +26,6 @@ endDocument
 .#-----------------------------------------------------------------------------
 .expect|markdown/1.2
 .#-----------------------------------------------------------------------------
+[label](foo<bar>)  
 [label](https://en.wikipedia.org/Some_Subject_\(With_Title\))  
 [label](https://en.wikipedia.org/Some_Subject_\(With_Title\))
