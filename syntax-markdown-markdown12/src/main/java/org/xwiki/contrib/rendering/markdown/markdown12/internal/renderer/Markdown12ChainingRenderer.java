@@ -122,17 +122,27 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
         if (ResourceType.URL.equals(reference.getType()) || ResourceType.MAILTO.equals(reference.getType())) {
             // Now decide if we should use an autolink or not
-            // TODO: Handle escapes (for example if the label contains a "]")
             if (StringUtils.isEmpty(label)) {
                 // Don't output the type prefix.
                 printAutoLink(reference.getReference());
             } else {
-                printLink(label, this.linkReferenceSerializer.serialize(reference));
+                printLink(label, escapeLinkReference(reference.getReference()));
             }
         } else {
-            // TODO: Handle escapes (for example if the label contains a "|")
             printWikiLink(label, this.linkReferenceSerializer.serialize(reference));
         }
+    }
+
+    private String escapeLinkReference(String rawReference)
+    {
+        String escapedReference;
+
+        // Escape any ( or ) to avoid issue with the link syntax.
+        // e.g. [label](https://en.wikipedia.org/Some_Subject_\(With_Title\))
+        escapedReference = rawReference.replaceAll("\\(", "\\\\(");
+        escapedReference = escapedReference.replaceAll("\\)", "\\\\)");
+
+        return escapedReference;
     }
 
     @Override

@@ -1,6 +1,6 @@
 .#-----------------------------------------------------------------------------
-.inputexpect|markdown/1.2
-.# Verify escapes
+.input|markdown/1.2
+.# Verify link escapes
 .#-----------------------------------------------------------------------------
 [label](https://en.wikipedia.org/Some_Subject_(With_Title))
 [label](https://en.wikipedia.org/Some_Subject_\(With_Title\))
@@ -18,3 +18,8 @@ onWord [label]
 endLink [Typed = [false] Type = [url] Reference = [https://en.wikipedia.org/Some_Subject_(With_Title)]] [false]
 endParagraph
 endDocument
+.#-----------------------------------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------------------------------
+[label](https://en.wikipedia.org/Some_Subject_\(With_Title\))  
+[label](https://en.wikipedia.org/Some_Subject_\(With_Title\))
