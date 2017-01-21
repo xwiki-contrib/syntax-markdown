@@ -62,10 +62,9 @@ public class AbbreviationNodeVisitor extends AbstractNodeVisitor
         // Since XWiki doesn't support abbreviations, we generate an HTML <abbr> element.
         String html;
         if (StringUtils.isNotEmpty(node.getAbbreviation())) {
-            html = String.format("<abbr title=\"%s\">%s</abbr>", node.getAbbreviation(),
-                String.valueOf(node.getChars()));
+            html = String.format("<abbr title=\"%s\">%s</abbr>", node.getAbbreviation(), node.getChars().toString());
         } else {
-            html = String.format("<abbr>%s</abbr>", String.valueOf(node.getChars()));
+            html = String.format("<abbr>%s</abbr>", node.getChars().toString());
         }
         getListener().onRawText(html, Syntax.HTML_4_01);
     }

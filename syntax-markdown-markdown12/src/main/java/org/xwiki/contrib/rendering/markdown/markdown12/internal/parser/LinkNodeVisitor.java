@@ -107,8 +107,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
     public void visit(AutoLink node)
     {
         // This is an autolink to a URL. Autolinks to emails are calling visit(MailLink).
-        ResourceReference reference =
-                new ResourceReference(String.valueOf(node.getText().unescape()), ResourceType.URL);
+        ResourceReference reference = new ResourceReference(node.getText().unescape().toString(), ResourceType.URL);
         reference.setTyped(false);
 
         getListener().beginLink(reference, true, Collections.EMPTY_MAP);
@@ -118,8 +117,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
     public void visit(MailLink node)
     {
         // This is an autolink to an email address.
-        ResourceReference reference =
-            new ResourceReference(String.valueOf(node.getText().unescape()), ResourceType.MAILTO);
+        ResourceReference reference = new ResourceReference(node.getText().unescape().toString(), ResourceType.MAILTO);
 
         getListener().beginLink(reference, true, Collections.EMPTY_MAP);
         getListener().endLink(reference, true, Collections.EMPTY_MAP);
@@ -132,13 +130,13 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         // would be an autolink.
 
         // We consider all links to be URLs.
-        ResourceReference reference = new ResourceReference(String.valueOf(node.getUrl().unescape()), ResourceType.URL);
+        ResourceReference reference = new ResourceReference(node.getUrl().unescape().toString(), ResourceType.URL);
         reference.setTyped(false);
 
         Map<String, String> parameters = new HashMap<>();
 
         // Handle optional title
-        addTitle(parameters, String.valueOf(node.getTitle()));
+        addTitle(parameters, node.getTitle().toString());
 
         getListener().beginLink(reference, false, parameters);
         getVisitor().visitChildren(node);
@@ -155,13 +153,13 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
             // We consider all reference links to be URL links (ie not wikilinks).
             Reference reference = node.getReferenceNode(getReferenceRepository());
             ResourceReference resourceReference =
-                new ResourceReference(String.valueOf(reference.getUrl()), ResourceType.URL);
+                new ResourceReference(reference.getUrl().toString(), ResourceType.URL);
             resourceReference.setTyped(false);
 
             // Handle an optional link title
             Map<String, String> parameters = Collections.EMPTY_MAP;
             if (StringUtils.isNotEmpty(reference.getTitle())) {
-                parameters = Collections.singletonMap(TITLE_ATTRIBUTE, String.valueOf(reference.getTitle()));
+                parameters = Collections.singletonMap(TITLE_ATTRIBUTE, reference.getTitle().toString());
             }
 
             getListener().beginLink(resourceReference, false, parameters);
@@ -172,10 +170,10 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
 
     public void visit(WikiLink node)
     {
-        ResourceReference reference = this.linkResourceReferenceParser.parse(String.valueOf(node.getLink().unescape()));
+        ResourceReference reference = this.linkResourceReferenceParser.parse(node.getLink().unescape().toString());
         getListener().beginLink(reference, false, Collections.EMPTY_MAP);
         if (node.getText() != null) {
-            String label = String.valueOf(node.getText().unescape());
+            String label = node.getText().unescape().toString();
             parseInline(label);
         }
         getListener().endLink(reference, false, Collections.EMPTY_MAP);

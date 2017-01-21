@@ -83,7 +83,7 @@ public class CodeNodeVisitor extends AbstractNodeVisitor
     public void visit(Code node)
     {
         // Since XWiki doesn't have a Code Block we generate a Code Macro Block
-        getListener().onMacro(CODE_MACRO_ID, Collections.EMPTY_MAP, String.valueOf(node.getText()), true);
+        getListener().onMacro(CODE_MACRO_ID, Collections.EMPTY_MAP, node.getText().toString(), true);
     }
 
     public void visit(FencedCodeBlock node)
@@ -91,19 +91,19 @@ public class CodeNodeVisitor extends AbstractNodeVisitor
         // Since XWiki doesn't have a Code Block we generate a Code Macro Block
         Map<String, String> parameters;
         if (node.getInfo() != null) {
-            parameters = Collections.singletonMap("language", String.valueOf(node.getInfo()));
+            parameters = Collections.singletonMap("language", node.getInfo().toString());
         } else {
             parameters = Collections.EMPTY_MAP;
         }
 
         // Flexmark puts trailing newline in the HTML block so we need to remove it.
-        String content = String.valueOf(node.getContentChars()).trim();
+        String content = node.getContentChars().toString().trim();
         getListener().onMacro(CODE_MACRO_ID, parameters, content, false);
     }
 
     public void visit(IndentedCodeBlock node)
     {
         // Since XWiki doesn't have a Code Block we generate a Code Macro Block
-        getListener().onMacro(CODE_MACRO_ID, Collections.EMPTY_MAP, String.valueOf(node.getContentChars()), false);
+        getListener().onMacro(CODE_MACRO_ID, Collections.EMPTY_MAP, node.getContentChars().toString(), false);
     }
 }
