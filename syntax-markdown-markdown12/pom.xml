@@ -31,7 +31,7 @@
   <name>Markdown Syntax - Markdown 1.2</name>
   <description>Markdown 1.2 Syntax Parser and Renderer</description>
   <properties>
-    <flexmark.version>0.11.8</flexmark.version>
+    <flexmark.version>0.12.0</flexmark.version>
     <xwiki.jacoco.instructionRatio>0.92</xwiki.jacoco.instructionRatio>
     <!-- Name to display by the Extension Manager -->
     <xwiki.extension.name>Markdown Syntax 1.2</xwiki.extension.name>
