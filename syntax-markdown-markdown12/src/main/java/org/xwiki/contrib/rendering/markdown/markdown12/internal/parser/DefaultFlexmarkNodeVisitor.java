@@ -223,7 +223,8 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
 
     public void visit(SoftLineBreak node)
     {
-        getListener().onNewLine();
+        // XWiki doesn't have a softlinkebreak block. Thus we consider a softlinebreak as a space.
+        getListener().onSpace();
     }
 
     public void visit(HardLineBreak node)

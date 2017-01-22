@@ -2,8 +2,8 @@
 .input|markdown/1.2
 .# Verify link escapes
 .#-----------------------------------------------------------------------------
-[label](<foo\<bar\>>)
-[label](https://en.wikipedia.org/Some_Subject_(With_Title))
+[label](<foo\<bar\>>)  
+[label](https://en.wikipedia.org/Some_Subject_(With_Title))  
 [label](https://en.wikipedia.org/Some_Subject_\(With_Title\))
 .#-----------------------------------------------------
 .expect|event/1.0

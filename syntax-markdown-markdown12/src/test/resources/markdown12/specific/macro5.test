@@ -7,7 +7,7 @@
 and even {{mymacro}} is just plain content
 {{/mymacro}}
 
-Markdown
+Markdown  
 {{/mymacro}}
 .#-----------------------------------------------------
 .expect|event/1.0
