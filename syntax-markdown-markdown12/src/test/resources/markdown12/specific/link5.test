@@ -6,3 +6,10 @@
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [false] Type = [doc] Reference = [reference] Parameters = [[queryString] = [a=b&c=d], [anchor] = [anchor]]] [false]
+onWord [label]
+endLink [Typed = [false] Type = [doc] Reference = [reference] Parameters = [[queryString] = [a=b&c=d], [anchor] = [anchor]]] [false]
+endParagraph
+endDocument

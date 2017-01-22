@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +47,12 @@ import com.vladsch.flexmark.parser.Parser;
 public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 {
     private static final String STRIKEDOUT_SYMBOL = "~~";
+
+    private static final char QUOTE = '"';
+
+    private static final String FORMAT_TWO_PARAMS = "[[%s|%s]]";
+
+    private static final String FORMAT_THREE_PARAMS = "[[%s|%s|%s]]";
 
     private MarkdownConfiguration configuration;
 
@@ -129,7 +136,7 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
                 printLink(label, escapeLinkReference(reference.getReference()));
             }
         } else {
-            printWikiLink(label, this.linkReferenceSerializer.serialize(reference));
+            printWikiLink(label, this.linkReferenceSerializer.serialize(reference), reference.getParameters());
         }
     }
 
@@ -159,7 +166,6 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
             alt = reference.getReference();
         }
 
-        // TODO: Handle escapes
         if (ResourceType.URL.equals(reference.getType())) {
             print(String.format("![%s](%s)", alt, reference.getReference()));
         } else {
@@ -167,15 +173,35 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         }
     }
 
-
-    protected void printWikiLink(String label, String serializedReference)
+    protected void printWikiLink(String label, String serializedReference, Map<String, String> parameters)
     {
-        // TODO: Handle escapes (for example if the label contains a "|")
         if (StringUtils.isEmpty(label)) {
-            printWikiLink(serializedReference);
+            if (parameters.isEmpty()) {
+                printWikiLink(serializedReference);
+            } else {
+                print(String.format(FORMAT_TWO_PARAMS, serializedReference, serializeParameters(parameters)));
+            }
         } else {
-            print(String.format("[[%s|%s]]", label, serializedReference));
+            if (parameters.isEmpty()) {
+                print(String.format(FORMAT_TWO_PARAMS, label, serializedReference));
+            } else {
+                print(String.format(FORMAT_THREE_PARAMS, label, serializedReference, serializeParameters(parameters)));
+            }
         }
+    }
+
+    private String serializeParameters(Map<String, String> parameters)
+    {
+        StringBuilder builder = new StringBuilder();
+        Iterator<Map.Entry<String, String>> iterator = parameters.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, String> entry = iterator.next();
+            builder.append(entry.getKey()).append('=').append(QUOTE).append(entry.getValue()).append(QUOTE);
+            if (iterator.hasNext()) {
+                builder.append(' ');
+            }
+        }
+        return builder.toString();
     }
 
     @Override

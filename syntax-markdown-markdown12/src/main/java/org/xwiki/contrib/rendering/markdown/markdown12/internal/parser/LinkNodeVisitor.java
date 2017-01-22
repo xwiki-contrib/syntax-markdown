@@ -19,17 +19,22 @@
  */
 package org.xwiki.contrib.rendering.markdown.markdown12.internal.parser;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.rendering.listener.Listener;
+import org.xwiki.rendering.listener.reference.DocumentResourceReference;
 import org.xwiki.rendering.listener.reference.ResourceReference;
 import org.xwiki.rendering.listener.reference.ResourceType;
 import org.xwiki.rendering.parser.ResourceReferenceParser;
 import org.xwiki.rendering.parser.StreamParser;
+import org.xwiki.rendering.wikimodel.WikiParameter;
+import org.xwiki.rendering.wikimodel.impl.WikiScannerUtil;
 
 import com.vladsch.flexmark.ast.AutoLink;
 import com.vladsch.flexmark.ast.Link;
@@ -170,7 +175,40 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
 
     public void visit(WikiLink node)
     {
-        ResourceReference reference = this.linkResourceReferenceParser.parse(node.getLink().unescape().toString());
+        // Parse any parameters specified using the format "label|reference|a=b c=d".
+        String nodeRawReference = node.getLink().unescape().toString();
+        String nodeReference = nodeRawReference;
+        String queryString = null;
+        String anchor = null;
+        int pos = nodeRawReference.indexOf('|');
+        if (pos > -1) {
+            nodeReference = nodeRawReference.substring(0, pos);
+            if (pos < nodeRawReference.length()) {
+                String parameters = nodeRawReference.substring(pos + 1);
+                List<WikiParameter> parameterList = new ArrayList<>();
+                WikiScannerUtil.splitToPairs(parameters, parameterList, null, null, '\\');
+                for (WikiParameter wikiParameter : parameterList) {
+                    if (wikiParameter.getKey().equals("queryString")) {
+                        queryString = wikiParameter.getValue();
+                    } else if (wikiParameter.getKey().equals("anchor")) {
+                        anchor = wikiParameter.getValue();
+                    }
+                }
+            }
+        }
+
+        ResourceReference reference = this.linkResourceReferenceParser.parse(nodeReference);
+
+        if (reference instanceof DocumentResourceReference) {
+            DocumentResourceReference documentResourceReference = (DocumentResourceReference) reference;
+            if (queryString != null) {
+                documentResourceReference.setQueryString(queryString);
+            }
+            if (anchor != null) {
+                documentResourceReference.setAnchor(anchor);
+            }
+        }
+
         getListener().beginLink(reference, false, Collections.EMPTY_MAP);
         if (node.getText() != null) {
             String label = node.getText().unescape().toString();
