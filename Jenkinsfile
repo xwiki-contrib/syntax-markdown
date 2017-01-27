@@ -40,7 +40,9 @@ node {
         }
     }
     stage('Post Build') {
+        // Archive the generated artifacts
         archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+        // Save the JUnit test report
         step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
     }
 }
