@@ -11,4 +11,4 @@ Parsers and Renderers for Markdown syntaxes.
 * License: LGPL 2.1
 * Translations: N/A
 * Sonar Dashboard: N/A
-* Continuous Integration Status: [![Build Status](http://ci.xwiki.org/buildStatus/icon?job=Contrib%20-%20Markdown)](http://ci.xwiki.org/job/Contrib%20-%20Markdown/)
+* Continuous Integration Status: [![Build Status](http://ci.xwiki.org/buildStatus/icon?job=XWiki Contrib/syntax-markdown/master)](http://ci.xwiki.org/view/Contrib/job/XWiki%20Contrib/job/syntax-markdown/job/master/)
