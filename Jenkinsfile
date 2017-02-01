@@ -17,48 +17,10 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-node {
-    def mvnHome
-    stage('Preparation') {
-        // Get the Maven tool.
-        // NOTE: Needs to be configured in the global configuration.
-        mvnHome = tool 'Maven'
-    }
-    stage('Build') {
-        dir ('syntax-markdown') {
-            checkout scm
-            withEnv(["PATH+MAVEN=${mvnHome}/bin", 'MAVEN_OPTS=-Xmx1024m']) {
-                try {
-                    sh "mvn clean install jacoco:report -Pquality -U -e -Dmaven.test.failure.ignore"
-                    currentBuild.result = 'SUCCESS'
-                } catch (Exception err) {
-                    currentBuild.result = 'FAILURE'
-                    notifyByMail(currentBuild.result)
-                    throw e
-                }
-            }
-        }
-    }
-    stage('Post Build') {
-        // Archive the generated artifacts
-        archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
-        // Save the JUnit test report
-        step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
-    }
-}
-def notifyByMail(String buildStatus) {
-    buildStatus =  buildStatus ?: 'SUCCESSFUL'
-    def subject = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
-    def summary = "${subject} (${env.BUILD_URL})"
-    def details = """<p>STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
-    <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>"""
 
-    def to = emailextrecipients([
-            [$class: 'CulpritsRecipientProvider'],
-            [$class: 'DevelopersRecipientProvider'],
-            [$class: 'RequesterRecipientProvider']
-    ])
-    if (to != null && !to.isEmpty()) {
-        mail to: to, subject: subject, body: details
-    }
+// It's assumed that Jenkins has been configured to implicitly load the vars/xwikiModule.groovy library which exposes
+// the "xwikiModule" global function/DSL.
+
+xwikiModule {
+    name = 'syntax-markdown'
 }
