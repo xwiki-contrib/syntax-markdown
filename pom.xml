@@ -29,7 +29,7 @@
   </parent>
   <groupId>org.xwiki.contrib.markdown</groupId>
   <artifactId>syntax-markdown</artifactId>
-  <version>8.5-SNAPSHOT</version>
+  <version>8.4.3</version>
   <name>Markdown Syntax - Parent POM</name>
   <description>Parent POM for Markdown syntax modules</description>
   <packaging>pom</packaging>
@@ -37,7 +37,7 @@
     <connection>scm:git:git://github.com/xwiki-contrib/syntax-markdown.git</connection>
     <developerConnection>scm:git:git@github.com:xwiki-contrib/syntax-markdown.git</developerConnection>
     <url>https://github.com/xwiki-contrib/syntax-markdown/tree/master</url>
-    <tag>HEAD</tag>
+    <tag>syntax-markdown-8.4.3</tag>
   </scm>
   <issueManagement>
     <system>jira</system>
