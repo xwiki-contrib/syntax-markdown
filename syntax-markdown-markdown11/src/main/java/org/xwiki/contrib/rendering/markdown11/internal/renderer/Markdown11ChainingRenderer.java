@@ -113,15 +113,16 @@ public class Markdown11ChainingRenderer extends MarkdownChainingRenderer
     @Override
     public void onMacro(String id, Map<String, String> parameters, String content, boolean isInline)
     {
+        // Handle standard macros
+        if (!isInline) {
+            printEmptyLine();
+        }
+
         // Handle Code macro in a specific way
         if (handleCodeMacro(id, parameters, content, isInline)) {
             return;
         }
 
-        // Handle standard macros
-        if (!isInline) {
-            printEmptyLine();
-        }
         print(getMacroPrinter().renderMacro(id, parameters, content, isInline));
     }
 
