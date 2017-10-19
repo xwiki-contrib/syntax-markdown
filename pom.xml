@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.xwiki.contrib</groupId>
     <artifactId>parent-commons</artifactId>
-    <version>7.4-8</version>
+    <version>7.4-14</version>
   </parent>
   <groupId>org.xwiki.contrib.markdown</groupId>
   <artifactId>syntax-markdown</artifactId>
@@ -54,6 +54,9 @@
     </developer>
   </developers>
   <properties>
+    <!-- Override since we want to depend on 7.4.5 as we need the ParametersPrinter version from it.
+         See https://jira.xwiki.org/browse/MARKDOWN-44 -->
+    <commons.version>7.4.5</commons.version>
     <rendering.version>${commons.version}</rendering.version>
     <!-- This extension needs to be installed at the farm level (ie in the root namespace) to work fine.
          This is a limitation currently caused by http://jira.xwiki.org/browse/XWIKI-13437 -->

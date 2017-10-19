@@ -45,7 +45,7 @@ public class MarkdownMacroRenderer
 
     private static final String NEWLINE = "\n";
 
-    private ParametersPrinter parametersPrinter = new ParametersPrinter();
+    private static final ParametersPrinter PARAMETERS_PRINTER = new ParametersPrinter('\\');
 
     /**
      * Serializes a macro to text.
@@ -152,6 +152,6 @@ public class MarkdownMacroRenderer
      */
     public String renderMacroParameters(Map<String, String> parameters)
     {
-        return this.parametersPrinter.print(parameters, '\\').replace(MACRO_CLOSE_SYMBOL, "\\}\\}");
+        return PARAMETERS_PRINTER.print(parameters).replace(MACRO_CLOSE_SYMBOL, "\\}\\}");
     }
 }
