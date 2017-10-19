@@ -27,51 +27,36 @@
     <artifactId>syntax-markdown</artifactId>
     <version>8.6-SNAPSHOT</version>
   </parent>
-  <artifactId>syntax-markdown-markdown10</artifactId>
-  <name>Markdown Syntax - Markdown 1.0</name>
-  <description>Markdown 1.0 Syntax Parser and Renderer</description>
-  <properties>
-    <xwiki.jacoco.instructionRatio>0.85</xwiki.jacoco.instructionRatio>
-    <!-- Name to display by the Extension Manager -->
-    <xwiki.extension.name>Markdown Syntax 1.0</xwiki.extension.name>
-    <!-- Old names of this module used for retro compatibility when resolving dependencies of old extensions -->
-    <xwiki.extension.features>org.xwiki.rendering:xwiki-rendering-syntax-markdown10</xwiki.extension.features>
-    <!-- List it as a rendering syntax related module -->
-    <xwiki.extension.category>syntax</xwiki.extension.category>
-  </properties>
+  <artifactId>syntax-markdown-markdown10-common</artifactId>
+  <name>Markdown Syntax - Markdown 1.0 - Common</name>
+  <description>Markdown 1.0 Syntax Parser and Renderer classes that can be extended</description>
   <dependencies>
+    <!-- Fix duplicated files in parboiled until pegdown depend on the right version -->
     <dependency>
-      <groupId>org.xwiki.contrib.markdown</groupId>
-      <artifactId>syntax-markdown-markdown10-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <!-- Test Dependencies -->
-    <dependency>
-      <groupId>org.xwiki.rendering</groupId>
-      <artifactId>xwiki-rendering-test</artifactId>
-      <version>${rendering.version}</version>
-      <scope>test</scope>
+      <groupId>org.parboiled</groupId>
+      <artifactId>parboiled-java</artifactId>
+      <version>1.1.7</version>
     </dependency>
     <dependency>
+      <groupId>org.pegdown</groupId>
+      <artifactId>pegdown</artifactId>
+      <version>1.4.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.xwiki.rendering</groupId>
-      <artifactId>xwiki-rendering-syntax-event</artifactId>
+      <artifactId>xwiki-rendering-syntax-xhtml</artifactId>
       <version>${rendering.version}</version>
-      <scope>test</scope>
+    </dependency>
+    <!-- TODO: We reuse some code from the XWiki Syntax 2.1 Renderer implementation. We would need to extract them
+         into the Rendering API module to make them generic and reusable and not depend on the XWiki Syntax 2.1 -->
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-syntax-xwiki21</artifactId>
+      <version>${rendering.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
     </dependency>
   </dependencies>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>

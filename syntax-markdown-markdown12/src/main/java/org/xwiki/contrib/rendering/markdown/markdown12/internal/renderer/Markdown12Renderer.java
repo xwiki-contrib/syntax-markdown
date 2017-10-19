@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer;
 
+import java.io.IOException;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -26,9 +28,11 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.InstantiationStrategy;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
-import org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownRenderer;
+import org.xwiki.contrib.rendering.markdown11.internal.renderer.Markdown11ChainingRenderer;
+import org.xwiki.rendering.internal.renderer.xwiki20.AbstractXWikiSyntaxRenderer;
 import org.xwiki.rendering.listener.chaining.ChainingListener;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
+import org.xwiki.rendering.renderer.reference.ResourceReferenceSerializer;
 
 /**
  * Generates Markdown 1.2 from a {@link org.xwiki.rendering.block.XDOM} object being traversed.
@@ -39,15 +43,37 @@ import org.xwiki.rendering.listener.chaining.ListenerChain;
 @Component
 @Named("markdown/1.2")
 @InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
-public class Markdown12Renderer extends MarkdownRenderer
+public class Markdown12Renderer extends AbstractXWikiSyntaxRenderer
 {
     @Inject
     private MarkdownConfiguration configuration;
+
+    /**
+     * Needed by MarkdownChainingRenderer to serialize wiki link references.
+     */
+    @Inject
+    @Named("markdown/1.2/link")
+    private ResourceReferenceSerializer linkReferenceSerializer;
+
+    /**
+     * Needed by MarkdownChainingRenderer to serialize wiki image references.
+     */
+    @Inject
+    @Named("markdown/1.2/image")
+    private ResourceReferenceSerializer imageReferenceSerializer;
 
     @Override
     protected ChainingListener createXWikiSyntaxChainingRenderer(ListenerChain chain)
     {
         return new Markdown12ChainingRenderer(chain, this.linkReferenceSerializer, this.imageReferenceSerializer,
             this.configuration);
+    }
+
+    @Override
+    public void flush() throws IOException
+    {
+        // TODO: Understand why the AbstractXWikiSyntaxRenderer calls endDocument() which results in endDocument()
+        // being called twice. Note that we don't want this here since we perform some handling in endDocument for
+        // Markdown.
     }
 }

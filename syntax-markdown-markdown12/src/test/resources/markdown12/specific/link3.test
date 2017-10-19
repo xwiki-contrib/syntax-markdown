@@ -1,5 +1,5 @@
 .#-----------------------------------------------------------------------------
-.inputexpect|markdown/1.0
+.inputexpect|markdown/1.2
 .# Test autolinks.
 .# Autolinks can only contain absolute URIs and email addresses
 .# (see http://spec.commonmark.org/0.27/#autolinks)

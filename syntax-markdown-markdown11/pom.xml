@@ -42,7 +42,7 @@
   <dependencies>
     <dependency>
       <groupId>org.xwiki.contrib.markdown</groupId>
-      <artifactId>syntax-markdown-markdown10</artifactId>
+      <artifactId>syntax-markdown-markdown10-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

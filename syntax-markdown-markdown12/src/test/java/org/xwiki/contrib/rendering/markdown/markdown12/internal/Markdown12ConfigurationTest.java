@@ -26,10 +26,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12BlockRenderer;
+import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12ImageReferenceSerializer;
+import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12LinkReferenceSerializer;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12Renderer;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12RendererFactory;
-import org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownImageReferenceSerializer;
-import org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownLinkReferenceSerializer;
 import org.xwiki.rendering.block.Block;
 import org.xwiki.rendering.block.FormatBlock;
 import org.xwiki.rendering.block.ParagraphBlock;
@@ -61,8 +61,8 @@ import static org.mockito.Mockito.when;
     Markdown12RendererFactory.class,
     Markdown12BlockRenderer.class,
     Markdown12Renderer.class,
-    MarkdownLinkReferenceSerializer.class,
-    MarkdownImageReferenceSerializer.class,
+    Markdown12LinkReferenceSerializer.class,
+    Markdown12ImageReferenceSerializer.class,
     XWiki20ResourceReferenceTypeSerializer.class
 })
 public class Markdown12ConfigurationTest

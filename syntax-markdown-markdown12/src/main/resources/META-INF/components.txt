@@ -5,3 +5,5 @@ org.xwiki.contrib.rendering.markdown.markdown12.internal.DefaultMarkdownConfigur
 org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12BlockRenderer
 org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12Renderer
 org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12RendererFactory
+org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12ImageReferenceSerializer
+org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12LinkReferenceSerializer

@@ -16,6 +16,6 @@ onMacroInline [code] [] [some code]
 endParagraph
 endDocument
 .#-----------------------------------------------------
-.expect|markdown/1.0
+.expect|markdown/1.1
 .#-----------------------------------------------------
 This is `some code`

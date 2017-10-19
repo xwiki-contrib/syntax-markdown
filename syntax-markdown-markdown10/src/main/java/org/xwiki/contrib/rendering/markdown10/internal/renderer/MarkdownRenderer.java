@@ -48,14 +48,14 @@ public class MarkdownRenderer extends AbstractXWikiSyntaxRenderer
      */
     @Inject
     @Named("markdown/1.0/link")
-    protected ResourceReferenceSerializer linkReferenceSerializer;
+    private ResourceReferenceSerializer linkReferenceSerializer;
 
     /**
      * Needed by MarkdownChainingRenderer to serialize wiki image references.
      */
     @Inject
     @Named("markdown/1.0/image")
-    protected ResourceReferenceSerializer imageReferenceSerializer;
+    private ResourceReferenceSerializer imageReferenceSerializer;
 
     @Override
     protected ChainingListener createXWikiSyntaxChainingRenderer(ListenerChain chain)
