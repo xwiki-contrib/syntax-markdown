@@ -63,6 +63,7 @@
     <module>syntax-markdown-markdown10</module>
     <module>syntax-markdown-markdown10-common</module>
     <module>syntax-markdown-markdown11</module>
+    <module>syntax-markdown-markdown11-common</module>
     <module>syntax-markdown-markdown12</module>
   </modules>
 </project>

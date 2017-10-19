@@ -28,7 +28,6 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.InstantiationStrategy;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
-import org.xwiki.contrib.rendering.markdown11.internal.renderer.Markdown11ChainingRenderer;
 import org.xwiki.rendering.internal.renderer.xwiki20.AbstractXWikiSyntaxRenderer;
 import org.xwiki.rendering.listener.chaining.ChainingListener;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
