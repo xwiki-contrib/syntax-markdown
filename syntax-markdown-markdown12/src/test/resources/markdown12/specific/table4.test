@@ -1,0 +1,22 @@
+.#----------------------------------------------------------------
+.inputexpect|markdown/1.2
+.# Test table without header rows
+.# Test that minimum cell size is 3 for "---" header row separator
+.#----------------------------------------------------------------
+| --- | --- |
+|  A  |  B  |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableCell
+onWord [A]
+endTableCell
+beginTableCell
+onWord [B]
+endTableCell
+endTableRow
+endTable
+endDocument

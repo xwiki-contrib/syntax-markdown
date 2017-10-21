@@ -77,6 +77,13 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private Stack<List<List<String>>> tableCells = new Stack<>();
 
+    /**
+     * How many head rows each table has.
+     */
+    private Stack<Integer> tableHeadRowsCount = new Stack<>();
+
+    private Stack<Boolean> isOnFirstHeadCellInTableRow = new Stack<>();
+
     private Stack<Map<String, String>> abbreviations = new Stack<>();
 
     /**
@@ -429,6 +436,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         printEmptyLine();
         this.tableCells.push(new ArrayList<List<String>>());
+        this.tableHeadRowsCount.push(0);
     }
 
     @Override
@@ -451,28 +459,42 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             maxColumnSizes.add(-1);
         }
         // Set the max column sizes
-        for (List<String> columnCells : this.tableCells.peek()) {
+        for (int rows = 0; rows < this.tableCells.peek().size(); rows++) {
+            List<String> columnCells = this.tableCells.peek().get(rows);
             for (int i = 0; i < columnCells.size(); i++) {
-                if (columnCells.get(i).length() > maxColumnSizes.get(i)) {
-                    maxColumnSizes.set(i, columnCells.get(i).length());
+                int currentCellSize = columnCells.get(i).length();
+                // The minimum cell size is 3 to account for the header separator "---"
+                if (currentCellSize < 3) {
+                    currentCellSize = 3;
+                }
+                if (currentCellSize > maxColumnSizes.get(i)) {
+                    maxColumnSizes.set(i, currentCellSize);
                 }
             }
         }
 
-        for (int i = 0; i < this.tableCells.peek().size(); i++) {
+        // First, print header rows
+        if (this.tableHeadRowsCount.peek() > 0) {
+            for (int i = 0; i < this.tableHeadRowsCount.peek(); i++) {
+                List<String> columnCells = this.tableCells.peek().get(i);
+                printTableRow(columnCells, ' ', true, maxColumnSizes);
+            }
+            print("\n");
+        }
+        printTableRow(this.tableCells.peek().get(0), '-', false, maxColumnSizes);
+        print("\n");
+
+        // Now print the body rows
+        for (int i = this.tableHeadRowsCount.peek(); i < this.tableCells.peek().size(); i++) {
             List<String> columnCells = this.tableCells.peek().get(i);
             printTableRow(columnCells, ' ', true, maxColumnSizes);
-            // Handle header row
-            if (i == 0) {
-                print("\n");
-                printTableRow(columnCells, '-', false, maxColumnSizes);
-            }
             if (i < this.tableCells.peek().size() - 1) {
                 print("\n");
             }
         }
 
         this.tableCells.pop();
+        this.tableHeadRowsCount.pop();
     }
 
     private void printTableRow(List<String> columnCells, char separator, boolean printCellText,
@@ -516,6 +538,11 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginTableHeadCell(Map<String, String> parameters)
     {
+        if (this.isOnFirstHeadCellInTableRow.peek()) {
+            this.isOnFirstHeadCellInTableRow.pop();
+            this.isOnFirstHeadCellInTableRow.push(false);
+            this.tableHeadRowsCount.push(this.tableHeadRowsCount.pop() + 1);
+        }
         beginTableCell(parameters);
     }
 
@@ -529,6 +556,13 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     public void beginTableRow(Map<String, String> parameters)
     {
         this.tableCells.peek().add(new ArrayList<String>());
+        this.isOnFirstHeadCellInTableRow.push(true);
+    }
+
+    @Override
+    public void endTableRow(Map<String, String> parameters)
+    {
+        this.isOnFirstHeadCellInTableRow.pop();
     }
 
     @Override
