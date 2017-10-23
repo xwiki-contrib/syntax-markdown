@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.xwiki.contrib.markdown</groupId>
     <artifactId>syntax-markdown</artifactId>
-    <version>8.6-SNAPSHOT</version>
+    <version>8.5.1</version>
   </parent>
   <artifactId>syntax-markdown-markdown10</artifactId>
   <name>Markdown Syntax - Markdown 1.0</name>
