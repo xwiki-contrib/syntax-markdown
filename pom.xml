@@ -39,10 +39,6 @@
     <url>https://github.com/xwiki-contrib/syntax-markdown/tree/master</url>
     <tag>HEAD</tag>
   </scm>
-  <issueManagement>
-    <system>jira</system>
-    <url>http://jira.xwiki.org/browse/MARKDOWN</url>
-  </issueManagement>
   <developers>
     <developer>
       <id>vmassol</id>
@@ -61,6 +57,8 @@
     <!-- This extension needs to be installed at the farm level (ie in the root namespace) to work fine.
          This is a limitation currently caused by http://jira.xwiki.org/browse/XWIKI-13437 -->
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
+    <xwiki.issueManagement.jira.id>MARKDOWN</xwiki.issueManagement.jira.id>
+    <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
   </properties>
   <modules>
     <module>syntax-markdown-markdown10</module>
