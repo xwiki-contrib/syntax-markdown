@@ -30,6 +30,7 @@
   <artifactId>syntax-markdown-markdown11</artifactId>
   <name>Markdown Syntax - Markdown 1.1</name>
   <description>Markdown 1.1 Syntax Parser and Renderer</description>
+  <url>http://extensions.xwiki.org/xwiki/bin/view/Extension/Markdown%20Syntax%201.1</url>
   <properties>
     <xwiki.jacoco.instructionRatio>0.41</xwiki.jacoco.instructionRatio>
     <!-- Name to display by the Extension Manager -->
