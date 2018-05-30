@@ -112,7 +112,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
     public void visit(AutoLink node)
     {
         // This is an autolink to a URL. Autolinks to emails are calling visit(MailLink).
-        ResourceReference reference = new ResourceReference(node.getText().unescape().toString(), ResourceType.URL);
+        ResourceReference reference = new ResourceReference(node.getText().unescape(), ResourceType.URL);
         reference.setTyped(false);
 
         getListener().beginLink(reference, true, Collections.EMPTY_MAP);
@@ -122,7 +122,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
     public void visit(MailLink node)
     {
         // This is an autolink to an email address.
-        ResourceReference reference = new ResourceReference(node.getText().unescape().toString(), ResourceType.MAILTO);
+        ResourceReference reference = new ResourceReference(node.getText().unescape(), ResourceType.MAILTO);
 
         getListener().beginLink(reference, true, Collections.EMPTY_MAP);
         getListener().endLink(reference, true, Collections.EMPTY_MAP);
@@ -135,7 +135,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         // would be an autolink.
 
         // We consider all links to be URLs.
-        ResourceReference reference = new ResourceReference(node.getUrl().unescape().toString(), ResourceType.URL);
+        ResourceReference reference = new ResourceReference(node.getUrl().unescape(), ResourceType.URL);
         reference.setTyped(false);
 
         Map<String, String> parameters = new HashMap<>();
@@ -176,7 +176,9 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
     public void visit(WikiLink node)
     {
         // Parse any parameters specified using the format "label|reference|a=b c=d".
-        String nodeRawReference = node.getLink().unescape().toString();
+        // Important: We don't unescape() the link content since we need to support escape characters in wiki link
+        // references (e.g. a reference with dots, etc).
+        String nodeRawReference = node.getLink().toString();
         String nodeReference = nodeRawReference;
         String queryString = null;
         String anchor = null;
@@ -211,7 +213,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
 
         getListener().beginLink(reference, false, Collections.EMPTY_MAP);
         if (node.getText() != null) {
-            String label = node.getText().unescape().toString();
+            String label = node.getText().unescape();
             parseInline(label);
         }
         getListener().endLink(reference, false, Collections.EMPTY_MAP);

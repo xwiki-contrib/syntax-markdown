@@ -1,8 +1,9 @@
 .#-----------------------------------------------------------------------------
 .inputexpect|markdown/1.2
-.# Verify that links to wiki pages are using the wikilink syntax for example.
+.# Verify links using the wiki syntax and that they support special symbols
+.# (spaces and dots).
 .#-----------------------------------------------------------------------------
-[[label|doc:wiki page with space]]
+[[label|doc:wiki page with space]][[label|doc:wiki page\.with\.dots]]
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -11,5 +12,8 @@ beginParagraph
 beginLink [Typed = [true] Type = [doc] Reference = [wiki page with space]] [false]
 onWord [label]
 endLink [Typed = [true] Type = [doc] Reference = [wiki page with space]] [false]
+beginLink [Typed = [true] Type = [doc] Reference = [wiki page\.with\.dots]] [false]
+onWord [label]
+endLink [Typed = [true] Type = [doc] Reference = [wiki page\.with\.dots]] [false]
 endParagraph
 endDocument
