@@ -660,8 +660,11 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                     print("\n" + TRIPLE_BACKTICK);
                 } else {
                     String lines[] = content.split("\\r?\\n");
+                    int spaces = getBlockState().isInList() ? (getBlockState().getListDepth() - 1) * 4 + 2 : 0;
                     for (int i = 0; i < lines.length; i++) {
-                        print("    " + lines[i]);
+                        // If we're in a list, for each list item level, we add 4 + 2 more spaces, see spec at
+                        // https://spec.commonmark.org/0.28/#list-items
+                        print(String.format("    %s%s", StringUtils.repeat(' ', spaces), lines[i]));
                         if (i < lines.length - 1) {
                             print("\n");
                         }

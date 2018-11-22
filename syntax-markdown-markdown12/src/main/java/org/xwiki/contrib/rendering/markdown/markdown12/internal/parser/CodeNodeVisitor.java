@@ -28,6 +28,7 @@ import org.xwiki.rendering.listener.Listener;
 import com.vladsch.flexmark.ast.Code;
 import com.vladsch.flexmark.ast.FencedCodeBlock;
 import com.vladsch.flexmark.ast.IndentedCodeBlock;
+import com.vladsch.flexmark.ast.ListItem;
 import com.vladsch.flexmark.ast.NodeVisitor;
 import com.vladsch.flexmark.ast.VisitHandler;
 import com.vladsch.flexmark.ast.Visitor;
@@ -43,30 +44,30 @@ public class CodeNodeVisitor extends AbstractNodeVisitor
     static <V extends CodeNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
-                new VisitHandler<>(Code.class, new Visitor<Code>()
+            new VisitHandler<>(Code.class, new Visitor<Code>()
+            {
+                @Override
+                public void visit(Code node)
                 {
-                    @Override
-                    public void visit(Code node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(FencedCodeBlock.class, new Visitor<FencedCodeBlock>()
+                    visitor.visit(node);
+                }
+            }),
+            new VisitHandler<>(FencedCodeBlock.class, new Visitor<FencedCodeBlock>()
+            {
+                @Override
+                public void visit(FencedCodeBlock node)
                 {
-                    @Override
-                    public void visit(FencedCodeBlock node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(IndentedCodeBlock.class, new Visitor<IndentedCodeBlock>()
+                    visitor.visit(node);
+                }
+            }),
+            new VisitHandler<>(IndentedCodeBlock.class, new Visitor<IndentedCodeBlock>()
+            {
+                @Override
+                public void visit(IndentedCodeBlock node)
                 {
-                    @Override
-                    public void visit(IndentedCodeBlock node)
-                    {
-                        visitor.visit(node);
-                    }
-                })
+                    visitor.visit(node);
+                }
+            })
         };
     }
 
@@ -104,6 +105,15 @@ public class CodeNodeVisitor extends AbstractNodeVisitor
     public void visit(IndentedCodeBlock node)
     {
         // Since XWiki doesn't have a Code Block we generate a Code Macro Block
+        // Insert a Group Block if we are in an inline context since the code macro is a standalone macro.
+        // We consider that we are in an inline context if the parent node is a list item.
+        // Note that Markdown syntax doesn't support indented code blocks inside table cells!
+        if (node.getParent() instanceof ListItem) {
+            getListener().beginGroup(Collections.<String, String>emptyMap());
+        }
         getListener().onMacro(CODE_MACRO_ID, Collections.EMPTY_MAP, node.getContentChars().toString(), false);
+        if (node.getParent() instanceof ListItem) {
+            getListener().endGroup(Collections.<String, String>emptyMap());
+        }
     }
 }

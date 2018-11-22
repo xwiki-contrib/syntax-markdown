@@ -1,0 +1,61 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Fenced code blocks inside list items
+.#-----------------------------------------------------
+* bbb
+
+      code2
+*   ccc
+
+        code3
+* ddd
+  * eee
+
+        code4
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.# Not the same as the input since some parts are
+.# normalized.
+.#-----------------------------------------------------
+* bbb
+
+      code2
+* ccc
+
+      code3
+* ddd
+    * eee
+
+          code4
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [bbb]
+beginGroup
+onMacroStandalone [code] [] [code2
+]
+endGroup
+endListItem
+beginListItem
+onWord [ccc]
+beginGroup
+onMacroStandalone [code] [] [code3
+]
+endGroup
+endListItem
+beginListItem
+onWord [ddd]
+beginList [BULLETED]
+beginListItem
+onWord [eee]
+beginGroup
+onMacroStandalone [code] [] [code4]
+endGroup
+endListItem
+endList [BULLETED]
+endListItem
+endList [BULLETED]
+endDocument

@@ -1,0 +1,24 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Code blocks inside a table cell
+.#-----------------------------------------------------
+|   col1   |
+| -------- |
+| `cell11` |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [col1]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onMacroInline [code] [] [cell11]
+endTableCell
+endTableRow
+endTable
+endDocument
