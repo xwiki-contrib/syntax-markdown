@@ -3,7 +3,7 @@
 Parsers and Renderers for Markdown syntaxes.
 
 * Project Lead: [Vincent Massol](http://www.xwiki.org/xwiki/bin/view/XWiki/VincentMassol)
-* [Documentation & Downloads](http://extensions.xwiki.org/xwiki/bin/view/Extension/Markdown+Syntaxes)
+* [Documentation & Downloads](https://extensions.xwiki.org/xwiki/bin/view/Extension/Markdown%20Syntax%201.2)
 * [Issue Tracker](http://jira.xwiki.org/browse/MARKDOWN)
 * Communication: [Mailing List](http://dev.xwiki.org/xwiki/bin/view/Community/MailingLists), [IRC](http://dev.xwiki.org/xwiki/bin/view/Community/IRC)
 * [Development Practices](http://dev.xwiki.org)
