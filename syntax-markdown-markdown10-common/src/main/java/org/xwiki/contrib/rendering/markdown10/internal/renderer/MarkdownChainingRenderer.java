@@ -259,6 +259,36 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         print(" ");
     }
 
+    /**
+     * Start of a list item.
+     *
+     * @param parameters a generic list of parameters for the list item. Example: "style"/"background-color: blue"
+     * @since 8.5.2
+     */
+    public void beginListItem(Map<String, String> parameters)
+    {
+        // XWiki Rendering had a regression between versions 10.0 and 10.11.11/11.3.7/11.10.2/12.0 (excluded).
+        // This is to make this extension work when used on an XWiki version that has the regression.
+        // See also https://jira.xwiki.org/browse/XRENDERING-581
+        // More specifically:
+        // - Before XWiki 10.0, the Listener interface doesn't have such signature so this method will be ignored and
+        //   beginListItem() will be called.
+        // - After XWiki 10.0, this method will be called.
+        beginListItem();
+    }
+
+    /**
+     * End of a list item.
+     *
+     * @param parameters a generic list of parameters for the list item. Example: "style"/"background-color: blue"
+     * @since 8.5.2
+     */
+    public void endListItem(Map<String, String> parameters)
+    {
+        // See explanations in {@link #beginListItem}.
+        endListItem();
+    }
+
     @Override
     public void beginDefinitionDescription()
     {
