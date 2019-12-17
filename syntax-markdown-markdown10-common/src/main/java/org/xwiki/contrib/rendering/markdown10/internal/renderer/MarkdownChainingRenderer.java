@@ -263,7 +263,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      * Start of a list item.
      *
      * @param parameters a generic list of parameters for the list item. Example: "style"/"background-color: blue"
-     * @since 8.5.2
+     * @since 8.5.4
      */
     public void beginListItem(Map<String, String> parameters)
     {
@@ -281,7 +281,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      * End of a list item.
      *
      * @param parameters a generic list of parameters for the list item. Example: "style"/"background-color: blue"
-     * @since 8.5.2
+     * @since 8.5.4
      */
     public void endListItem(Map<String, String> parameters)
     {
