@@ -21,7 +21,9 @@ package org.xwiki.contrib.rendering.markdown.markdown12.internal.parser;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
+import org.xwiki.component.annotation.Component;
 import org.xwiki.rendering.parser.StreamParser;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.rendering.syntax.SyntaxType;
@@ -32,7 +34,9 @@ import org.xwiki.rendering.syntax.SyntaxType;
  * @version $Id$
  * @since 8.4
  */
+@Component
 @Named("markdown/1.2")
+@Singleton
 public class Markdown12Parser extends AbstractMarkdownParser
 {
     public static final Syntax MARKDOWN_12 = new Syntax(new SyntaxType("markdown", "Markdown"), "1.2");

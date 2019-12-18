@@ -20,7 +20,9 @@
 package org.xwiki.contrib.rendering.markdown.markdown12.internal.parser;
 
 import javax.inject.Named;
+import javax.inject.Singleton;
 
+import org.xwiki.component.annotation.Component;
 import org.xwiki.rendering.syntax.Syntax;
 
 import static org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.Markdown12Parser.MARKDOWN_12;
@@ -31,7 +33,9 @@ import static org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.Ma
  * @version $Id$
  * @since 8.4
  */
+@Component
 @Named("markdown/1.2")
+@Singleton
 public class Markdown12StreamParser extends AbstractMarkdownStreamParser
 {
     @Override

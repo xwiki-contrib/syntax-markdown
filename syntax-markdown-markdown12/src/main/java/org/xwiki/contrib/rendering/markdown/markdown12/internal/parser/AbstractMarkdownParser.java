@@ -21,9 +21,6 @@ package org.xwiki.contrib.rendering.markdown.markdown12.internal.parser;
 
 import java.io.Reader;
 
-import javax.inject.Singleton;
-
-import org.xwiki.component.annotation.Component;
 import org.xwiki.rendering.block.XDOM;
 import org.xwiki.rendering.internal.parser.XDOMGeneratorListener;
 import org.xwiki.rendering.parser.ParseException;
@@ -37,8 +34,6 @@ import org.xwiki.rendering.parser.StreamParser;
  * @version $Id$
  * @since 8.4
  */
-@Component
-@Singleton
 public abstract class AbstractMarkdownParser implements Parser
 {
     protected abstract StreamParser getMarkdownStreamParser();

@@ -23,10 +23,8 @@ import java.io.Reader;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import javax.inject.Singleton;
 
 import org.apache.commons.io.IOUtils;
-import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.parser.ParseException;
@@ -43,8 +41,6 @@ import com.vladsch.flexmark.util.data.MutableDataHolder;
  * @version $Id$
  * @since 8.4
  */
-@Component
-@Singleton
 public abstract class AbstractMarkdownStreamParser implements StreamParser
 {
     @Inject

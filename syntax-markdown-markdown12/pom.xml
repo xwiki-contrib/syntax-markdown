@@ -122,4 +122,45 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <!-- Apply the Checkstyle configurations defined in the top level pom.xml file -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <executions>
+          <execution>
+            <!-- Specify the "default" execution id so that the "blocker" one is always executed -->
+            <id>default</id>
+            <configuration>
+              <excludes>
+                org/xwiki/contrib/rendering/markdown/markdown12/MarkdownConfiguration.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/renderer/Markdown12ChainingRenderer.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/DefaultMarkdownConfiguration.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/FlexmarkNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/StrikethroughNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/Markdown12Parser.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/AbbreviationNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/EmphasisNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/AbstractNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/TableNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/CodeNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/QuoteNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/DefaultFlexmarkNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/TextNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/MacroNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/ListNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/ImageNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/ParagraphNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/LinkNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/HeadingNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/HTMLNodeVisitor.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/SubSuperscriptNodeVisitor.java
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

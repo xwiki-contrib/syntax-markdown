@@ -67,7 +67,7 @@ public abstract class AbstractLinkAndImagePegdownVisitor extends AbstractHTMLPeg
     /**
      * Character in Markdown syntax to open a link or image reference.
      */
-    private static final String REFERENCE_OPEN_CHARS = "[";
+    private static final String REFERENCE_OPEN_CHARS = LINK_LABEL_OPEN_CHARS;
 
     /**
      * Character in Markdown syntax to close a link or image reference.

@@ -24,8 +24,8 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.xwiki.contrib</groupId>
-    <artifactId>parent-commons</artifactId>
-    <version>7.4-14</version>
+    <artifactId>parent-rendering</artifactId>
+    <version>8.3</version>
   </parent>
   <groupId>org.xwiki.contrib.markdown</groupId>
   <artifactId>syntax-markdown</artifactId>
@@ -50,10 +50,6 @@
     </developer>
   </developers>
   <properties>
-    <!-- Override since we want to depend on 7.4.5 as we need the ParametersPrinter version from it.
-         See https://jira.xwiki.org/browse/MARKDOWN-44 -->
-    <commons.version>7.4.5</commons.version>
-    <rendering.version>${commons.version}</rendering.version>
     <!-- This extension needs to be installed at the farm level (ie in the root namespace) to work fine.
          This is a limitation currently caused by http://jira.xwiki.org/browse/XWIKI-13437 -->
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
@@ -67,4 +63,40 @@
     <module>syntax-markdown-markdown11-common</module>
     <module>syntax-markdown-markdown12</module>
   </modules>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.pegdown</groupId>
+        <artifactId>pegdown</artifactId>
+        <version>1.4.1</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.parboiled</groupId>
+            <artifactId>parboiled-java</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <!-- Forces using a more recent version of ASM than the one from the dependency of parboiled as it's causing
+           some runtime errors:
+             Caused by: java.lang.IllegalStateException
+             at org.objectweb.asm.tree.ClassNode.<init>(Unknown Source)
+             at org.parboiled.transform.ParserClassNode.<init>(ParserClassNode.java:41)
+      -->
+      <dependency>
+        <groupId>org.ow2.asm</groupId>
+        <artifactId>asm</artifactId>
+        <version>${asm.version}</version>
+      </dependency>
+      <!-- Fix duplicated files in parboiled until pegdown depend on the right version -->
+      <dependency>
+        <groupId>org.parboiled</groupId>
+        <artifactId>parboiled-java</artifactId>
+        <version>1.1.7</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 </project>

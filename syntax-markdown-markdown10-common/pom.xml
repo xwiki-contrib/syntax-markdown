@@ -31,16 +31,24 @@
   <name>Markdown Syntax - Markdown 1.0 - Common</name>
   <description>Markdown 1.0 Syntax Parser and Renderer classes that can be extended</description>
   <dependencies>
-    <!-- Fix duplicated files in parboiled until pegdown depend on the right version -->
-    <dependency>
-      <groupId>org.parboiled</groupId>
-      <artifactId>parboiled-java</artifactId>
-      <version>1.1.7</version>
-    </dependency>
     <dependency>
       <groupId>org.pegdown</groupId>
       <artifactId>pegdown</artifactId>
       <version>1.4.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.parboiled</groupId>
+          <artifactId>parboiled-java</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.parboiled</groupId>
+      <artifactId>parboiled-java</artifactId>
     </dependency>
     <dependency>
       <groupId>org.xwiki.rendering</groupId>
@@ -59,4 +67,27 @@
       <artifactId>commons-io</artifactId>
     </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <!-- Apply the Checkstyle configurations defined in the top level pom.xml file -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <executions>
+          <execution>
+            <!-- Specify the "default" execution id so that the "blocker" one is always executed -->
+            <id>default</id>
+            <configuration>
+              <excludes>
+                org/xwiki/contrib/rendering/markdown10/internal/renderer/MarkdownEscapeWikiPrinter.java,
+                org/xwiki/contrib/rendering/markdown10/internal/renderer/MarkdownEscapeHandler.java,
+                org/xwiki/contrib/rendering/markdown10/internal/renderer/MarkdownChainingRenderer.java,
+                org/xwiki/contrib/rendering/markdown10/internal/renderer/reference/MarkdownResourceRenderer.java
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
