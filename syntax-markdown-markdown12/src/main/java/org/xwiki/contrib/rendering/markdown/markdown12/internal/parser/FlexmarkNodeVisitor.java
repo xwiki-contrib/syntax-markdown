@@ -23,7 +23,7 @@ import org.xwiki.component.annotation.Role;
 import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.syntax.Syntax;
 
-import com.vladsch.flexmark.ast.Node;
+import com.vladsch.flexmark.util.ast.Node;
 
 @Role
 public interface FlexmarkNodeVisitor

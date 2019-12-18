@@ -25,10 +25,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.syntax.Syntax;
 
-import com.vladsch.flexmark.ast.NodeVisitor;
-import com.vladsch.flexmark.ast.VisitHandler;
-import com.vladsch.flexmark.ast.Visitor;
 import com.vladsch.flexmark.ext.abbreviation.Abbreviation;
+import com.vladsch.flexmark.util.ast.NodeVisitor;
+import com.vladsch.flexmark.util.ast.VisitHandler;
+import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle abbreviation events.

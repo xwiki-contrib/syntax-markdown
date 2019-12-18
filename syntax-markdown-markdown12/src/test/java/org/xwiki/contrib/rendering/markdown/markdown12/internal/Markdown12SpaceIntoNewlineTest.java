@@ -40,8 +40,8 @@ import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.mockito.MockitoComponentManagerRule;
 
-import com.vladsch.flexmark.Extension;
-import com.vladsch.flexmark.util.options.MutableDataHolder;
+import com.vladsch.flexmark.util.builder.Extension;
+import com.vladsch.flexmark.util.data.MutableDataHolder;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;

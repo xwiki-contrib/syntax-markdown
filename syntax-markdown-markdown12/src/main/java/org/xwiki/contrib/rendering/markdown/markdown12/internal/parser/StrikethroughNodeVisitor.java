@@ -25,10 +25,10 @@ import java.util.Deque;
 import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.Listener;
 
-import com.vladsch.flexmark.ast.NodeVisitor;
-import com.vladsch.flexmark.ast.VisitHandler;
-import com.vladsch.flexmark.ast.Visitor;
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough;
+import com.vladsch.flexmark.util.ast.NodeVisitor;
+import com.vladsch.flexmark.util.ast.VisitHandler;
+import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle strikethrough events.

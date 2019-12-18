@@ -25,13 +25,13 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.rendering.listener.Listener;
 
-import com.vladsch.flexmark.ast.NodeVisitor;
-import com.vladsch.flexmark.ast.VisitHandler;
-import com.vladsch.flexmark.ast.Visitor;
 import com.vladsch.flexmark.ext.xwiki.macros.Macro;
 import com.vladsch.flexmark.ext.xwiki.macros.MacroBlock;
 import com.vladsch.flexmark.ext.xwiki.macros.MacroClose;
 import com.vladsch.flexmark.ext.xwiki.macros.MacroVisitor;
+import com.vladsch.flexmark.util.ast.NodeVisitor;
+import com.vladsch.flexmark.util.ast.VisitHandler;
+import com.vladsch.flexmark.util.ast.Visitor;
 
 public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisitor
 {

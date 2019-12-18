@@ -29,10 +29,10 @@ import com.vladsch.flexmark.ast.HtmlCommentBlock;
 import com.vladsch.flexmark.ast.HtmlEntity;
 import com.vladsch.flexmark.ast.HtmlInline;
 import com.vladsch.flexmark.ast.HtmlInlineComment;
-import com.vladsch.flexmark.ast.Node;
-import com.vladsch.flexmark.ast.NodeVisitor;
-import com.vladsch.flexmark.ast.VisitHandler;
-import com.vladsch.flexmark.ast.Visitor;
+import com.vladsch.flexmark.util.ast.Node;
+import com.vladsch.flexmark.util.ast.NodeVisitor;
+import com.vladsch.flexmark.util.ast.VisitHandler;
+import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle HTML events.

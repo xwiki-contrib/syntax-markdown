@@ -32,9 +32,9 @@ import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.parser.ParseException;
 import org.xwiki.rendering.parser.StreamParser;
 
-import com.vladsch.flexmark.ast.Node;
 import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.util.options.MutableDataHolder;
+import com.vladsch.flexmark.util.ast.Node;
+import com.vladsch.flexmark.util.data.MutableDataHolder;
 
 /**
  * Base class for Markdown Streaming Parsers for the various Markdown flavors. Implemented using the

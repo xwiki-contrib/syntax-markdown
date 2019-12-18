@@ -36,11 +36,11 @@ import org.xwiki.rendering.renderer.reference.link.URILabelGenerator;
 
 import com.vladsch.flexmark.ast.Image;
 import com.vladsch.flexmark.ast.ImageRef;
-import com.vladsch.flexmark.ast.NodeVisitor;
 import com.vladsch.flexmark.ast.Reference;
-import com.vladsch.flexmark.ast.VisitHandler;
-import com.vladsch.flexmark.ast.Visitor;
 import com.vladsch.flexmark.ext.wikilink.WikiImage;
+import com.vladsch.flexmark.util.ast.NodeVisitor;
+import com.vladsch.flexmark.util.ast.VisitHandler;
+import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle image events.

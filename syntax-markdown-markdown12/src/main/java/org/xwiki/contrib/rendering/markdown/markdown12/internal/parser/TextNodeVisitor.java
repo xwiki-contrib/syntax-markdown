@@ -24,10 +24,10 @@ import java.util.Deque;
 import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.parser.StreamParser;
 
-import com.vladsch.flexmark.ast.NodeVisitor;
 import com.vladsch.flexmark.ast.Text;
-import com.vladsch.flexmark.ast.VisitHandler;
-import com.vladsch.flexmark.ast.Visitor;
+import com.vladsch.flexmark.util.ast.NodeVisitor;
+import com.vladsch.flexmark.util.ast.VisitHandler;
+import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle text events.

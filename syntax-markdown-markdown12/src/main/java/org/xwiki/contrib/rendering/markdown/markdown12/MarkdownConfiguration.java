@@ -21,7 +21,7 @@ package org.xwiki.contrib.rendering.markdown.markdown12;
 
 import org.xwiki.component.annotation.Role;
 
-import com.vladsch.flexmark.util.options.MutableDataHolder;
+import com.vladsch.flexmark.util.data.MutableDataHolder;
 
 @Role
 public interface MarkdownConfiguration

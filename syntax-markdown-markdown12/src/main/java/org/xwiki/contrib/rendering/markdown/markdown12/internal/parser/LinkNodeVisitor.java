@@ -40,11 +40,11 @@ import com.vladsch.flexmark.ast.AutoLink;
 import com.vladsch.flexmark.ast.Link;
 import com.vladsch.flexmark.ast.LinkRef;
 import com.vladsch.flexmark.ast.MailLink;
-import com.vladsch.flexmark.ast.NodeVisitor;
 import com.vladsch.flexmark.ast.Reference;
-import com.vladsch.flexmark.ast.VisitHandler;
-import com.vladsch.flexmark.ast.Visitor;
 import com.vladsch.flexmark.ext.wikilink.WikiLink;
+import com.vladsch.flexmark.util.ast.NodeVisitor;
+import com.vladsch.flexmark.util.ast.VisitHandler;
+import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle link events.
