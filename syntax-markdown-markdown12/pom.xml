@@ -41,11 +41,6 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>org.xwiki.contrib.markdown</groupId>
-      <artifactId>syntax-markdown-markdown11-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.vladsch.flexmark</groupId>
       <artifactId>flexmark</artifactId>
       <version>${flexmark.version}</version>
@@ -121,6 +116,12 @@
       <version>${rendering.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-syntax-xhtml</artifactId>
+      <version>${rendering.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -135,6 +136,9 @@
             <configuration>
               <excludes>
                 org/xwiki/contrib/rendering/markdown/markdown12/MarkdownConfiguration.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/renderer/MarkdownChainingRenderer.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/renderer/MarkdownEscapeHandler.java,
+                org/xwiki/contrib/rendering/markdown/markdown12/internal/renderer/MarkdownEscapeWikiPrinter.java,
                 org/xwiki/contrib/rendering/markdown/markdown12/internal/renderer/Markdown12ChainingRenderer.java,
                 org/xwiki/contrib/rendering/markdown/markdown12/internal/DefaultMarkdownConfiguration.java,
                 org/xwiki/contrib/rendering/markdown/markdown12/internal/parser/FlexmarkNodeVisitor.java,

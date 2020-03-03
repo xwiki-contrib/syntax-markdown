@@ -21,8 +21,6 @@ package org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer;
 
 import java.util.Map;
 
-import org.xwiki.contrib.rendering.markdown11.internal.renderer.MarkdownMacroRenderer;
-
 /**
  * Generates Markdown syntax for a Macro Block.
  *

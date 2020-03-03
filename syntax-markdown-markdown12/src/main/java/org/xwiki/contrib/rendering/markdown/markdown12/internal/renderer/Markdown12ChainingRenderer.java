@@ -24,9 +24,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
-import org.xwiki.contrib.rendering.markdown10.internal.renderer.MarkdownEscapeWikiPrinter;
-import org.xwiki.contrib.rendering.markdown11.internal.renderer.Markdown11ChainingRenderer;
-import org.xwiki.contrib.rendering.markdown11.internal.renderer.MarkdownMacroRenderer;
 import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
 import org.xwiki.rendering.listener.reference.ResourceReference;

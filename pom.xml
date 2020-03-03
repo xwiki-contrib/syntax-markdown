@@ -57,46 +57,6 @@
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
   </properties>
   <modules>
-    <module>syntax-markdown-markdown10</module>
-    <module>syntax-markdown-markdown10-common</module>
-    <module>syntax-markdown-markdown11</module>
-    <module>syntax-markdown-markdown11-common</module>
     <module>syntax-markdown-markdown12</module>
   </modules>
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.pegdown</groupId>
-        <artifactId>pegdown</artifactId>
-        <version>1.4.1</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.parboiled</groupId>
-            <artifactId>parboiled-java</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <!-- Forces using a more recent version of ASM than the one from the dependency of parboiled as it's causing
-           some runtime errors:
-             Caused by: java.lang.IllegalStateException
-             at org.objectweb.asm.tree.ClassNode.<init>(Unknown Source)
-             at org.parboiled.transform.ParserClassNode.<init>(ParserClassNode.java:41)
-      -->
-      <dependency>
-        <groupId>org.ow2.asm</groupId>
-        <artifactId>asm</artifactId>
-        <version>${asm.version}</version>
-      </dependency>
-      <!-- Fix duplicated files in parboiled until pegdown depend on the right version -->
-      <dependency>
-        <groupId>org.parboiled</groupId>
-        <artifactId>parboiled-java</artifactId>
-        <version>1.1.7</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 </project>
