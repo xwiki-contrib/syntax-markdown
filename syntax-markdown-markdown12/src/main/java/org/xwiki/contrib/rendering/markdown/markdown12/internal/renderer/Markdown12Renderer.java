@@ -19,8 +19,6 @@
  */
 package org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
