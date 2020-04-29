@@ -98,7 +98,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginDocument(MetaData metaData)
     {
-        this.abbreviations.push(new LinkedHashMap<String, String>());
+        this.abbreviations.push(new LinkedHashMap<>());
     }
 
     @Override
@@ -458,7 +458,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     public void beginTable(Map<String, String> parameters)
     {
         printEmptyLine();
-        this.tableCells.push(new ArrayList<List<String>>());
+        this.tableCells.push(new ArrayList<>());
         this.tableHeadRowsCount.push(0);
     }
 
@@ -578,7 +578,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginTableRow(Map<String, String> parameters)
     {
-        this.tableCells.peek().add(new ArrayList<String>());
+        this.tableCells.peek().add(new ArrayList<>());
         this.isOnFirstHeadCellInTableRow.push(true);
     }
 

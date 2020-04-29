@@ -29,7 +29,6 @@ import com.vladsch.flexmark.ext.gfm.strikethrough.Subscript;
 import com.vladsch.flexmark.superscript.Superscript;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
-import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle subscript and superscript events.
@@ -42,22 +41,8 @@ public class SubSuperscriptNodeVisitor extends AbstractNodeVisitor
     static <V extends SubSuperscriptNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
-                new VisitHandler<>(Superscript.class, new Visitor<Superscript>()
-                {
-                    @Override
-                    public void visit(Superscript node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(Subscript.class, new Visitor<Subscript>()
-                {
-                    @Override
-                    public void visit(Subscript node)
-                    {
-                        visitor.visit(node);
-                    }
-                })
+                new VisitHandler<>(Superscript.class, node -> visitor.visit(node)),
+                new VisitHandler<>(Subscript.class, node -> visitor.visit(node))
         };
     }
 

@@ -32,7 +32,6 @@ import com.vladsch.flexmark.ast.HtmlInlineComment;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
-import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle HTML events.
@@ -45,46 +44,11 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
     static <V extends HTMLNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
-                new VisitHandler<>(HtmlInline.class, new Visitor<HtmlInline>()
-                {
-                    @Override
-                    public void visit(HtmlInline node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(HtmlBlock.class, new Visitor<HtmlBlock>()
-                {
-                    @Override
-                    public void visit(HtmlBlock node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(HtmlCommentBlock.class, new Visitor<HtmlCommentBlock>()
-                {
-                    @Override
-                    public void visit(HtmlCommentBlock node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(HtmlEntity.class, new Visitor<HtmlEntity>()
-                {
-                    @Override
-                    public void visit(HtmlEntity node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(HtmlInlineComment.class, new Visitor<HtmlInlineComment>()
-                {
-                    @Override
-                    public void visit(HtmlInlineComment node)
-                    {
-                        visitor.visit(node);
-                    }
-                })
+                new VisitHandler<>(HtmlInline.class, node -> visitor.visit(node)),
+                new VisitHandler<>(HtmlBlock.class, node -> visitor.visit(node)),
+                new VisitHandler<>(HtmlCommentBlock.class, node -> visitor.visit(node)),
+                new VisitHandler<>(HtmlEntity.class, node -> visitor.visit(node)),
+                new VisitHandler<>(HtmlInlineComment.class, node -> visitor.visit(node))
         };
     }
 

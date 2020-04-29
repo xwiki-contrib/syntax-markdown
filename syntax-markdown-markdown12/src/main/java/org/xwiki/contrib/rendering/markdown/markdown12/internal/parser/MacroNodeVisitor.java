@@ -31,7 +31,6 @@ import com.vladsch.flexmark.ext.xwiki.macros.MacroClose;
 import com.vladsch.flexmark.ext.xwiki.macros.MacroVisitor;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
-import com.vladsch.flexmark.util.ast.Visitor;
 
 public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisitor
 {
@@ -43,30 +42,9 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
     public static <V extends MacroNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
-                new VisitHandler<>(Macro.class, new Visitor<Macro>()
-                {
-                    @Override
-                    public void visit(Macro node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(MacroBlock.class, new Visitor<MacroBlock>()
-                {
-                    @Override
-                    public void visit(MacroBlock node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(MacroClose.class, new Visitor<MacroClose>()
-                {
-                    @Override
-                    public void visit(MacroClose node)
-                    {
-                        visitor.visit(node);
-                    }
-                })
+                new VisitHandler<>(Macro.class, node -> visitor.visit(node)),
+                new VisitHandler<>(MacroBlock.class, node -> visitor.visit(node)),
+                new VisitHandler<>(MacroClose.class, node -> visitor.visit(node))
         };
     }
 

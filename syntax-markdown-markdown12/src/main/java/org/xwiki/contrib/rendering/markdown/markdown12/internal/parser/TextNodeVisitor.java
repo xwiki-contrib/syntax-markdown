@@ -27,7 +27,6 @@ import org.xwiki.rendering.parser.StreamParser;
 import com.vladsch.flexmark.ast.Text;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
-import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle text events.
@@ -40,14 +39,7 @@ public class TextNodeVisitor extends AbstractNodeVisitor
     static <V extends TextNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
-                new VisitHandler<>(Text.class, new Visitor<Text>()
-                {
-                    @Override
-                    public void visit(Text node)
-                    {
-                        visitor.visit(node);
-                    }
-                })
+                new VisitHandler<>(Text.class, node -> visitor.visit(node))
         };
     }
 

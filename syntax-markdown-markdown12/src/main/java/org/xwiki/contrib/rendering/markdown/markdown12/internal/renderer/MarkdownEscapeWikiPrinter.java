@@ -90,14 +90,4 @@ public class MarkdownEscapeWikiPrinter extends LookaheadWikiPrinter
     {
         return this.escapeHandler.isOnNewLine();
     }
-
-    public boolean isAfterWhiteSpace()
-    {
-        return isOnNewLine() || Character.isWhitespace(getLastPrinted().charAt(getLastPrinted().length() - 1));
-    }
-
-    public String getLastPrinted()
-    {
-        return this.lastPrinted;
-    }
 }

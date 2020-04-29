@@ -25,13 +25,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 
 import com.vladsch.flexmark.ext.abbreviation.AbbreviationExtension;
@@ -52,7 +50,7 @@ import com.vladsch.flexmark.util.data.MutableDataSet;
 @Singleton
 public class DefaultMarkdownConfiguration implements MarkdownConfiguration
 {
-    private static final List<Class> DEFAULT_EXTENSIONS = Arrays.<Class>asList(
+    private static final List<Class> DEFAULT_EXTENSIONS = Arrays.asList(
         WikiLinkExtension.class,
         AutolinkExtension.class,
         DefinitionExtension.class,
@@ -63,14 +61,8 @@ public class DefaultMarkdownConfiguration implements MarkdownConfiguration
         MacroExtension.class
     );
 
-    private static final String PREFIX = "rendering.markdown.";
-
     @Inject
     private Logger logger;
-
-    @Inject
-    @Named("xwikiproperties")
-    private ConfigurationSource configurationSource;
 
     @Override
     public MutableDataHolder getOptions()

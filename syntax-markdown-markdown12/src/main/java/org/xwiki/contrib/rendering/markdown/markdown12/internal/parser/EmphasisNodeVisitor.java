@@ -29,7 +29,6 @@ import com.vladsch.flexmark.ast.Emphasis;
 import com.vladsch.flexmark.ast.StrongEmphasis;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
-import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle emphasis events.
@@ -42,22 +41,8 @@ public class EmphasisNodeVisitor extends AbstractNodeVisitor
     static <V extends EmphasisNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
-                new VisitHandler<>(Emphasis.class, new Visitor<Emphasis>()
-                {
-                    @Override
-                    public void visit(Emphasis node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(StrongEmphasis.class, new Visitor<StrongEmphasis>()
-                {
-                    @Override
-                    public void visit(StrongEmphasis node)
-                    {
-                        visitor.visit(node);
-                    }
-                })
+                new VisitHandler<>(Emphasis.class, node -> visitor.visit(node)),
+                new VisitHandler<>(StrongEmphasis.class, node -> visitor.visit(node))
         };
     }
 

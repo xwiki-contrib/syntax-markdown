@@ -37,7 +37,6 @@ import com.vladsch.flexmark.ext.definition.DefinitionTerm;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
-import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle list events.
@@ -50,62 +49,13 @@ public class ListNodeVisitor extends AbstractNodeVisitor
     static <V extends ListNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
-                new VisitHandler<>(BulletList.class, new Visitor<BulletList>()
-                {
-                    @Override
-                    public void visit(BulletList node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(BulletListItem.class, new Visitor<BulletListItem>()
-                {
-                    @Override
-                    public void visit(BulletListItem node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(OrderedList.class, new Visitor<OrderedList>()
-                {
-                    @Override
-                    public void visit(OrderedList node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(OrderedListItem.class, new Visitor<OrderedListItem>()
-                {
-                    @Override
-                    public void visit(OrderedListItem node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(DefinitionList.class, new Visitor<DefinitionList>()
-                {
-                    @Override
-                    public void visit(DefinitionList node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(DefinitionTerm.class, new Visitor<DefinitionTerm>()
-                {
-                    @Override
-                    public void visit(DefinitionTerm node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(DefinitionItem.class, new Visitor<DefinitionItem>()
-                {
-                    @Override
-                    public void visit(DefinitionItem node)
-                    {
-                        visitor.visit(node);
-                    }
-                })
+                new VisitHandler<>(BulletList.class, node -> visitor.visit(node)),
+                new VisitHandler<>(BulletListItem.class, node -> visitor.visit(node)),
+                new VisitHandler<>(OrderedList.class, node -> visitor.visit(node)),
+                new VisitHandler<>(OrderedListItem.class, node -> visitor.visit(node)),
+                new VisitHandler<>(DefinitionList.class, node -> visitor.visit(node)),
+                new VisitHandler<>(DefinitionTerm.class, node -> visitor.visit(node)),
+                new VisitHandler<>(DefinitionItem.class, node -> visitor.visit(node))
         };
     }
 

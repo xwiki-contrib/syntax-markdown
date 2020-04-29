@@ -27,7 +27,6 @@ import org.xwiki.rendering.listener.Listener;
 import com.vladsch.flexmark.ast.Paragraph;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
-import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle paragraph events.
@@ -40,14 +39,7 @@ public class ParagraphNodeVisitor extends AbstractNodeVisitor
     static <V extends ParagraphNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
-                new VisitHandler<>(Paragraph.class, new Visitor<Paragraph>()
-                {
-                    @Override
-                    public void visit(Paragraph node)
-                    {
-                        visitor.visit(node);
-                    }
-                })
+                new VisitHandler<>(Paragraph.class, node -> visitor.visit(node))
         };
     }
 

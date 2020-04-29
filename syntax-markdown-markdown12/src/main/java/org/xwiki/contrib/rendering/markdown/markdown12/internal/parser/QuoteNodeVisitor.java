@@ -27,7 +27,6 @@ import org.xwiki.rendering.listener.Listener;
 import com.vladsch.flexmark.ast.BlockQuote;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
-import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle quote events.
@@ -40,14 +39,7 @@ public class QuoteNodeVisitor extends AbstractNodeVisitor
     static <V extends QuoteNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
-                new VisitHandler<>(BlockQuote.class, new Visitor<BlockQuote>()
-                {
-                    @Override
-                    public void visit(BlockQuote node)
-                    {
-                        visitor.visit(node);
-                    }
-                })
+                new VisitHandler<>(BlockQuote.class, node -> visitor.visit(node))
         };
     }
 

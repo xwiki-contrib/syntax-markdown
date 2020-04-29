@@ -45,7 +45,6 @@ import com.vladsch.flexmark.util.ast.Document;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
-import com.vladsch.flexmark.util.ast.Visitor;
 
 @Component
 @InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
@@ -92,38 +91,10 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
     static <V extends DefaultFlexmarkNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
-                new VisitHandler<>(Document.class, new Visitor<Document>()
-                {
-                    @Override
-                    public void visit(Document node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(ThematicBreak.class, new Visitor<ThematicBreak>()
-                {
-                    @Override
-                    public void visit(ThematicBreak node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(HardLineBreak.class, new Visitor<HardLineBreak>()
-                {
-                    @Override
-                    public void visit(HardLineBreak node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(SoftLineBreak.class, new Visitor<SoftLineBreak>()
-                {
-                    @Override
-                    public void visit(SoftLineBreak node)
-                    {
-                        visitor.visit(node);
-                    }
-                })
+                new VisitHandler<>(Document.class, node -> visitor.visit(node)),
+                new VisitHandler<>(ThematicBreak.class, node -> visitor.visit(node)),
+                new VisitHandler<>(HardLineBreak.class, node -> visitor.visit(node)),
+                new VisitHandler<>(SoftLineBreak.class, node -> visitor.visit(node))
         };
     }
 
@@ -145,7 +116,7 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
         sectionListener.setWrappedListener(listener);
         this.listeners.push(sectionListener);
 
-        MetaData metaData = new MetaData(Collections.<String, Object>singletonMap(MetaData.SYNTAX, syntax));
+        MetaData metaData = new MetaData(Collections.singletonMap(MetaData.SYNTAX, syntax));
         getListener().beginDocument(metaData);
 
         // Handle nodes not handled by a specific visitor

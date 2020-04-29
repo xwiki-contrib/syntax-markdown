@@ -69,7 +69,7 @@ public class Markdown12Renderer extends AbstractXWikiSyntaxRenderer
     }
 
     @Override
-    public void flush() throws IOException
+    public void flush()
     {
         // TODO: Understand why the AbstractXWikiSyntaxRenderer calls endDocument() which results in endDocument()
         // being called twice. Note that we don't want this here since we perform some handling in endDocument for

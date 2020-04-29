@@ -48,8 +48,6 @@ public class MarkdownEscapeHandler
 
     public static final String ESCAPE_CHAR = "\\";
 
-    private boolean beforeLink = false;
-
     private boolean onNewLine = true;
 
     public void setOnNewLine(boolean onNewLine)

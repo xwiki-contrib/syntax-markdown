@@ -44,7 +44,6 @@ import com.vladsch.flexmark.ast.Reference;
 import com.vladsch.flexmark.ext.wikilink.WikiLink;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
-import com.vladsch.flexmark.util.ast.Visitor;
 
 /**
  * Handle link events.
@@ -57,46 +56,11 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
     static <V extends LinkNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
-                new VisitHandler<>(AutoLink.class, new Visitor<AutoLink>()
-                {
-                    @Override
-                    public void visit(AutoLink node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(MailLink.class, new Visitor<MailLink>()
-                {
-                    @Override
-                    public void visit(MailLink node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(Link.class, new Visitor<Link>()
-                {
-                    @Override
-                    public void visit(Link node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(LinkRef.class, new Visitor<LinkRef>()
-                {
-                    @Override
-                    public void visit(LinkRef node)
-                    {
-                        visitor.visit(node);
-                    }
-                }),
-                new VisitHandler<>(WikiLink.class, new Visitor<WikiLink>()
-                {
-                    @Override
-                    public void visit(WikiLink node)
-                    {
-                        visitor.visit(node);
-                    }
-                })
+                new VisitHandler<>(AutoLink.class, node -> visitor.visit(node)),
+                new VisitHandler<>(MailLink.class, node -> visitor.visit(node)),
+                new VisitHandler<>(Link.class, node -> visitor.visit(node)),
+                new VisitHandler<>(LinkRef.class, node -> visitor.visit(node)),
+                new VisitHandler<>(WikiLink.class, node -> visitor.visit(node))
         };
     }
 
