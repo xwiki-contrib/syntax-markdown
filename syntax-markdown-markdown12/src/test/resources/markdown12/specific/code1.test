@@ -12,6 +12,6 @@ onWord [This]
 onSpace
 onWord [is]
 onSpace
-onMacroInline [code] [] [some code]
+onMacroInline [code] [language=none] [some code]
 endParagraph
 endDocument

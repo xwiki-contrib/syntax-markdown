@@ -35,14 +35,14 @@ beginList [BULLETED]
 beginListItem
 onWord [bbb]
 beginGroup
-onMacroStandalone [code] [] [code2
+onMacroStandalone [code] [language=none] [code2
 ]
 endGroup
 endListItem
 beginListItem
 onWord [ccc]
 beginGroup
-onMacroStandalone [code] [] [code3
+onMacroStandalone [code] [language=none] [code3
 ]
 endGroup
 endListItem
@@ -52,7 +52,7 @@ beginList [BULLETED]
 beginListItem
 onWord [eee]
 beginGroup
-onMacroStandalone [code] [] [code4]
+onMacroStandalone [code] [language=none] [code4]
 endGroup
 endListItem
 endList [BULLETED]

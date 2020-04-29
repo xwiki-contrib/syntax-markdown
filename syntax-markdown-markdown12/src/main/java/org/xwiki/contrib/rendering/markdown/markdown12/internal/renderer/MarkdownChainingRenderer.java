@@ -675,9 +675,9 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                 print(BACKTICK + content + BACKTICK);
             } else {
                 // Standalone should generate fenced blocks or triple backticks with language if a language was
-                // specified
+                // specified (and no language if language is none).
                 String language = parameters.get("language");
-                if (language != null) {
+                if (language != null && !"none".equals(language)) {
                     println(TRIPLE_BACKTICK + language);
                     print(content);
                     print("\n" + TRIPLE_BACKTICK);

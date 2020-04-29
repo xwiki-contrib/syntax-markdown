@@ -17,7 +17,7 @@ endTableHeadCell
 endTableRow
 beginTableRow
 beginTableCell
-onMacroInline [code] [] [cell11]
+onMacroInline [code] [language=none] [cell11]
 endTableCell
 endTableRow
 endTable
