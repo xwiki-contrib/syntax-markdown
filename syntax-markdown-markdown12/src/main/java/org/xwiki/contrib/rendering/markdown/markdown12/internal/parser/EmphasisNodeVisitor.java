@@ -54,16 +54,16 @@ public class EmphasisNodeVisitor extends AbstractNodeVisitor
     public void visit(Emphasis node)
     {
         Format format = Format.ITALIC;
-        getListener().beginFormat(format, Collections.EMPTY_MAP);
+        getListener().beginFormat(format, Collections.emptyMap());
         getVisitor().visitChildren(node);
-        getListener().endFormat(format, Collections.EMPTY_MAP);
+        getListener().endFormat(format, Collections.emptyMap());
     }
 
     public void visit(StrongEmphasis node)
     {
         Format format = Format.BOLD;
-        getListener().beginFormat(format, Collections.EMPTY_MAP);
+        getListener().beginFormat(format, Collections.emptyMap());
         getVisitor().visitChildren(node);
-        getListener().endFormat(format, Collections.EMPTY_MAP);
+        getListener().endFormat(format, Collections.emptyMap());
     }
 }

@@ -20,7 +20,6 @@
 package org.xwiki.contrib.rendering.markdown.markdown12.internal;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,7 +29,6 @@ import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdow
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12LinkReferenceSerializer;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12Renderer;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12RendererFactory;
-import org.xwiki.rendering.block.Block;
 import org.xwiki.rendering.block.FormatBlock;
 import org.xwiki.rendering.block.ParagraphBlock;
 import org.xwiki.rendering.block.WordBlock;
@@ -43,12 +41,9 @@ import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.mockito.MockitoComponentManagerRule;
 
-import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.util.builder.Extension;
-import com.vladsch.flexmark.util.data.MutableDataHolder;
+import com.vladsch.flexmark.util.data.MutableDataSet;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -75,9 +70,7 @@ public class Markdown12ConfigurationTest
     {
         // Simulate an empty configuration
         MarkdownConfiguration configuration = this.mocker.registerMockComponent(MarkdownConfiguration.class);
-        MutableDataHolder options = mock(MutableDataHolder.class);
-        when(options.get(Parser.EXTENSIONS)).thenReturn(Collections.<Extension>emptyList());
-        when(configuration.getOptions()).thenReturn(options);
+        when(configuration.getOptions()).thenReturn(new MutableDataSet());
     }
 
     @Test
@@ -85,7 +78,7 @@ public class Markdown12ConfigurationTest
     {
         BlockRenderer renderer = this.mocker.getInstance(BlockRenderer.class, "markdown/1.2");
 
-        XDOM xdom = new XDOM(Arrays.asList(new ParagraphBlock(Arrays.<Block>asList(new FormatBlock(Arrays.<Block>asList(
+        XDOM xdom = new XDOM(Arrays.asList(new ParagraphBlock(Arrays.asList(new FormatBlock(Arrays.asList(
             new WordBlock("hello")), Format.STRIKEDOUT)))));
         DefaultWikiPrinter printer = new DefaultWikiPrinter();
         renderer.render(xdom, printer);

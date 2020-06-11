@@ -50,9 +50,9 @@ public class ParagraphNodeVisitor extends AbstractNodeVisitor
 
     public void visit(Paragraph node)
     {
-        getListener().beginParagraph(Collections.EMPTY_MAP);
+        getListener().beginParagraph(Collections.emptyMap());
         getVisitor().visitChildren(node);
-        getListener().endParagraph(Collections.EMPTY_MAP);
+        getListener().endParagraph(Collections.emptyMap());
 
     }
 }

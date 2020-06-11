@@ -51,10 +51,10 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
 {
     static <V extends ImageNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
-        return new VisitHandler<?>[]{
-                new VisitHandler<>(Image.class, node -> visitor.visit(node)),
-                new VisitHandler<>(ImageRef.class, node -> visitor.visit(node)),
-                new VisitHandler<>(WikiImage.class, node -> visitor.visit(node))
+        return new VisitHandler<?>[] {
+            new VisitHandler<>(Image.class, node -> visitor.visit(node)),
+            new VisitHandler<>(ImageRef.class, node -> visitor.visit(node)),
+            new VisitHandler<>(WikiImage.class, node -> visitor.visit(node))
         };
     }
 
@@ -63,8 +63,8 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
     private ComponentManager componentManager;
 
     public ImageNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners,
-            ResourceReferenceParser imageResourceReferenceParser, ComponentManager componentManager,
-            PrintRendererFactory plainRendererFactory)
+        ResourceReferenceParser imageResourceReferenceParser, ComponentManager componentManager,
+        PrintRendererFactory plainRendererFactory)
     {
         super(visitor, listeners, plainRendererFactory);
         this.imageResourceReferenceParser = imageResourceReferenceParser;
@@ -107,7 +107,7 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
             resourceReference.setTyped(false);
 
             // Handle an optional image title
-            Map<String, String> parameters = Collections.EMPTY_MAP;
+            Map<String, String> parameters = Collections.emptyMap();
             if (StringUtils.isNotEmpty(reference.getTitle())) {
                 parameters = Collections.singletonMap(TITLE_ATTRIBUTE, reference.getTitle().toString());
             }

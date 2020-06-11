@@ -79,8 +79,8 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         ResourceReference reference = new ResourceReference(node.getText().unescape(), ResourceType.URL);
         reference.setTyped(false);
 
-        getListener().beginLink(reference, true, Collections.EMPTY_MAP);
-        getListener().endLink(reference, true, Collections.EMPTY_MAP);
+        getListener().beginLink(reference, true, Collections.emptyMap());
+        getListener().endLink(reference, true, Collections.emptyMap());
     }
 
     public void visit(MailLink node)
@@ -88,8 +88,8 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         // This is an autolink to an email address.
         ResourceReference reference = new ResourceReference(node.getText().unescape(), ResourceType.MAILTO);
 
-        getListener().beginLink(reference, true, Collections.EMPTY_MAP);
-        getListener().endLink(reference, true, Collections.EMPTY_MAP);
+        getListener().beginLink(reference, true, Collections.emptyMap());
+        getListener().endLink(reference, true, Collections.emptyMap());
     }
 
     public void visit(Link node)
@@ -126,7 +126,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
             resourceReference.setTyped(false);
 
             // Handle an optional link title
-            Map<String, String> parameters = Collections.EMPTY_MAP;
+            Map<String, String> parameters = Collections.emptyMap();
             if (StringUtils.isNotEmpty(reference.getTitle())) {
                 parameters = Collections.singletonMap(TITLE_ATTRIBUTE, reference.getTitle().toString());
             }
@@ -175,11 +175,11 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
             }
         }
 
-        getListener().beginLink(reference, false, Collections.EMPTY_MAP);
+        getListener().beginLink(reference, false, Collections.emptyMap());
         if (node.getText() != null) {
             String label = node.getText().unescape();
             parseInline(label);
         }
-        getListener().endLink(reference, false, Collections.EMPTY_MAP);
+        getListener().endLink(reference, false, Collections.emptyMap());
     }
 }

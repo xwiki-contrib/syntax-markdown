@@ -85,9 +85,9 @@ public class ListNodeVisitor extends AbstractNodeVisitor
 
     public void visit(BulletList node)
     {
-        getListener().beginList(ListType.BULLETED, Collections.EMPTY_MAP);
+        getListener().beginList(ListType.BULLETED, Collections.emptyMap());
         getVisitor().visitChildren(node);
-        getListener().endList(ListType.BULLETED, Collections.EMPTY_MAP);
+        getListener().endList(ListType.BULLETED, Collections.emptyMap());
     }
 
     public void visit(BulletListItem node)
@@ -97,9 +97,9 @@ public class ListNodeVisitor extends AbstractNodeVisitor
 
     public void visit(OrderedList node)
     {
-        getListener().beginList(ListType.NUMBERED, Collections.EMPTY_MAP);
+        getListener().beginList(ListType.NUMBERED, Collections.emptyMap());
         getVisitor().visitChildren(node);
-        getListener().endList(ListType.NUMBERED, Collections.EMPTY_MAP);
+        getListener().endList(ListType.NUMBERED, Collections.emptyMap());
     }
 
     public void visit(OrderedListItem node)
@@ -109,9 +109,9 @@ public class ListNodeVisitor extends AbstractNodeVisitor
 
     public void visit(DefinitionList node)
     {
-        getListener().beginDefinitionList(Collections.EMPTY_MAP);
+        getListener().beginDefinitionList(Collections.emptyMap());
         getVisitor().visitChildren(node);
-        getListener().endDefinitionList(Collections.EMPTY_MAP);
+        getListener().endDefinitionList(Collections.emptyMap());
     }
 
     public void visit(DefinitionTerm node)

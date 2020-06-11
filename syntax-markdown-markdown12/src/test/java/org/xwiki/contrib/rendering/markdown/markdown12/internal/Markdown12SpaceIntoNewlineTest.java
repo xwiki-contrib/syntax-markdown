@@ -20,7 +20,6 @@
 package org.xwiki.contrib.rendering.markdown.markdown12.internal;
 
 import java.io.StringReader;
-import java.util.Collections;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,12 +39,7 @@ import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.mockito.MockitoComponentManagerRule;
 
-import com.vladsch.flexmark.util.builder.Extension;
-import com.vladsch.flexmark.util.data.MutableDataHolder;
-
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Verify that 2 spaces at end of line are transformed into a new line when the newline separator is either
@@ -69,13 +63,8 @@ public class Markdown12SpaceIntoNewlineTest
     @BeforeComponent
     public void setUpComponents() throws Exception
     {
-        // Simulate an empty configuration
-        MarkdownConfiguration configuration = this.mocker.registerMockComponent(MarkdownConfiguration.class);
-        MutableDataHolder options = mock(MutableDataHolder.class);
-        when(options.get(com.vladsch.flexmark.parser.Parser.EXTENSIONS)).thenReturn(Collections.<Extension>emptyList());
-        when(configuration.getOptions()).thenReturn(options);
-
         // Not needed for the test so we just mock them
+        this.mocker.registerMockComponent(MarkdownConfiguration.class);
         this.mocker.registerMockComponent(ResourceReferenceParser.class, "image");
         this.mocker.registerMockComponent(ResourceReferenceParser.class, "link");
     }

@@ -81,9 +81,9 @@ public class TableNodeVisitor extends AbstractNodeVisitor
     public void visit(TableBlock node)
     {
         this.currentTableStack.push(node);
-        getListener().beginTable(Collections.EMPTY_MAP);
+        getListener().beginTable(Collections.emptyMap());
         getVisitor().visitChildren(node);
-        getListener().endTable(Collections.EMPTY_MAP);
+        getListener().endTable(Collections.emptyMap());
         this.currentTableStack.pop();
     }
 
@@ -97,9 +97,9 @@ public class TableNodeVisitor extends AbstractNodeVisitor
     public void visit(TableRow node)
     {
         this.currentTableColumnPositionStack.push(0);
-        getListener().beginTableRow(Collections.EMPTY_MAP);
+        getListener().beginTableRow(Collections.emptyMap());
         getVisitor().visitChildren(node);
-        getListener().endTableRow(Collections.EMPTY_MAP);
+        getListener().endTableRow(Collections.emptyMap());
         this.currentTableColumnPositionStack.pop();
     }
 

@@ -86,11 +86,11 @@ public class HeadingNodeVisitor extends AbstractNodeVisitor
         String id = this.idGenerator.generateUniqueId("H", plainRenderer.getPrinter().toString());
 
         HeaderLevel level = HeaderLevel.parseInt(node.getLevel());
-        getListener().beginHeader(level, id, Collections.EMPTY_MAP);
+        getListener().beginHeader(level, id, Collections.emptyMap());
 
         // Send all buffered events to the 'default' listener
         queueListener.consumeEvents(getListener());
 
-        getListener().endHeader(level, id, Collections.EMPTY_MAP);
+        getListener().endHeader(level, id, Collections.emptyMap());
     }
 }

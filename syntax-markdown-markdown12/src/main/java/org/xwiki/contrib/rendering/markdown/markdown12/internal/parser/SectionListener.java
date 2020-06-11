@@ -44,12 +44,12 @@ public class SectionListener extends WrappingListener
     {
         if (level.getAsInt() - 1 < this.depth) {
             for (int i = 0; i < this.depth - level.getAsInt() + 1; i++) {
-                super.endSection(Collections.EMPTY_MAP);
+                super.endSection(Collections.emptyMap());
             }
             this.depth = level.getAsInt() - 1;
         }
 
-        super.beginSection(Collections.EMPTY_MAP);
+        super.beginSection(Collections.emptyMap());
         super.beginHeader(level, id, parameters);
         this.depth++;
     }
@@ -65,7 +65,7 @@ public class SectionListener extends WrappingListener
     {
         if (this.depth > 0) {
             for (int i = 0; i < this.depth; i++) {
-                super.endSection(Collections.EMPTY_MAP);
+                super.endSection(Collections.emptyMap());
             }
             this.depth = 0;
         }

@@ -50,7 +50,7 @@ public class QuoteNodeVisitor extends AbstractNodeVisitor
 
     public void visit(BlockQuote node)
     {
-        getListener().beginQuotation(Collections.EMPTY_MAP);
+        getListener().beginQuotation(Collections.emptyMap());
 
         // XWiki only supports paragraph in quotations, see http://jira.xwiki.org/browse/XRENDERING-259.
         // We replace Paragraph events with QuotationLine events.
@@ -61,6 +61,6 @@ public class QuoteNodeVisitor extends AbstractNodeVisitor
         popListener();
         quoteListener.closeOpenedQuotationLines();
 
-        getListener().endQuotation(Collections.EMPTY_MAP);
+        getListener().endQuotation(Collections.emptyMap());
     }
 }

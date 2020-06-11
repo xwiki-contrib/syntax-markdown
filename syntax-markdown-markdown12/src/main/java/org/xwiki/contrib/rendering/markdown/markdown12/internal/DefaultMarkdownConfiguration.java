@@ -36,21 +36,21 @@ import com.vladsch.flexmark.ext.abbreviation.AbbreviationExtension;
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
 import com.vladsch.flexmark.ext.definition.DefinitionExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughSubscriptExtension;
+import com.vladsch.flexmark.ext.superscript.SuperscriptExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.ext.wikilink.WikiLinkExtension;
 import com.vladsch.flexmark.ext.xwiki.macros.MacroExtension;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.parser.ParserEmulationProfile;
-import com.vladsch.flexmark.superscript.SuperscriptExtension;
-import com.vladsch.flexmark.util.builder.Extension;
 import com.vladsch.flexmark.util.data.MutableDataHolder;
 import com.vladsch.flexmark.util.data.MutableDataSet;
+import com.vladsch.flexmark.util.misc.Extension;
 
 @Component
 @Singleton
 public class DefaultMarkdownConfiguration implements MarkdownConfiguration
 {
-    private static final List<Class> DEFAULT_EXTENSIONS = Arrays.asList(
+    private static final List<Class<?>> DEFAULT_EXTENSIONS = Arrays.asList(
         WikiLinkExtension.class,
         AutolinkExtension.class,
         DefinitionExtension.class,
@@ -82,7 +82,7 @@ public class DefaultMarkdownConfiguration implements MarkdownConfiguration
 
         // Configure extensions
         List<Extension> extensions = new ArrayList<>();
-        for (Class extensionClass : DEFAULT_EXTENSIONS) {
+        for (Class<?> extensionClass : DEFAULT_EXTENSIONS) {
             try {
                 Method method = extensionClass.getMethod("create");
                 Extension extension = (Extension) method.invoke(null);

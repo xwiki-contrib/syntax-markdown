@@ -52,8 +52,8 @@ public class StrikethroughNodeVisitor extends AbstractNodeVisitor
     public void visit(Strikethrough node)
     {
         Format format = Format.STRIKEDOUT;
-        getListener().beginFormat(format, Collections.EMPTY_MAP);
+        getListener().beginFormat(format, Collections.emptyMap());
         getVisitor().visitChildren(node);
-        getListener().endFormat(format, Collections.EMPTY_MAP);
+        getListener().endFormat(format, Collections.emptyMap());
     }
 }

@@ -26,7 +26,7 @@ import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.Listener;
 
 import com.vladsch.flexmark.ext.gfm.strikethrough.Subscript;
-import com.vladsch.flexmark.superscript.Superscript;
+import com.vladsch.flexmark.ext.superscript.Superscript;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
 
@@ -54,16 +54,16 @@ public class SubSuperscriptNodeVisitor extends AbstractNodeVisitor
     public void visit(Superscript node)
     {
         Format format = Format.SUPERSCRIPT;
-        getListener().beginFormat(format, Collections.EMPTY_MAP);
+        getListener().beginFormat(format, Collections.emptyMap());
         getVisitor().visitChildren(node);
-        getListener().endFormat(format, Collections.EMPTY_MAP);
+        getListener().endFormat(format, Collections.emptyMap());
     }
 
     public void visit(Subscript node)
     {
         Format format = Format.SUBSCRIPT;
-        getListener().beginFormat(format, Collections.EMPTY_MAP);
+        getListener().beginFormat(format, Collections.emptyMap());
         getVisitor().visitChildren(node);
-        getListener().endFormat(format, Collections.EMPTY_MAP);
+        getListener().endFormat(format, Collections.emptyMap());
     }
 }

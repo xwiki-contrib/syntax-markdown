@@ -33,7 +33,7 @@ import org.xwiki.rendering.renderer.reference.ResourceReferenceSerializer;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughSubscriptExtension;
 import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.util.builder.Extension;
+import com.vladsch.flexmark.util.misc.Extension;
 
 /**
  * Convert listener events to Markdown 1.2.
@@ -209,7 +209,7 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     private boolean isStrikethroughSupported()
     {
-        for (Extension extension : this.configuration.getOptions().get(Parser.EXTENSIONS)) {
+        for (Extension extension : Parser.EXTENSIONS.get(this.configuration.getOptions())) {
              if (extension instanceof StrikethroughExtension || extension instanceof StrikethroughSubscriptExtension) {
                  return true;
              }

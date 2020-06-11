@@ -205,14 +205,14 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
 
     public void visit(Document node)
     {
-        this.imageNodeVisitor.setReferenceRepository(node.get(Parser.REFERENCES));
-        this.linkNodeVisitor.setReferenceRepository(node.get(Parser.REFERENCES));
+        this.imageNodeVisitor.setReferenceRepository(Parser.REFERENCES.get(node));
+        this.linkNodeVisitor.setReferenceRepository(Parser.REFERENCES.get(node));
         this.visitor.visitChildren(node);
     }
 
     public void visit(ThematicBreak node)
     {
-        getListener().onHorizontalLine(Collections.EMPTY_MAP);
+        getListener().onHorizontalLine(Collections.emptyMap());
     }
 
     /**
