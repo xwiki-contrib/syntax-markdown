@@ -23,41 +23,26 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.xwiki.contrib</groupId>
-    <artifactId>parent-rendering</artifactId>
-    <version>8.3</version>
+    <groupId>org.xwiki.contrib.markdown</groupId>
+    <artifactId>syntax-markdown</artifactId>
+    <version>8.7-SNAPSHOT</version>
   </parent>
-  <groupId>org.xwiki.contrib.markdown</groupId>
-  <artifactId>syntax-markdown</artifactId>
+  <artifactId>syntax-markdown-flavor</artifactId>
   <version>8.7-SNAPSHOT</version>
-  <name>Markdown Syntax - Parent POM</name>
-  <description>Parent POM for Markdown syntax modules</description>
+  <name>Markdown Flavors - Parent POM</name>
+  <description>Parent POM for Markdown flavors</description>
   <packaging>pom</packaging>
-  <scm>
-    <connection>scm:git:git://github.com/xwiki-contrib/syntax-markdown.git</connection>
-    <developerConnection>scm:git:git@github.com:xwiki-contrib/syntax-markdown.git</developerConnection>
-    <url>https://github.com/xwiki-contrib/syntax-markdown/tree/master</url>
-    <tag>HEAD</tag>
-  </scm>
   <developers>
     <developer>
-      <id>vmassol</id>
-      <name>Vincent Massol</name>
+      <id>haxsen</id>
+      <name>Hassan Ali</name>
     </developer>
     <developer>
       <id>xwikidev</id>
       <name>XWiki Development Team</name>
     </developer>
   </developers>
-  <properties>
-    <!-- This extension needs to be installed at the farm level (ie in the root namespace) to work fine.
-         This is a limitation currently caused by http://jira.xwiki.org/browse/XWIKI-13437 -->
-    <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
-    <xwiki.issueManagement.jira.id>MARKDOWN</xwiki.issueManagement.jira.id>
-    <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
-  </properties>
   <modules>
-    <module>syntax-markdown-markdown12</module>
-    <module>syntax-markdown-flavor</module>
+    <module>syntax-markdown-flavor-github</module>
   </modules>
 </project>
