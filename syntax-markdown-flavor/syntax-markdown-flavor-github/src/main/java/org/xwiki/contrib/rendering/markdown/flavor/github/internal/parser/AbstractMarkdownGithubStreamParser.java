@@ -23,13 +23,14 @@ import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataHolder;
 import org.apache.commons.io.IOUtils;
-import org.xwiki.contrib.rendering.markdown.flavor.github.MarkdownGithubConfiguration;
+import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.FlexmarkNodeVisitor;
 import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.parser.ParseException;
 import org.xwiki.rendering.parser.StreamParser;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import java.io.Reader;
 
@@ -46,7 +47,8 @@ public abstract class AbstractMarkdownGithubStreamParser implements StreamParser
     private Provider<FlexmarkNodeVisitor> visitorProvider;
 
     @Inject
-    private MarkdownGithubConfiguration configuration;
+    @Named("MarkdownConfigurationGithub")
+    private MarkdownConfiguration configuration;
 
     @Override
     public void parse(Reader source, Listener listener) throws ParseException

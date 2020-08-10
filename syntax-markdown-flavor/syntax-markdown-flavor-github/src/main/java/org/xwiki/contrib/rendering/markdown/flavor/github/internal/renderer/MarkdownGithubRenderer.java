@@ -22,13 +22,11 @@ package org.xwiki.contrib.rendering.markdown.flavor.github.internal.renderer;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.InstantiationStrategy;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
-import org.xwiki.contrib.rendering.markdown.flavor.github.MarkdownGithubConfiguration;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12ChainingRenderer;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12Renderer;
 import org.xwiki.rendering.listener.chaining.ChainingListener;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
-import org.xwiki.rendering.renderer.reference.ResourceReferenceSerializer;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -45,21 +43,8 @@ import javax.inject.Named;
 public class MarkdownGithubRenderer extends Markdown12Renderer
 {
     @Inject
-    private MarkdownGithubConfiguration configuration;
-
-    /**
-     * Needed by MarkdownChainingRenderer to serialize wiki link references.
-     */
-    @Inject
-    @Named("markdown/1.2/link")
-    private ResourceReferenceSerializer linkReferenceSerializer;
-
-    /**
-     * Needed by MarkdownChainingRenderer to serialize wiki image references.
-     */
-    @Inject
-    @Named("markdown/1.2/image")
-    private ResourceReferenceSerializer imageReferenceSerializer;
+    @Named("MarkdownConfigurationGithub")
+    private MarkdownConfiguration configuration;
 
     /**
      * Needed by MarkdownChainingRenderer to serialize wiki link references.
@@ -68,6 +53,6 @@ public class MarkdownGithubRenderer extends Markdown12Renderer
     protected ChainingListener createXWikiSyntaxChainingRenderer(ListenerChain chain)
     {
         return new Markdown12ChainingRenderer(chain, this.linkReferenceSerializer, this.imageReferenceSerializer,
-                (MarkdownConfiguration) this.configuration);
+                this.configuration);
     }
 }

@@ -35,9 +35,10 @@ import com.vladsch.flexmark.util.misc.Extension;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.rendering.markdown.flavor.github.MarkdownGithubConfiguration;
+import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -52,7 +53,8 @@ import java.util.List;
  */
 @Component
 @Singleton
-public class DefaultMarkdownGithubConfiguration implements MarkdownGithubConfiguration
+@Named("MarkdownConfigurationGithub")
+public class DefaultMarkdownGithubConfiguration implements MarkdownConfiguration
 {
     private static final List<Class<?>> DEFAULT_EXTENSIONS = Arrays.asList(
             WikiLinkExtension.class,

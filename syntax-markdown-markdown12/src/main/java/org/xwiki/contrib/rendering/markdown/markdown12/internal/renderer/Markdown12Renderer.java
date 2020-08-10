@@ -42,22 +42,22 @@ import org.xwiki.rendering.renderer.reference.ResourceReferenceSerializer;
 @InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
 public class Markdown12Renderer extends AbstractXWikiSyntaxRenderer
 {
-    @Inject
-    private MarkdownConfiguration configuration;
-
     /**
      * Needed by MarkdownChainingRenderer to serialize wiki link references.
      */
     @Inject
     @Named("markdown/1.2/link")
-    private ResourceReferenceSerializer linkReferenceSerializer;
+    protected ResourceReferenceSerializer linkReferenceSerializer;
 
     /**
      * Needed by MarkdownChainingRenderer to serialize wiki image references.
      */
     @Inject
     @Named("markdown/1.2/image")
-    private ResourceReferenceSerializer imageReferenceSerializer;
+    protected ResourceReferenceSerializer imageReferenceSerializer;
+
+    @Inject
+    private MarkdownConfiguration configuration;
 
     @Override
     protected ChainingListener createXWikiSyntaxChainingRenderer(ListenerChain chain)
