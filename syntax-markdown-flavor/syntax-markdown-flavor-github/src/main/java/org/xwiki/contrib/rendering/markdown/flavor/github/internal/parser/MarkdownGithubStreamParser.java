@@ -20,7 +20,6 @@
 package org.xwiki.contrib.rendering.markdown.flavor.github.internal.parser;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.Markdown12StreamParser;
 import org.xwiki.rendering.syntax.Syntax;
 
 import javax.inject.Named;
@@ -37,7 +36,7 @@ import static org.xwiki.contrib.rendering.markdown.flavor.github.internal.parser
 @Component
 @Named("markdown+github/1.0")
 @Singleton
-public class MarkdownGithubStreamParser extends Markdown12StreamParser
+public class MarkdownGithubStreamParser extends AbstractMarkdownGithubStreamParser
 {
     @Override
     public Syntax getSyntax()

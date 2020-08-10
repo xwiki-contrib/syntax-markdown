@@ -51,12 +51,12 @@ public class MarkdownGithubParser extends Markdown12Parser
      */
     @Inject
     @Named("markdown+github/1.0")
-    private StreamParser commonMarkStreamParser;
+    private StreamParser githubMarkdownStreamParser;
 
     @Override
     protected StreamParser getMarkdownStreamParser()
     {
-        return this.commonMarkStreamParser;
+        return this.githubMarkdownStreamParser;
     }
 
     @Override

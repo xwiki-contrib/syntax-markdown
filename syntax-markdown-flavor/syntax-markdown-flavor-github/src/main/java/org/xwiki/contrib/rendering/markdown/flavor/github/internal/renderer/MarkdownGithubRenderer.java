@@ -22,6 +22,7 @@ package org.xwiki.contrib.rendering.markdown.flavor.github.internal.renderer;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.InstantiationStrategy;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
+import org.xwiki.contrib.rendering.markdown.flavor.github.MarkdownGithubConfiguration;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12ChainingRenderer;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12Renderer;
@@ -44,26 +45,29 @@ import javax.inject.Named;
 public class MarkdownGithubRenderer extends Markdown12Renderer
 {
     @Inject
-    private MarkdownConfiguration configuration;
+    private MarkdownGithubConfiguration configuration;
 
     /**
      * Needed by MarkdownChainingRenderer to serialize wiki link references.
      */
     @Inject
-    @Named("markdown+github/1.0/link")
+    @Named("markdown/1.2/link")
     private ResourceReferenceSerializer linkReferenceSerializer;
 
     /**
      * Needed by MarkdownChainingRenderer to serialize wiki image references.
      */
     @Inject
-    @Named("markdown+github/1.0/image")
+    @Named("markdown/1.2/image")
     private ResourceReferenceSerializer imageReferenceSerializer;
 
+    /**
+     * Needed by MarkdownChainingRenderer to serialize wiki link references.
+     */
     @Override
     protected ChainingListener createXWikiSyntaxChainingRenderer(ListenerChain chain)
     {
         return new Markdown12ChainingRenderer(chain, this.linkReferenceSerializer, this.imageReferenceSerializer,
-            this.configuration);
+                (MarkdownConfiguration) this.configuration);
     }
 }

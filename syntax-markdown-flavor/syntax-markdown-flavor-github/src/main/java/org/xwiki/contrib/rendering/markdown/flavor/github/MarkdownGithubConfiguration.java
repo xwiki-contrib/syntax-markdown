@@ -19,9 +19,8 @@
  */
 package org.xwiki.contrib.rendering.markdown.flavor.github;
 
+import com.vladsch.flexmark.util.data.MutableDataHolder;
 import org.xwiki.component.annotation.Role;
-
-import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 
 /**
  * Configuration for GitHub Flavored Markdown.
@@ -30,6 +29,12 @@ import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
  * @since 8.7
  */
 @Role
-public interface MarkdownGithubConfiguration extends MarkdownConfiguration
+public interface MarkdownGithubConfiguration
 {
+    /**
+     * Creates and returns options with GitHub ParserEmulationProfile.
+     *
+     * @return the configured options for GitHub Flavor.
+     */
+    MutableDataHolder getOptions();
 }
