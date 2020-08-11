@@ -27,11 +27,9 @@
     <artifactId>syntax-markdown</artifactId>
     <version>8.7-SNAPSHOT</version>
   </parent>
-  <artifactId>syntax-markdown-flavor</artifactId>
-  <version>8.7-SNAPSHOT</version>
-  <name>Markdown Flavors - Parent POM</name>
-  <description>Parent POM for Markdown flavors</description>
-  <packaging>pom</packaging>
+  <artifactId>syntax-markdown-flavor-github</artifactId>
+  <name>GitHub Flavored Markdown</name>
+  <description>Markdown flavor for GitHub Flavored Markdown</description>
   <developers>
     <developer>
       <id>haxsen</id>
@@ -42,7 +40,28 @@
       <name>XWiki Development Team</name>
     </developer>
   </developers>
-  <modules>
-    <module>syntax-markdown-flavor-github</module>
-  </modules>
+  <properties>
+    <!-- Name to display by the Extension Manager -->
+    <xwiki.extension.name>GitHub Flavored Markdown Syntax</xwiki.extension.name>
+    <!-- List it as a rendering syntax related module -->
+    <xwiki.extension.category>syntax</xwiki.extension.category>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.xwiki.contrib.markdown</groupId>
+      <artifactId>syntax-markdown-markdown12</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-api</artifactId>
+      <version>${rendering.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-syntax-plain</artifactId>
+      <version>${rendering.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
 </project>

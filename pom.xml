@@ -58,6 +58,6 @@
   </properties>
   <modules>
     <module>syntax-markdown-markdown12</module>
-    <module>syntax-markdown-flavor</module>
+    <module>syntax-markdown-flavor-github</module>
   </modules>
 </project>
