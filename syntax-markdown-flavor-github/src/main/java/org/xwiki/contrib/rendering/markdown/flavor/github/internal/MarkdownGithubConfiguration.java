@@ -22,7 +22,6 @@ package org.xwiki.contrib.rendering.markdown.flavor.github.internal;
 import com.vladsch.flexmark.parser.ParserEmulationProfile;
 import com.vladsch.flexmark.util.data.MutableDataHolder;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
 import org.xwiki.contrib.rendering.markdown.markdown12.internal.DefaultMarkdownConfiguration;
 
 import javax.inject.Named;
@@ -37,7 +36,7 @@ import javax.inject.Singleton;
 @Component
 @Named("markdown+github/1.0")
 @Singleton
-public class MarkdownGithubConfiguration extends DefaultMarkdownConfiguration implements MarkdownConfiguration
+public class MarkdownGithubConfiguration extends DefaultMarkdownConfiguration
 {
     @Override
     public MutableDataHolder getOptions()
