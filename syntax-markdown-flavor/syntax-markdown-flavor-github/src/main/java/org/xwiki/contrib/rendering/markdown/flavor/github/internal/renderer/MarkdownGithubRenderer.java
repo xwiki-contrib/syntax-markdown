@@ -32,7 +32,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 /**
- * Generates GitHub Flavored Markdown from a {@link org.xwiki.rendering.block.XDOM} object being traversed.
+ * Generates GitHub Flavored Markdown from a {@link org.xwiki.rendering.block.XDOM} object being traversed from the
+ * parent Markdown12Renderer.
  *
  * @version $Id$
  * @since 8.7
@@ -43,7 +44,7 @@ import javax.inject.Named;
 public class MarkdownGithubRenderer extends Markdown12Renderer
 {
     @Inject
-    @Named("MarkdownConfigurationGithub")
+    @Named("markdown+github/1.0")
     private MarkdownConfiguration configuration;
 
     /**

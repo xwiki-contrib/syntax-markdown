@@ -19,49 +19,27 @@
  */
 package org.xwiki.contrib.rendering.markdown.flavor.github.internal.parser;
 
-import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.util.ast.Node;
-import com.vladsch.flexmark.util.data.MutableDataHolder;
-import org.apache.commons.io.IOUtils;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
-import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.FlexmarkNodeVisitor;
-import org.xwiki.rendering.listener.Listener;
-import org.xwiki.rendering.parser.ParseException;
-import org.xwiki.rendering.parser.StreamParser;
+import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.AbstractMarkdownStreamParser;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
-import java.io.Reader;
 
 /**
- * Base class for Markdown Streaming Parsers for the various Markdown flavors. Implemented using the
- * <a href="https://github.com/vsch/flexmark-java">Flexmark Java Parser</a>.
+ * Extended class for Markdown Streaming Parsers for the GitHub Markdown flavor.
  *
  * @version $Id$
- * @since 8.4
+ * @since 8.7
  */
-public abstract class AbstractMarkdownGithubStreamParser implements StreamParser
+public abstract class AbstractMarkdownGithubStreamParser extends AbstractMarkdownStreamParser
 {
     @Inject
-    private Provider<FlexmarkNodeVisitor> visitorProvider;
-
-    @Inject
-    @Named("MarkdownConfigurationGithub")
+    @Named("markdown+github/1.0")
     private MarkdownConfiguration configuration;
 
     @Override
-    public void parse(Reader source, Listener listener) throws ParseException
+    protected MarkdownConfiguration getConfiguration()
     {
-        Node document;
-        MutableDataHolder options = this.configuration.getOptions();
-        Parser parser = Parser.builder(options).build();
-        try {
-            document = parser.parse(IOUtils.toString(source));
-        } catch (Exception e) {
-            throw new ParseException("Failed to parse GitHub Flavored Markdown content", e);
-        }
-
-        this.visitorProvider.get().visit(document, listener, getSyntax());
+        return this.configuration;
     }
 }

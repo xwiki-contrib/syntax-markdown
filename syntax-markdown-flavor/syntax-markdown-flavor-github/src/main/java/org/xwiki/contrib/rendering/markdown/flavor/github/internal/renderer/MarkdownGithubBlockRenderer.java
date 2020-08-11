@@ -40,11 +40,11 @@ public class MarkdownGithubBlockRenderer extends Markdown12BlockRenderer
 {
     @Inject
     @Named("markdown+github/1.0")
-    private PrintRendererFactory markdownRendererFactory;
+    private PrintRendererFactory markdownGithubRendererFactory;
 
     @Override
     protected PrintRendererFactory getPrintRendererFactory()
     {
-        return this.markdownRendererFactory;
+        return this.markdownGithubRendererFactory;
     }
 }

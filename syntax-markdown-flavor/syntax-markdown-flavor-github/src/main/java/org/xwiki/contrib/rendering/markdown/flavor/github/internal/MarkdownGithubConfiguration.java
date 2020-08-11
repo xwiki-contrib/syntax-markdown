@@ -17,20 +17,19 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.rendering.markdown.flavor.github.internal.parser;
+package org.xwiki.contrib.rendering.markdown.flavor.github.internal;
 
+import com.vladsch.flexmark.parser.ParserEmulationProfile;
+import com.vladsch.flexmark.util.data.MutableDataHolder;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.rendering.markdown.markdown12.internal.parser.Markdown12Parser;
-import org.xwiki.rendering.parser.StreamParser;
-import org.xwiki.rendering.syntax.Syntax;
-import org.xwiki.rendering.syntax.SyntaxType;
+import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
+import org.xwiki.contrib.rendering.markdown.markdown12.internal.DefaultMarkdownConfiguration;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 /**
- * GitHub Flavored Markdown Parser as an extension of Markdown12Parser.
+ * GitHub Flavored Markdown Configuration.
  *
  * @version $Id$
  * @since 8.7
@@ -38,30 +37,11 @@ import javax.inject.Singleton;
 @Component
 @Named("markdown+github/1.0")
 @Singleton
-public class MarkdownGithubParser extends Markdown12Parser
+public class MarkdownGithubConfiguration extends DefaultMarkdownConfiguration implements MarkdownConfiguration
 {
-    /**
-     * The Syntax Key for GitHub Flavored Markdown.
-     */
-    public static final Syntax MARKDOWN_GITHUB = new Syntax(new SyntaxType("markdown+github",
-            "GitHub Flavored Markdown"), "1.0");
-
-    /**
-     * Streaming GitHub Flavored Markdown Parser.
-     */
-    @Inject
-    @Named("markdown+github/1.0")
-    private StreamParser githubMarkdownStreamParser;
-
     @Override
-    protected StreamParser getMarkdownStreamParser()
+    public MutableDataHolder getOptions()
     {
-        return this.githubMarkdownStreamParser;
-    }
-
-    @Override
-    public Syntax getSyntax()
-    {
-        return MARKDOWN_GITHUB;
+        return getDefaultOptions(ParserEmulationProfile.GITHUB);
     }
 }
