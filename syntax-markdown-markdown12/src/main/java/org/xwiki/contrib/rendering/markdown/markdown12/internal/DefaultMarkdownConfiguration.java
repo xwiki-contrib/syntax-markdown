@@ -68,14 +68,14 @@ public class DefaultMarkdownConfiguration implements MarkdownConfiguration
     public MutableDataHolder getOptions()
     {
         //TODO: Implement getting the options from a xwiki config source.
-        return getDefaultOptions();
+        return getDefaultOptions(ParserEmulationProfile.COMMONMARK);
     }
 
-    private MutableDataHolder getDefaultOptions()
+    protected MutableDataHolder getDefaultOptions(ParserEmulationProfile parserEmulationProfile)
     {
         // Configure Parser Family
         MutableDataHolder options = new MutableDataSet();
-        options.setFrom(ParserEmulationProfile.COMMONMARK);
+        options.setFrom(parserEmulationProfile);
 
         // Configure other options
         options.set(WikiLinkExtension.IMAGE_LINKS, true);

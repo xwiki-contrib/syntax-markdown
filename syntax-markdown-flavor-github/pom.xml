@@ -23,26 +23,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.xwiki.contrib</groupId>
-    <artifactId>parent-rendering</artifactId>
-    <version>8.3</version>
+    <groupId>org.xwiki.contrib.markdown</groupId>
+    <artifactId>syntax-markdown</artifactId>
+    <version>8.7-SNAPSHOT</version>
   </parent>
-  <groupId>org.xwiki.contrib.markdown</groupId>
-  <artifactId>syntax-markdown</artifactId>
-  <version>8.7-SNAPSHOT</version>
-  <name>Markdown Syntax - Parent POM</name>
-  <description>Parent POM for Markdown syntax modules</description>
-  <packaging>pom</packaging>
-  <scm>
-    <connection>scm:git:git://github.com/xwiki-contrib/syntax-markdown.git</connection>
-    <developerConnection>scm:git:git@github.com:xwiki-contrib/syntax-markdown.git</developerConnection>
-    <url>https://github.com/xwiki-contrib/syntax-markdown/tree/master</url>
-    <tag>HEAD</tag>
-  </scm>
+  <artifactId>syntax-markdown-flavor-github</artifactId>
+  <name>GitHub Flavored Markdown</name>
+  <description>Markdown flavor for GitHub Flavored Markdown</description>
   <developers>
     <developer>
-      <id>vmassol</id>
-      <name>Vincent Massol</name>
+      <id>haxsen</id>
+      <name>Hassan Ali</name>
     </developer>
     <developer>
       <id>xwikidev</id>
@@ -50,14 +41,27 @@
     </developer>
   </developers>
   <properties>
-    <!-- This extension needs to be installed at the farm level (ie in the root namespace) to work fine.
-         This is a limitation currently caused by http://jira.xwiki.org/browse/XWIKI-13437 -->
-    <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
-    <xwiki.issueManagement.jira.id>MARKDOWN</xwiki.issueManagement.jira.id>
-    <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
+    <!-- Name to display by the Extension Manager -->
+    <xwiki.extension.name>GitHub Flavored Markdown Syntax</xwiki.extension.name>
+    <!-- List it as a rendering syntax related module -->
+    <xwiki.extension.category>syntax</xwiki.extension.category>
   </properties>
-  <modules>
-    <module>syntax-markdown-markdown12</module>
-    <module>syntax-markdown-flavor-github</module>
-  </modules>
+  <dependencies>
+    <dependency>
+      <groupId>org.xwiki.contrib.markdown</groupId>
+      <artifactId>syntax-markdown-markdown12</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-api</artifactId>
+      <version>${rendering.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-syntax-plain</artifactId>
+      <version>${rendering.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
 </project>

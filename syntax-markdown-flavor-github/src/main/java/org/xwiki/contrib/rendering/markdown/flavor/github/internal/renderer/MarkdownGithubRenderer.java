@@ -17,60 +17,43 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer;
-
-import javax.inject.Inject;
-import javax.inject.Named;
+package org.xwiki.contrib.rendering.markdown.flavor.github.internal.renderer;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.InstantiationStrategy;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 import org.xwiki.contrib.rendering.markdown.markdown12.MarkdownConfiguration;
-import org.xwiki.rendering.internal.renderer.xwiki20.AbstractXWikiSyntaxRenderer;
+import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12ChainingRenderer;
+import org.xwiki.contrib.rendering.markdown.markdown12.internal.renderer.Markdown12Renderer;
 import org.xwiki.rendering.listener.chaining.ChainingListener;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
-import org.xwiki.rendering.renderer.reference.ResourceReferenceSerializer;
+
+import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
- * Generates Markdown 1.2 from a {@link org.xwiki.rendering.block.XDOM} object being traversed.
+ * Generates GitHub Flavored Markdown from a {@link org.xwiki.rendering.block.XDOM} object being traversed from the
+ * parent Markdown12Renderer.
  *
  * @version $Id$
- * @since 8.4
+ * @since 8.7
  */
 @Component
-@Named("markdown/1.2")
+@Named("markdown+github/1.0")
 @InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
-public class Markdown12Renderer extends AbstractXWikiSyntaxRenderer
+public class MarkdownGithubRenderer extends Markdown12Renderer
 {
+    @Inject
+    @Named("markdown+github/1.0")
+    private MarkdownConfiguration configuration;
+
     /**
      * Needed by MarkdownChainingRenderer to serialize wiki link references.
      */
-    @Inject
-    @Named("markdown/1.2/link")
-    protected ResourceReferenceSerializer linkReferenceSerializer;
-
-    /**
-     * Needed by MarkdownChainingRenderer to serialize wiki image references.
-     */
-    @Inject
-    @Named("markdown/1.2/image")
-    protected ResourceReferenceSerializer imageReferenceSerializer;
-
-    @Inject
-    private MarkdownConfiguration configuration;
-
     @Override
     protected ChainingListener createXWikiSyntaxChainingRenderer(ListenerChain chain)
     {
         return new Markdown12ChainingRenderer(chain, this.linkReferenceSerializer, this.imageReferenceSerializer,
-            this.configuration);
-    }
-
-    @Override
-    public void flush()
-    {
-        // TODO: Understand why the AbstractXWikiSyntaxRenderer calls endDocument() which results in endDocument()
-        // being called twice. Note that we don't want this here since we perform some handling in endDocument for
-        // Markdown.
+                this.configuration);
     }
 }

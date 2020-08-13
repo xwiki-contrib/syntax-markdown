@@ -53,7 +53,7 @@ public abstract class AbstractMarkdownStreamParser implements StreamParser
     public void parse(Reader source, Listener listener) throws ParseException
     {
         Node document;
-        MutableDataHolder options = this.configuration.getOptions();
+        MutableDataHolder options = getConfiguration().getOptions();
         Parser parser = Parser.builder(options).build();
         try {
             document = parser.parse(IOUtils.toString(source));
@@ -62,5 +62,10 @@ public abstract class AbstractMarkdownStreamParser implements StreamParser
         }
 
         this.visitorProvider.get().visit(document, listener, getSyntax());
+    }
+
+    protected MarkdownConfiguration getConfiguration()
+    {
+        return this.configuration;
     }
 }
