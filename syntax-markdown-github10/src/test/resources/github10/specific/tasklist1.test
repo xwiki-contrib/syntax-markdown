@@ -1,0 +1,12 @@
+.#------------------------------------------------------------------
+.#inputexpect|markdown+github/1.0
+.# TODO: uncomment once it's fixed
+.# Verify task list items.
+.# See https://github.github.com/gfm/#task-list-items-extension-
+.#------------------------------------------------------------------
+- [ ] foo
+- [x] bar
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+TODO

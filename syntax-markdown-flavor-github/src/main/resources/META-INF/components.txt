@@ -1,6 +1,0 @@
-org.xwiki.contrib.rendering.markdown.flavor.github.internal.parser.MarkdownGithubParser
-org.xwiki.contrib.rendering.markdown.flavor.github.internal.parser.MarkdownGithubStreamParser
-org.xwiki.contrib.rendering.markdown.flavor.github.internal.MarkdownGithubConfiguration
-org.xwiki.contrib.rendering.markdown.flavor.github.internal.renderer.MarkdownGithubBlockRenderer
-org.xwiki.contrib.rendering.markdown.flavor.github.internal.renderer.MarkdownGithubRenderer
-org.xwiki.contrib.rendering.markdown.flavor.github.internal.renderer.MarkdownGithubRendererFactory

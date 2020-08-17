@@ -1,0 +1,15 @@
+.#------------------------------------------------------------------
+.#inputexpect|markdown+github/1.0
+.# TODO: uncomment once it's fixed
+.# Verify that some raw HTML is disabled.
+.# See https://github.github.com/gfm/#disallowed-raw-html-extension-
+.#------------------------------------------------------------------
+<strong> <title> <style> <em>
+
+<blockquote>
+  <xmp> is disallowed.  <XMP> is also disallowed.
+</blockquote>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+TODO

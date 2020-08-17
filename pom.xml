@@ -45,11 +45,16 @@
       <name>Vincent Massol</name>
     </developer>
     <developer>
+      <id>haxsen</id>
+      <name>Hassan Ali</name>
+    </developer>
+    <developer>
       <id>xwikidev</id>
       <name>XWiki Development Team</name>
     </developer>
   </developers>
   <properties>
+    <flexmark.version>0.62.2</flexmark.version>
     <!-- This extension needs to be installed at the farm level (ie in the root namespace) to work fine.
          This is a limitation currently caused by http://jira.xwiki.org/browse/XWIKI-13437 -->
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
@@ -57,7 +62,7 @@
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
   </properties>
   <modules>
-    <module>syntax-markdown-markdown12</module>
-    <module>syntax-markdown-flavor-github</module>
+    <module>syntax-markdown-commonmark12</module>
+    <module>syntax-markdown-github10</module>
   </modules>
 </project>

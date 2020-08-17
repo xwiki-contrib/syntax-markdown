@@ -1,0 +1,9 @@
+org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.DefaultFlexmarkNodeVisitor
+org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.Markdown12Parser
+org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.Markdown12StreamParser
+org.xwiki.contrib.rendering.markdown.commonmark12.internal.DefaultMarkdownConfiguration
+org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12BlockRenderer
+org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12Renderer
+org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12RendererFactory
+org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12ImageReferenceSerializer
+org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12LinkReferenceSerializer
