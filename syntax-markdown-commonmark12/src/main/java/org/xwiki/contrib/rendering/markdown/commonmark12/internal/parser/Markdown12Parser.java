@@ -39,7 +39,7 @@ import org.xwiki.rendering.syntax.SyntaxType;
 @Singleton
 public class Markdown12Parser extends AbstractMarkdownParser
 {
-    public static final Syntax MARKDOWN_12 = new Syntax(new SyntaxType("markdown", "Markdown"), "1.2");
+    public static final Syntax MARKDOWN_12 = new Syntax(new SyntaxType("markdown", "CommonMark Markdown"), "1.2");
 
     /**
      * Streaming Markdown Parser.
