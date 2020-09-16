@@ -1,0 +1,27 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that a space ending a link followed by a
+.# softlinebreak only generates a single space
+.#-----------------------------------------------------
+paragraph 
+on the same line
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [paragraph]
+onSpace
+onWord [on]
+onSpace
+onWord [the]
+onSpace
+onWord [same]
+onSpace
+onWord [line]
+endParagraph
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+paragraph on the same line
