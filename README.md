@@ -7,7 +7,7 @@ Parsers and Renderers for Markdown syntaxes.
 * [Issue Tracker](http://jira.xwiki.org/browse/MARKDOWN)
 * Communication: [Mailing List](http://dev.xwiki.org/xwiki/bin/view/Community/MailingLists), [IRC](http://dev.xwiki.org/xwiki/bin/view/Community/IRC)
 * [Development Practices](http://dev.xwiki.org)
-* Minimal XWiki version supported: XWiki 8.3
+* Minimal XWiki version supported: XWiki 12.10
 * License: LGPL 2.1
 * Translations: N/A
 * Sonar Dashboard: N/A

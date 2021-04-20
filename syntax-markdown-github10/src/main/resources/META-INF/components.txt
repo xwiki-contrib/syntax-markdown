@@ -4,3 +4,4 @@ org.xwiki.contrib.rendering.markdown.github10.internal.MarkdownGitHubConfigurati
 org.xwiki.contrib.rendering.markdown.github10.internal.renderer.MarkdownGitHubBlockRenderer
 org.xwiki.contrib.rendering.markdown.github10.internal.renderer.MarkdownGitHubRenderer
 org.xwiki.contrib.rendering.markdown.github10.internal.renderer.MarkdownGitHubRendererFactory
+org.xwiki.contrib.rendering.markdown.github10.internal.GitHubMarkdown10SyntaxProvider

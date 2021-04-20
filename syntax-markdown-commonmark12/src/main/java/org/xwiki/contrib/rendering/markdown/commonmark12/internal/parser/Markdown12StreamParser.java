@@ -25,7 +25,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.rendering.syntax.Syntax;
 
-import static org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.Markdown12Parser.MARKDOWN_12;
+import static org.xwiki.contrib.rendering.markdown.commonmark12.internal.CommonMark12SyntaxProvider.MARKDOWN_COMMON_1_2;
 
 /**
  * CommonMark Markdown Stream Parser using <a href="https://github.com/vsch/flexmark-java">flexmark-java</a>.
@@ -41,6 +41,6 @@ public class Markdown12StreamParser extends AbstractMarkdownStreamParser
     @Override
     public Syntax getSyntax()
     {
-        return MARKDOWN_12;
+        return MARKDOWN_COMMON_1_2;
     }
 }

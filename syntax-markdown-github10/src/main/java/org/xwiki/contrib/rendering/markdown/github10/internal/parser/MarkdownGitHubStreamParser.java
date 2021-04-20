@@ -25,7 +25,7 @@ import org.xwiki.rendering.syntax.Syntax;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import static org.xwiki.contrib.rendering.markdown.github10.internal.parser.MarkdownGitHubParser.MARKDOWN_GITHUB;
+import static org.xwiki.contrib.rendering.markdown.github10.internal.GitHubMarkdown10SyntaxProvider.MARKDOWN_GITHUB_1_0;
 
 /**
  * GitHub-Flavored CommonMark Stream Parser.
@@ -41,6 +41,6 @@ public class MarkdownGitHubStreamParser extends AbstractMarkdownGitHubStreamPars
     @Override
     public Syntax getSyntax()
     {
-        return MARKDOWN_GITHUB;
+        return MARKDOWN_GITHUB_1_0;
     }
 }

@@ -23,11 +23,12 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.Markdown12Parser;
 import org.xwiki.rendering.parser.StreamParser;
 import org.xwiki.rendering.syntax.Syntax;
-import org.xwiki.rendering.syntax.SyntaxType;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+
+import static org.xwiki.contrib.rendering.markdown.github10.internal.GitHubMarkdown10SyntaxProvider.MARKDOWN_GITHUB_1_0;
 
 /**
  * GitHub-Flavored CommonMark Parser as an extension of Markdown12Parser.
@@ -40,12 +41,6 @@ import javax.inject.Singleton;
 @Singleton
 public class MarkdownGitHubParser extends Markdown12Parser
 {
-    /**
-     * The Syntax Key for GitHub Flavored Markdown.
-     */
-    public static final Syntax MARKDOWN_GITHUB = new Syntax(new SyntaxType("markdown+github",
-        "GitHub-Flavored CommonMark"), "1.0");
-
     @Inject
     @Named("markdown+github/1.0")
     private StreamParser githubMarkdownStreamParser;
@@ -59,6 +54,6 @@ public class MarkdownGitHubParser extends Markdown12Parser
     @Override
     public Syntax getSyntax()
     {
-        return MARKDOWN_GITHUB;
+        return MARKDOWN_GITHUB_1_0;
     }
 }

@@ -17,31 +17,43 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer;
+package org.xwiki.contrib.rendering.markdown.github10.internal;
+
+import java.util.Collections;
+import java.util.List;
 
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.rendering.internal.renderer.AbstractPrintRendererFactory;
 import org.xwiki.rendering.syntax.Syntax;
-
-import static org.xwiki.contrib.rendering.markdown.commonmark12.internal.CommonMark12SyntaxProvider.MARKDOWN_COMMON_1_2;
+import org.xwiki.rendering.syntax.SyntaxType;
 
 /**
- * Create CommonMark Markdown 1.2 Renderers.
+ * Register the {@code markdown+github/1.0} Syntax supported by this module.
  *
  * @version $Id$
- * @since 8.4
+ * @since 8.8
  */
 @Component
-@Named("markdown/1.2")
+@Named("markdown+github/1.0")
 @Singleton
-public class Markdown12RendererFactory extends AbstractPrintRendererFactory
+public class GitHubMarkdown10SyntaxProvider implements Provider<List<Syntax>>
 {
+    /**
+     * GitHub-Flavored Markdown syntax type.
+     */
+    public static final SyntaxType MARKDOWN_GITHUB = new SyntaxType("markdown+github", "GitHub-Flavored CommonMark");
+
+    /**
+     * GitHub-Flavored Markdown 1.0 syntax.
+     */
+    public static final Syntax MARKDOWN_GITHUB_1_0 = new Syntax(MARKDOWN_GITHUB, "1.0");
+
     @Override
-    public Syntax getSyntax()
+    public List<Syntax> get()
     {
-        return MARKDOWN_COMMON_1_2;
+        return Collections.singletonList(MARKDOWN_GITHUB_1_0);
     }
 }

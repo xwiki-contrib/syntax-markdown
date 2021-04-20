@@ -7,3 +7,4 @@ org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12Re
 org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12RendererFactory
 org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12ImageReferenceSerializer
 org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12LinkReferenceSerializer
+org.xwiki.contrib.rendering.markdown.commonmark12.internal.CommonMark12SyntaxProvider
