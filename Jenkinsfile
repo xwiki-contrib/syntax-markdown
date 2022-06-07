@@ -24,5 +24,13 @@
 // @Library("XWiki@<branch, tag, sha1>") _
 // See https://github.com/jenkinsci/workflow-cps-global-lib-plugin for details.
 
-xwikiModule {
+node('docker') {
+    xwikiBuild {
+        xvnc = false
+        goals = 'clean deploy jacoco:report sonar:sonar'
+        profiles = 'quality,integration-tests,docker'
+        sonar = true
+        // Force Java 11 since the upgrade from Flexmark-java 0.62.2 to 0.64.0 seems to require it.
+        javaTool = 'java11'
+    }
 }
