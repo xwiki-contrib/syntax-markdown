@@ -67,30 +67,45 @@
     <module>syntax-markdown-commonmark12</module>
     <module>syntax-markdown-github10</module>
   </modules>
-  <build>
-    <plugins>
-      <!-- Force the Java version to use to build release -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>enforce-java</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <skip>${xwiki.enforcer.enforce-java.skip}</skip>
-              <rules>
-                <requireJavaVersion>
-                  <message>You must release with Java 11!</message>
-                  <version>[11,)</version>
-                </requireJavaVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+  <profiles>
+    <profile>
+      <!-- Profile used when the release plugin executes. -->
+      <id>release</id>
+      <activation>
+        <property>
+          <!-- This property is automatically defined by the Maven release plugin when executing
+               a release. Thus, this profile will be automatically enabled when releasing -->
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <!-- Force the Java version to Java 11 for the release (since we don't want to release with a newer version
+               and we need at least Java 11) -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>enforce-java</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <skip>${xwiki.enforcer.enforce-java.skip}</skip>
+                  <rules>
+                    <requireJavaVersion>
+                      <message>You must release with Java 11!</message>
+                      <version>${java.version}</version>
+                    </requireJavaVersion>
+                  </rules>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
