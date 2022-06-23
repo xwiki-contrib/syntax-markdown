@@ -606,7 +606,13 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         boolean isHandled = false;
         if (text.startsWith("<abbr ")) {
             try {
-                Document document = new SAXBuilder().build(new StringReader(text));
+                SAXBuilder builder = new SAXBuilder();
+                // Disable entity processing since we don't need that feature, and it could lead to an XXE attack.
+                builder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",true);
+                builder.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                builder.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                builder.setExpandEntities(false);
+                Document document = builder.build(new StringReader(text));
                 Element abbrElement = document.getRootElement();
                 if (abbrElement.getAttributes().size() == 1) {
                     String key = abbrElement.getText();
