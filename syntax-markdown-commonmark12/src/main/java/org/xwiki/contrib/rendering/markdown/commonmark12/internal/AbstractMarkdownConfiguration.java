@@ -85,8 +85,8 @@ public abstract class AbstractMarkdownConfiguration
                 getLogger().warn("Invalid extension: [{}]. Root cause: [{}]", extensionClass.getName(),
                     ExceptionUtils.getRootCauseMessage(e));
             }
-            options.set(Parser.EXTENSIONS, extensions);
         }
+        options.set(Parser.EXTENSIONS, extensions);
 
         return options;
     }

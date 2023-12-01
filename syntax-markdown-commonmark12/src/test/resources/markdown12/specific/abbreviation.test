@@ -1,3 +1,4 @@
+.runTransformations
 .#-----------------------------------------------------
 .input|markdown/1.2
 .# Test abbreviations
@@ -13,7 +14,9 @@ beginDocument
 beginParagraph
 onWord [The]
 onSpace
-onRawText [<abbr title="Hyper Text Markup Language">HTML</abbr>] [html/4.01]
+beginMacroMarkerInline [html] [clean=false] [<abbr title="Hyper Text Markup Language">HTML</abbr>]
+onRawText [<abbr title="Hyper Text Markup Language">HTML</abbr>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<abbr title="Hyper Text Markup Language">HTML</abbr>]
 onSpace
 onWord [specification]
 onSpace
@@ -25,7 +28,9 @@ onWord [by]
 onSpace
 onWord [the]
 onSpace
-onRawText [<abbr title="World Wide Web Consortium">W3C</abbr>] [html/4.01]
+beginMacroMarkerInline [html] [clean=false] [<abbr title="World Wide Web Consortium">W3C</abbr>]
+onRawText [<abbr title="World Wide Web Consortium">W3C</abbr>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<abbr title="World Wide Web Consortium">W3C</abbr>]
 onSpecialSymbol [.]
 endParagraph
 endDocument

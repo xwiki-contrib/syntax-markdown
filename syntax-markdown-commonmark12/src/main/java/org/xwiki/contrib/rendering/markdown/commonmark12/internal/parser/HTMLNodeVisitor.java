@@ -22,7 +22,6 @@ package org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser;
 import java.util.Deque;
 
 import org.xwiki.rendering.listener.Listener;
-import org.xwiki.rendering.syntax.Syntax;
 
 import com.vladsch.flexmark.ast.HtmlBlock;
 import com.vladsch.flexmark.ast.HtmlCommentBlock;
@@ -66,7 +65,7 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
     {
         // Flexmark puts trailing newline in the HTML block so we need to remove it.
         String html = node.getChars().toString().trim();
-        getListener().onRawText(html, Syntax.HTML_4_01);
+        generateHTMLMacro(html, false);
     }
 
     public void visit(HtmlCommentBlock node)
@@ -86,6 +85,6 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
 
     private void visit(Node node)
     {
-        getListener().onRawText(node.getChars().toString(), Syntax.HTML_4_01);
+        generateHTMLMacro(node.getChars().toString(), true);
     }
 }
