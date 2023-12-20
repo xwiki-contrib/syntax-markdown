@@ -3,7 +3,7 @@
 .inputexpect|markdown/1.2
 .# Test inline XHTML
 .#-----------------------------------------------------
-hello **<del>world</del>** <sup>beta</sup>
+hello **<del>world</del>**<br/><sup>beta</sup>
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -12,25 +12,19 @@ beginParagraph
 onWord [hello]
 onSpace
 beginFormat [BOLD]
-beginMacroMarkerInline [html] [clean=false] [<del>]
-onRawText [<del>] [xhtml/1.0]
-endMacroMarkerInline [html] [clean=false] [<del>]
-onWord [world]
-beginMacroMarkerInline [html] [clean=false] [</del>]
-onRawText [</del>] [xhtml/1.0]
-endMacroMarkerInline [html] [clean=false] [</del>]
+beginMacroMarkerInline [html] [clean=false] [<del>world</del>]
+onRawText [<del>world</del>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<del>world</del>]
 endFormat [BOLD]
-onSpace
-beginMacroMarkerInline [html] [clean=false] [<sup>]
-onRawText [<sup>] [xhtml/1.0]
-endMacroMarkerInline [html] [clean=false] [<sup>]
-onWord [beta]
-beginMacroMarkerInline [html] [clean=false] [</sup>]
-onRawText [</sup>] [xhtml/1.0]
-endMacroMarkerInline [html] [clean=false] [</sup>]
+beginMacroMarkerInline [html] [clean=false] [<br/>]
+onRawText [<br/>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<br/>]
+beginMacroMarkerInline [html] [clean=false] [<sup>beta</sup>]
+onRawText [<sup>beta</sup>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<sup>beta</sup>]
 endParagraph
 endDocument
 .#-----------------------------------------------------
 .expect|xhtml/1.0
 .#-----------------------------------------------------
-<p>hello <strong><del>world</del></strong> <sup>beta</sup></p>
+<p>hello <strong><del>world</del></strong><br/><sup>beta</sup></p>
