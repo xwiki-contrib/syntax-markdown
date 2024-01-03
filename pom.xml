@@ -100,8 +100,9 @@
       </activation>
       <build>
         <plugins>
-          <!-- Force the Java version to Java 11+ for the release (since we don't want to release with a newer version,
-               and we need at least Java 11) -->
+          <!-- Force the Java version to Java 11 for the release since we need at least Java 11 (for Flexmark-Java),
+               and we want this extension to be installable in the maximum of situations, and thus to compile the code
+               with Java 11 and not more -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-enforcer-plugin</artifactId>
@@ -116,7 +117,7 @@
                   <rules>
                     <requireJavaVersion>
                       <message>You must release with Java 11!</message>
-                      <version>[${xwiki.java.version},)</version>
+                      <version>${xwiki.java.version}</version>
                     </requireJavaVersion>
                   </rules>
                 </configuration>
