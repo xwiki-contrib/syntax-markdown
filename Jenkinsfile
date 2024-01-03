@@ -30,7 +30,8 @@ node('docker') {
         goals = 'clean deploy jacoco:report sonar:sonar'
         profiles = 'quality,integration-tests,docker'
         sonar = true
-        // Force Java 11 since the upgrade from Flexmark-java 0.62.2 to 0.64.0 seems to require it.
-        javaTool = 'java11'
+        // Force Java 17 even though we depend on XS requiring only Java 11 because we run SonarQube and this requires
+        // Java 17.
+        javaTool = 'java17'
     }
 }

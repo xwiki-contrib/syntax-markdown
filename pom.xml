@@ -61,12 +61,31 @@
     <xwiki.issueManagement.jira.id>MARKDOWN</xwiki.issueManagement.jira.id>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
     <!-- Force Java 11 since the upgrade from Flexmark-java 0.62.2 to 0.64.0 seems to require it. -->
-    <java.version>11</java.version>
+    <xwiki.java.version>11</xwiki.java.version>
   </properties>
   <modules>
     <module>syntax-markdown-commonmark12</module>
     <module>syntax-markdown-github10</module>
   </modules>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Use a more recent version of Spoon to avoid URL classloader issue with Java 17 -->
+        <plugin>
+          <groupId>fr.inria.gforge.spoon</groupId>
+          <artifactId>spoon-maven-plugin</artifactId>
+          <version>3.8.0</version>
+          <dependencies>
+            <dependency>
+              <groupId>fr.inria.gforge.spoon</groupId>
+              <artifactId>spoon-core</artifactId>
+              <version>10.4.2</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
   <profiles>
     <profile>
       <!-- Profile used when the release plugin executes. -->
@@ -81,7 +100,7 @@
       </activation>
       <build>
         <plugins>
-          <!-- Force the Java version to Java 11 for the release (since we don't want to release with a newer version
+          <!-- Force the Java version to Java 11+ for the release (since we don't want to release with a newer version,
                and we need at least Java 11) -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -97,7 +116,7 @@
                   <rules>
                     <requireJavaVersion>
                       <message>You must release with Java 11!</message>
-                      <version>${java.version}</version>
+                      <version>[${xwiki.java.version},)</version>
                     </requireJavaVersion>
                   </rules>
                 </configuration>
