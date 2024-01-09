@@ -3,7 +3,7 @@
 .inputexpect|markdown/1.2
 .# Test inline XHTML
 .#-----------------------------------------------------
-hello **<del>world</del>**<br/><sup>beta</sup>
+hello **<del>world</del>** <sup>beta</sup>
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -16,9 +16,7 @@ beginMacroMarkerInline [html] [clean=false] [<del>world</del>]
 onRawText [<del>world</del>] [xhtml/1.0]
 endMacroMarkerInline [html] [clean=false] [<del>world</del>]
 endFormat [BOLD]
-beginMacroMarkerInline [html] [clean=false] [<br/>]
-onRawText [<br/>] [xhtml/1.0]
-endMacroMarkerInline [html] [clean=false] [<br/>]
+onSpace
 beginMacroMarkerInline [html] [clean=false] [<sup>beta</sup>]
 onRawText [<sup>beta</sup>] [xhtml/1.0]
 endMacroMarkerInline [html] [clean=false] [<sup>beta</sup>]
@@ -27,4 +25,4 @@ endDocument
 .#-----------------------------------------------------
 .expect|xhtml/1.0
 .#-----------------------------------------------------
-<p>hello <strong><del>world</del></strong><br/><sup>beta</sup></p>
+<p>hello <strong><del>world</del></strong> <sup>beta</sup></p>

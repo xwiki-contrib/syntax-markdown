@@ -33,7 +33,7 @@ public class DeepInlineHTMLExtension implements Parser.ParserExtension
     @Override
     public void parserOptions(MutableDataHolder mutableDataHolder)
     {
-
+        // This parser extension currently does not have any configurable options.
     }
 
     @Override
