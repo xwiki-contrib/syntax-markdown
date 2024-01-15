@@ -42,7 +42,7 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
     private static final String HTML_OPEN_PREFIX = "<";
     private static final String HTML_CLOSE_PREFIX = "</";
     private static final String HTML_SELF_SUFFIX = "/>";
-    private static final String HTML_REGULAR_SUFFIX = ">";
+    private static final String HTML_TAG_SUFFIX = "\\s+|>";
 
     /**
      * Factory class for DeepInlineHTMLPostProcessor.
@@ -85,7 +85,7 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
         }
 
         // We keep the name of the tag until the first whitespace character and remove the angle brackets.
-        String inlineStartTag = inlineStartText.split("\\s+|" + HTML_REGULAR_SUFFIX)[0].substring(1);
+        String inlineStartTag = inlineStartText.split(HTML_TAG_SUFFIX)[0].substring(1);
 
         while (nextNode != null && nFound < toFind) {
             Node currentNode = nextNode;
@@ -96,7 +96,7 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
 
             if (currentNode instanceof HtmlInline) {
                 // We keep the name of the tag until the first whitespace character or closing angle bracket.
-                String currentNodeTag = currentNode.getChars().toString().split("\\s+|" + HTML_REGULAR_SUFFIX)[0];
+                String currentNodeTag = currentNode.getChars().toString().split(HTML_TAG_SUFFIX)[0];
                 if (currentNodeTag.equals(HTML_OPEN_PREFIX + inlineStartTag)) {
                     toFind++;
                 } else if (currentNodeTag.equals(HTML_CLOSE_PREFIX + inlineStartTag)) {
