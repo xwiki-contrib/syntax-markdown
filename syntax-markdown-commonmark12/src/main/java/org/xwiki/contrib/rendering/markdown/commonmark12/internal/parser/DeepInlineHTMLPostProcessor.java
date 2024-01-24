@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser;
 
+import java.util.regex.Pattern;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.vladsch.flexmark.ast.HtmlInline;
@@ -42,7 +44,7 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
     private static final String HTML_OPEN_PREFIX = "<";
     private static final String HTML_CLOSE_PREFIX = "</";
     private static final String HTML_SELF_SUFFIX = "/>";
-    private static final String HTML_TAG_SUFFIX = "\\s+|>";
+    private static final Pattern HTML_TAG_SUFFIX_REGEX = Pattern.compile("\\s+|>");
 
     /**
      * Factory class for DeepInlineHTMLPostProcessor.
@@ -85,7 +87,7 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
         }
 
         // We keep the name of the tag until the first whitespace character and remove the angle brackets.
-        String inlineStartTag = inlineStartText.split(HTML_TAG_SUFFIX)[0].substring(1);
+        String inlineStartTag = HTML_TAG_SUFFIX_REGEX.split(inlineStartText)[0].substring(1);
 
         while (nextNode != null && nFound < toFind) {
             Node currentNode = nextNode;
@@ -96,7 +98,7 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
 
             if (currentNode instanceof HtmlInline) {
                 // We keep the name of the tag until the first whitespace character or closing angle bracket.
-                String currentNodeTag = currentNode.getChars().toString().split(HTML_TAG_SUFFIX)[0];
+                String currentNodeTag = HTML_TAG_SUFFIX_REGEX.split(currentNode.getChars().toString())[0];
                 if (currentNodeTag.equals(HTML_OPEN_PREFIX + inlineStartTag)) {
                     toFind++;
                 } else if (currentNodeTag.equals(HTML_CLOSE_PREFIX + inlineStartTag)) {

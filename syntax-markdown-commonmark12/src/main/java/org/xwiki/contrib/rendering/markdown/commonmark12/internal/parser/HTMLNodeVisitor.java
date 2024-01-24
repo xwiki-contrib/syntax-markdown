@@ -21,6 +21,7 @@ package org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser;
 
 import java.util.Deque;
 
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.rendering.listener.Listener;
 
 import com.vladsch.flexmark.ast.HtmlBlock;
@@ -73,7 +74,7 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
         String outputHtml = renderer.render(parsedNode);
 
         // Parsing the node on its own will put in a paragraph, so we remove <p></p> tags and linebreak from the output.
-        generateHTMLMacro(outputHtml.substring(3, outputHtml.length() - 5), true);
+        generateHTMLMacro(StringUtils.removeEnd(StringUtils.removeStart(outputHtml, "<p>"), "</p>\n"), true);
     }
 
     public void visit(HtmlBlock node)
