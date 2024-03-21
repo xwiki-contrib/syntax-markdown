@@ -87,7 +87,7 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
         }
 
         // We keep the name of the tag until the first whitespace character and remove the angle brackets.
-        String inlineStartTag = HTML_TAG_SUFFIX_REGEX.split(inlineStartText)[0].substring(1);
+        String inlineStartTag = HTML_TAG_SUFFIX_REGEX.split(inlineStartText, 2)[0].substring(1);
 
         while (nextNode != null && nFound < toFind) {
             Node currentNode = nextNode;
@@ -98,7 +98,7 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
 
             if (currentNode instanceof HtmlInline) {
                 // We keep the name of the tag until the first whitespace character or closing angle bracket.
-                String currentNodeTag = HTML_TAG_SUFFIX_REGEX.split(currentNode.getChars().toString())[0];
+                String currentNodeTag = HTML_TAG_SUFFIX_REGEX.split(currentNode.getChars().toString(), 2)[0];
                 if (currentNodeTag.equals(HTML_OPEN_PREFIX + inlineStartTag)) {
                     toFind++;
                 } else if (currentNodeTag.equals(HTML_CLOSE_PREFIX + inlineStartTag)) {
