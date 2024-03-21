@@ -84,9 +84,14 @@ public class MarkdownEscapeHandler
 
         // Escape reserved keywords
         Matcher matcher = RESERVED_CHARS_PATTERN.matcher(accumulatedBuffer.toString());
-        for (int i = 0; matcher.find(); i = i + matcher.end() - matcher.start() + 1) {
-            accumulatedBuffer.replace(matcher.start() + i, matcher.end() + i, ESCAPE_CHAR + matcher.group().charAt(0)
-                + ESCAPE_CHAR + matcher.group().charAt(1));
+        for (int i = 0; matcher.find(); i = i + matcher.group().length()) {
+            if (matcher.group().length() == 1) {
+                accumulatedBuffer.replace(matcher.start() + i, matcher.end() + i,
+                    ESCAPE_CHAR + matcher.group().charAt(0));
+            } else {
+                accumulatedBuffer.replace(matcher.start() + i, matcher.end() + i,
+                    ESCAPE_CHAR + matcher.group().charAt(0) + ESCAPE_CHAR + matcher.group().charAt(1));
+            }
         }
 
         // TODO: Handle escaping link syntax, i.e. |(?<!\)[.*]\(.*\)

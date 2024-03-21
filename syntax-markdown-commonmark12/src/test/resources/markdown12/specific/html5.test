@@ -1,0 +1,30 @@
+.runTransformations
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test inline HTML with embedded markdown
+.#-----------------------------------------------------
+_italic_ and <strong>_bold + italic_</strong>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+_italic_ and <strong><em>bold + italic</em></strong>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginFormat [ITALIC]
+onWord [italic]
+endFormat [ITALIC]
+onSpace
+onWord [and]
+onSpace
+beginMacroMarkerInline [html] [clean=false] [<strong><em>bold + italic</em></strong>]
+onRawText [<strong><em>bold + italic</em></strong>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<strong><em>bold + italic</em></strong>]
+endParagraph
+endDocument
+.#-----------------------------------------------------
+.expect|xhtml/1.0
+.#-----------------------------------------------------
+<p><em>italic</em> and <strong><em>bold + italic</em></strong></p>

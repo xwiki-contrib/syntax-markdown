@@ -20,6 +20,7 @@
 package org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser;
 
 import java.io.StringReader;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Map;
 
@@ -141,5 +142,13 @@ public abstract class AbstractNodeVisitor
         } catch (ParseException e) {
             throw new RuntimeException(String.format("Error parsing content [%s]", text), e);
         }
+    }
+
+    protected void generateHTMLMacro(String html, boolean inline)
+    {
+        // We output a HTML macro (and not Raw events) in order to benefit from the security features of that Macro.
+        // We don't clean the HTML since it's possible to intermix MD syntax with HTML and thus has not well-formed
+        // HTML content.
+        getListener().onMacro("html", Collections.singletonMap("clean", "false"), html, inline);
     }
 }

@@ -23,7 +23,6 @@ import java.util.Deque;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.rendering.listener.Listener;
-import org.xwiki.rendering.syntax.Syntax;
 
 import com.vladsch.flexmark.ext.abbreviation.Abbreviation;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
@@ -54,10 +53,10 @@ public class AbbreviationNodeVisitor extends AbstractNodeVisitor
         // Since XWiki doesn't support abbreviations, we generate an HTML <abbr> element.
         String html;
         if (StringUtils.isNotEmpty(node.getAbbreviation())) {
-            html = String.format("<abbr title=\"%s\">%s</abbr>", node.getAbbreviation(), node.getChars().toString());
+            html = String.format("<abbr title=\"%s\">%s</abbr>", node.getAbbreviation(), node.getChars());
         } else {
-            html = String.format("<abbr>%s</abbr>", node.getChars().toString());
+            html = String.format("<abbr>%s</abbr>", node.getChars());
         }
-        getListener().onRawText(html, Syntax.HTML_4_01);
+        generateHTMLMacro(html, true);
     }
 }

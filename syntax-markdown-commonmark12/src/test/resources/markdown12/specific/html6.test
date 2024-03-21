@@ -1,0 +1,20 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test Markdown symbols in HTML macros are escaped
+.#-----------------------------------------------------
+Hello {{html clean=false}}<strong>bold and *not italic*</strong>{{/html}}
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [Hello]
+onSpace
+onMacroInline [html] [clean=false] [<strong>bold and *not italic*</strong>]
+endParagraph
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+Hello <strong>bold and \*not italic\*</strong>
+.#-----------------------------------------------------

@@ -36,6 +36,6 @@ beginTableCell
 onWord [cell22]
 endTableCell
 endTableRow
-onRawText [<caption>caption</caption>] [html/4.01]
+onMacroStandalone [html] [clean=false] [<caption>caption</caption>]
 endTable
 endDocument

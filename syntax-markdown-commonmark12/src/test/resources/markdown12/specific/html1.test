@@ -1,3 +1,4 @@
+.runTransformations
 .#-----------------------------------------------------
 .inputexpect|markdown/1.2
 .# Test block HTML
@@ -18,11 +19,21 @@ beginDocument
 beginParagraph
 onWord [hello]
 endParagraph
+beginMacroMarkerStandalone [html] [clean=false] [<table>
+  <tr>
+    <td>Foo</td>
+  </tr>
+</table>]
 onRawText [<table>
   <tr>
     <td>Foo</td>
   </tr>
-</table>] [html/4.01]
+</table>] [xhtml/1.0]
+endMacroMarkerStandalone [html] [clean=false] [<table>
+  <tr>
+    <td>Foo</td>
+  </tr>
+</table>]
 beginParagraph
 onWord [world]
 endParagraph

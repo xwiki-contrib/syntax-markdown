@@ -1,3 +1,4 @@
+.runTransformations
 .#-----------------------------------------------------
 .inputexpect|markdown/1.2
 .# Test inline XHTML
@@ -11,14 +12,14 @@ beginParagraph
 onWord [hello]
 onSpace
 beginFormat [BOLD]
-onRawText [<del>] [html/4.01]
-onWord [world]
-onRawText [</del>] [html/4.01]
+beginMacroMarkerInline [html] [clean=false] [<del>world</del>]
+onRawText [<del>world</del>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<del>world</del>]
 endFormat [BOLD]
 onSpace
-onRawText [<sup>] [html/4.01]
-onWord [beta]
-onRawText [</sup>] [html/4.01]
+beginMacroMarkerInline [html] [clean=false] [<sup>beta</sup>]
+onRawText [<sup>beta</sup>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<sup>beta</sup>]
 endParagraph
 endDocument
 .#-----------------------------------------------------

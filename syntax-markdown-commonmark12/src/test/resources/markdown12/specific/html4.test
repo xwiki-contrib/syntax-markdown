@@ -1,0 +1,50 @@
+.runTransformations
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Test inline closing and self-closing XHTML tags
+.#-----------------------------------------------------
+hello<br/>closing tags are parsed on their own</a> and <em>non closed run until the end of
+
+the paragraph
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [hello]
+beginMacroMarkerInline [html] [clean=false] [<br/>]
+onRawText [<br/>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<br/>]
+onWord [closing]
+onSpace
+onWord [tags]
+onSpace
+onWord [are]
+onSpace
+onWord [parsed]
+onSpace
+onWord [on]
+onSpace
+onWord [their]
+onSpace
+onWord [own]
+beginMacroMarkerInline [html] [clean=false] [</a>]
+onRawText [</a>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [</a>]
+onSpace
+onWord [and]
+onSpace
+beginMacroMarkerInline [html] [clean=false] [<em>non closed run until the end of]
+onRawText [<em>non closed run until the end of] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<em>non closed run until the end of]
+endParagraph
+beginParagraph
+onWord [the]
+onSpace
+onWord [paragraph]
+endParagraph
+endDocument
+.#-----------------------------------------------------
+.expect|xhtml/1.0
+.#-----------------------------------------------------
+<p>hello<br/>closing tags are parsed on their own</a> and <em>non closed run until the end of</p><p>the paragraph</p>

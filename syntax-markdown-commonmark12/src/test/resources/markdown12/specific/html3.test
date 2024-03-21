@@ -1,5 +1,6 @@
+.runTransformations
 .#-----------------------------------------------------
-.input|markdown/1.2
+.inputexpect|markdown/1.2
 .# Test if HTML that is not valid XML is not parsed as (X)HTML
 .#-----------------------------------------------------
 XHTML is more < strong >strict< /strong> and this is <span
@@ -33,10 +34,12 @@ onWord [this]
 onSpace
 onWord [is]
 onSpace
+beginMacroMarkerInline [html] [clean=false] [<span
+class="red">good</span>]
 onRawText [<span
-class="red">] [html/4.01]
-onWord [good]
-onRawText [</span>] [html/4.01]
+class="red">good</span>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<span
+class="red">good</span>]
 endParagraph
 endDocument
 .#-----------------------------------------------------
@@ -44,8 +47,3 @@ endDocument
 .#-----------------------------------------------------
 <p>XHTML is more &lt; strong &gt;strict&lt; /strong&gt; and this is <span
 class="red">good</span></p>
-.#-----------------------------------------------------
-.expect|markdown/1.2
-.#-----------------------------------------------------
-XHTML is more < strong >strict< /strong> and this is <span
-class="red">good</span>

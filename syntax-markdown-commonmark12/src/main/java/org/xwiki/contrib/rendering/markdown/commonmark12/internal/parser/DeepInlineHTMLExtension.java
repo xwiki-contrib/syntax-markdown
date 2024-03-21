@@ -17,43 +17,38 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.rendering.markdown.commonmark12.internal;
+package org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser;
 
-import java.util.Collections;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
-import org.slf4j.Logger;
-import org.xwiki.component.annotation.Component;
-import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.DeepInlineHTMLExtension;
-
-import com.vladsch.flexmark.ext.wikilink.WikiLinkExtension;
-import com.vladsch.flexmark.parser.ParserEmulationProfile;
+import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.data.MutableDataHolder;
 
-@Component
-@Singleton
-public class DefaultMarkdownConfiguration extends AbstractMarkdownConfiguration implements MarkdownConfiguration
+/**
+ * This extension provides DeepInlineHTMLPostProcessor as a parsing post processor.
+ *
+ * @version $Id$
+ * @since 8.9
+ */
+public class DeepInlineHTMLExtension implements Parser.ParserExtension
 {
-    @Inject
-    private Logger logger;
-
     @Override
-    public MutableDataHolder getOptions()
+    public void parserOptions(MutableDataHolder mutableDataHolder)
     {
-        MutableDataHolder options = getDefaultOptions(ParserEmulationProfile.COMMONMARK,
-            Collections.singletonList(DeepInlineHTMLExtension.class));
-
-        // Configure other options
-        options.set(WikiLinkExtension.IMAGE_LINKS, true);
-
-        return options;
+        // This parser extension currently does not have any configurable options.
     }
 
     @Override
-    protected Logger getLogger()
+    public void extend(Parser.Builder builder)
     {
-        return this.logger;
+        builder.postProcessorFactory(new DeepInlineHTMLPostProcessor.Factory(builder));
+    }
+
+    /**
+     * Creates an instance of DeepInlineHTMLExtension.
+     *
+     * @return a new instance of this extension
+     */
+    public static DeepInlineHTMLExtension create()
+    {
+        return new DeepInlineHTMLExtension();
     }
 }

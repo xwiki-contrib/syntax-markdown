@@ -33,6 +33,7 @@ import org.xwiki.test.mockito.MockitoComponentManager;
  * @since 8.4
  */
 @RunWith(RenderingTestSuite.class)
+//@RenderingTestSuite.Scope(value = "markdown12.specific", pattern = ".*html.*\\.test")
 @RenderingTestSuite.Scope(value = "markdown12.specific")
 @AllComponents
 public class Markdown12SpecificTest

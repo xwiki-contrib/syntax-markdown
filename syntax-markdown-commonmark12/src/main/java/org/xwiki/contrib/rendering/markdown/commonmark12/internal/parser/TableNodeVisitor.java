@@ -27,7 +27,6 @@ import java.util.Map;
 
 import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.renderer.PrintRendererFactory;
-import org.xwiki.rendering.syntax.Syntax;
 
 import com.vladsch.flexmark.ext.tables.TableBlock;
 import com.vladsch.flexmark.ext.tables.TableCaption;
@@ -150,7 +149,7 @@ public class TableNodeVisitor extends AbstractNodeVisitor
         // HTML caption tag is supposed to be sent just after the <table> tag and thus the limited solution we have
         // below is probably wrong...
         String captionText = extractText(node);
-        getListener().onRawText(String.format("<caption>%s</caption>", captionText), Syntax.HTML_4_01);
+        generateHTMLMacro(String.format("<caption>%s</caption>", captionText), false);
     }
 
     public void visit(TableSeparator node)
