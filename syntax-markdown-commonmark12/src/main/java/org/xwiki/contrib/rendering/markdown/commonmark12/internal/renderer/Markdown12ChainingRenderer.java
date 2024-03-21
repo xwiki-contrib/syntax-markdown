@@ -216,4 +216,32 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         }
         return false;
     }
+
+    protected boolean handleHtmlMacro(String id, Map<String, String> parameters, String content, boolean isInline)
+    {
+        boolean isHandled = false;
+
+        if (id.equals("html")) {
+            if (!isInline) {
+                printEmptyLine();
+            }
+
+            // Use Markdown printer to escape content inside HTML macros
+            getMarkdownPrinter().printDelayed(createMacroPrinter().renderMacro(id, parameters, content, isInline));
+            getMarkdownPrinter().flush();
+            isHandled = true;
+        }
+
+        return isHandled;
+    }
+
+    @Override
+    public void onMacro(String id, Map<String, String> parameters, String content, boolean isInline)
+    {
+        if (handleHtmlMacro(id, parameters, content, isInline)) {
+            return;
+        }
+
+        super.onMacro(id, parameters, content, isInline);
+    }
 }

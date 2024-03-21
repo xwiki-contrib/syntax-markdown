@@ -12,22 +12,14 @@ beginParagraph
 onWord [hello]
 onSpace
 beginFormat [BOLD]
-beginMacroMarkerInline [html] [clean=false] [<del>]
-onRawText [<del>] [xhtml/1.0]
-endMacroMarkerInline [html] [clean=false] [<del>]
-onWord [world]
-beginMacroMarkerInline [html] [clean=false] [</del>]
-onRawText [</del>] [xhtml/1.0]
-endMacroMarkerInline [html] [clean=false] [</del>]
+beginMacroMarkerInline [html] [clean=false] [<del>world</del>]
+onRawText [<del>world</del>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<del>world</del>]
 endFormat [BOLD]
 onSpace
-beginMacroMarkerInline [html] [clean=false] [<sup>]
-onRawText [<sup>] [xhtml/1.0]
-endMacroMarkerInline [html] [clean=false] [<sup>]
-onWord [beta]
-beginMacroMarkerInline [html] [clean=false] [</sup>]
-onRawText [</sup>] [xhtml/1.0]
-endMacroMarkerInline [html] [clean=false] [</sup>]
+beginMacroMarkerInline [html] [clean=false] [<sup>beta</sup>]
+onRawText [<sup>beta</sup>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<sup>beta</sup>]
 endParagraph
 endDocument
 .#-----------------------------------------------------

@@ -35,15 +35,11 @@ onSpace
 onWord [is]
 onSpace
 beginMacroMarkerInline [html] [clean=false] [<span
-class="red">]
+class="red">good</span>]
 onRawText [<span
-class="red">] [xhtml/1.0]
+class="red">good</span>] [xhtml/1.0]
 endMacroMarkerInline [html] [clean=false] [<span
-class="red">]
-onWord [good]
-beginMacroMarkerInline [html] [clean=false] [</span>]
-onRawText [</span>] [xhtml/1.0]
-endMacroMarkerInline [html] [clean=false] [</span>]
+class="red">good</span>]
 endParagraph
 endDocument
 .#-----------------------------------------------------

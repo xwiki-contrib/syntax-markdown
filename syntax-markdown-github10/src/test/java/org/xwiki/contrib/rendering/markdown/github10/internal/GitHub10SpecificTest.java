@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.contrib.rendering.markdown.commonmark12.internal;
+package org.xwiki.contrib.rendering.markdown.github10.internal;
 
 import org.junit.runner.RunWith;
 import org.xwiki.rendering.test.integration.RenderingTestSuite;

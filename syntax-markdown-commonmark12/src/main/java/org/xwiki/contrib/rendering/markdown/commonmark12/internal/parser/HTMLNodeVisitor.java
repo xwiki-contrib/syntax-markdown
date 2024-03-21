@@ -21,6 +21,7 @@ package org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser;
 
 import java.util.Deque;
 
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.rendering.listener.Listener;
 
 import com.vladsch.flexmark.ast.HtmlBlock;
@@ -28,9 +29,12 @@ import com.vladsch.flexmark.ast.HtmlCommentBlock;
 import com.vladsch.flexmark.ast.HtmlEntity;
 import com.vladsch.flexmark.ast.HtmlInline;
 import com.vladsch.flexmark.ast.HtmlInlineComment;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
+import com.vladsch.flexmark.util.data.MutableDataSet;
 
 /**
  * Handle HTML events.
@@ -58,7 +62,19 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
 
     public void visit(HtmlInline node)
     {
-        visit((Node) node);
+        // When we have an inline HTML macro with its raw content, we need to parse it and render it as HTML to
+        // support possibly embedded Markdown content.
+        MutableDataSet options = new MutableDataSet();
+        // We already know we are in an inline context, so we disable block parsing.
+        options.set(Parser.HTML_BLOCK_PARSER, false);
+        Parser parser = Parser.builder(options).build();
+        Node parsedNode = parser.parse(node.getChars().toString());
+
+        HtmlRenderer renderer = HtmlRenderer.builder().build();
+        String outputHtml = renderer.render(parsedNode);
+
+        // Parsing the node on its own will put in a paragraph, so we remove <p></p> tags and linebreak from the output.
+        generateHTMLMacro(StringUtils.removeEnd(StringUtils.removeStart(outputHtml, "<p>"), "</p>\n"), true);
     }
 
     public void visit(HtmlBlock node)

@@ -45,6 +45,8 @@ public class MarkdownMacroRenderer
 
     private static final String NEWLINE = "\n";
 
+    private static final String HTML_ID = "html";
+
     private static final ParametersPrinter PARAMETERS_PRINTER = new ParametersPrinter('\\');
 
     /**
@@ -71,7 +73,7 @@ public class MarkdownMacroRenderer
      */
     public String renderInlineMacro(String id, Map<String, String> parameters, String content)
     {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
 
         buffer.append("#[");
         buffer.append(id);
@@ -112,7 +114,11 @@ public class MarkdownMacroRenderer
 
     protected String renderBlockMacro(String id, Map<String, String> parameters, String content, boolean withNewLines)
     {
-        StringBuffer buffer = new StringBuffer();
+        if (id.equals(HTML_ID)) {
+            return content;
+        }
+
+        StringBuilder buffer = new StringBuilder();
 
         // Print begin macro
         buffer.append(MACRO_OPEN_SYMBOL);
@@ -129,7 +135,7 @@ public class MarkdownMacroRenderer
             buffer.append(SLASH + MACRO_CLOSE_SYMBOL);
         } else {
             buffer.append(MACRO_CLOSE_SYMBOL);
-            if (content.length() > 0) {
+            if (!content.isEmpty()) {
                 if (withNewLines) {
                     buffer.append(NEWLINE);
                 }
