@@ -2,11 +2,11 @@
 
 Parsers and Renderers for Markdown syntaxes.
 
-* Project Lead: [Vincent Massol](http://www.xwiki.org/xwiki/bin/view/XWiki/VincentMassol)
+* Project Lead: [Vincent Massol](https://www.xwiki.org/xwiki/bin/view/XWiki/VincentMassol)
 * [Documentation & Downloads](https://extensions.xwiki.org/xwiki/bin/view/Extension/Markdown%20Syntax%201.2)
-* [Issue Tracker](http://jira.xwiki.org/browse/MARKDOWN)
-* Communication: [Mailing List](http://dev.xwiki.org/xwiki/bin/view/Community/MailingLists), [IRC](http://dev.xwiki.org/xwiki/bin/view/Community/IRC)
-* [Development Practices](http://dev.xwiki.org)
+* [Issue Tracker](https://jira.xwiki.org/browse/MARKDOWN)
+* Communication: [Forum](https://forum.xwiki.org), [Chat](https://dev.xwiki.org/xwiki/bin/view/Community/Chat)
+* [Development Practices](https://dev.xwiki.org)
 * Minimal XWiki version supported: XWiki 12.10
 * License: LGPL 2.1
 * Translations: N/A
