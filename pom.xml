@@ -60,7 +60,7 @@
   <properties>
     <flexmark.version>0.64.8</flexmark.version>
     <!-- This extension needs to be installed at the farm level (ie in the root namespace) to work fine.
-         This is a limitation currently caused by http://jira.xwiki.org/browse/XWIKI-13437 -->
+         This is a limitation currently caused by http://jira.xwiki.org/browse/XWIKI-13438 -->
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
     <xwiki.issueManagement.jira.id>MARKDOWN</xwiki.issueManagement.jira.id>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
