@@ -71,25 +71,6 @@
     <module>syntax-markdown-commonmark12</module>
     <module>syntax-markdown-github10</module>
   </modules>
-  <build>
-    <pluginManagement>
-      <plugins>
-        <!-- Use a more recent version of Spoon to avoid URL classloader issue with Java 17 -->
-        <plugin>
-          <groupId>fr.inria.gforge.spoon</groupId>
-          <artifactId>spoon-maven-plugin</artifactId>
-          <version>3.8.0</version>
-          <dependencies>
-            <dependency>
-              <groupId>fr.inria.gforge.spoon</groupId>
-              <artifactId>spoon-core</artifactId>
-              <version>10.4.2</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
   <profiles>
     <profile>
       <!-- Profile used when the release plugin executes. -->
