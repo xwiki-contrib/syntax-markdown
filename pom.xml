@@ -74,7 +74,7 @@
   <build>
     <pluginManagement>
       <plugins>
-        <!-- Use a more recent version of Spoon to avoid URL classloader issue with Java 17 -->
+        <!-- Use a more recent version of Spoon to avoid URL classloader issue with Java 17 (the build runs on Java 17 because of Sonar) -->
         <plugin>
           <groupId>fr.inria.gforge.spoon</groupId>
           <artifactId>spoon-maven-plugin</artifactId>
