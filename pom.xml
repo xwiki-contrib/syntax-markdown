@@ -29,7 +29,7 @@
   </parent>
   <groupId>org.xwiki.contrib.markdown</groupId>
   <artifactId>syntax-markdown</artifactId>
-  <version>8.9.1-SNAPSHOT</version>
+  <version>8.9.1</version>
   <name>Markdown Syntax</name>
   <description>Allows importing Markdown content into wiki pages or even create wiki content in Markdown, using both the wiki editor and the WYSIWYG one.</description>
   <packaging>pom</packaging>
@@ -37,7 +37,7 @@
     <connection>scm:git:git://github.com/xwiki-contrib/syntax-markdown.git</connection>
     <developerConnection>scm:git:git@github.com:xwiki-contrib/syntax-markdown.git</developerConnection>
     <url>https://github.com/xwiki-contrib/syntax-markdown/tree/master</url>
-    <tag>HEAD</tag>
+    <tag>syntax-markdown-8.9.1</tag>
   </scm>
   <developers>
     <developer>
