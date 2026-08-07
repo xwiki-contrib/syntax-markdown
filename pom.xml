@@ -25,13 +25,13 @@
   <parent>
     <groupId>org.xwiki.contrib</groupId>
     <artifactId>parent-rendering</artifactId>
-    <version>12.10-3</version>
+    <version>12.10-8</version>
   </parent>
   <groupId>org.xwiki.contrib.markdown</groupId>
   <artifactId>syntax-markdown</artifactId>
   <version>8.9.1-SNAPSHOT</version>
-  <name>Markdown Syntax - Parent POM</name>
-  <description>Parent POM for Markdown syntax modules</description>
+  <name>Markdown Syntax</name>
+  <description>Allows importing Markdown content into wiki pages or even create wiki content in Markdown, using both the wiki editor and the WYSIWYG one.</description>
   <packaging>pom</packaging>
   <scm>
     <connection>scm:git:git://github.com/xwiki-contrib/syntax-markdown.git</connection>
