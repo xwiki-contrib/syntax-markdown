@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
+import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.GroupExtension;
 
 import com.vladsch.flexmark.ext.abbreviation.AbbreviationExtension;
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
@@ -58,7 +59,8 @@ public abstract class AbstractMarkdownConfiguration
         StrikethroughSubscriptExtension.class,
         SuperscriptExtension.class,
         AbbreviationExtension.class,
-        MacroExtension.class
+        MacroExtension.class,
+        GroupExtension.class
     );
 
     protected abstract Logger getLogger();

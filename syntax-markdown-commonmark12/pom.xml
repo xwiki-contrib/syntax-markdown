@@ -31,7 +31,7 @@
   <name>Markdown Syntax - CommonMark 1.2</name>
   <description>CommonMark Markdown 1.2 Syntax Parser and Renderer</description>
   <properties>
-    <xwiki.jacoco.instructionRatio>0.87</xwiki.jacoco.instructionRatio>
+    <xwiki.jacoco.instructionRatio>0.90</xwiki.jacoco.instructionRatio>
     <!-- Name to display by the Extension Manager -->
     <xwiki.extension.name>CommonMark Markdown Syntax 1.2</xwiki.extension.name>
     <!-- List it as a rendering syntax related module -->

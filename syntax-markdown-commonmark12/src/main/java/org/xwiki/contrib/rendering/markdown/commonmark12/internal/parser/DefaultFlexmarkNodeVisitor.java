@@ -184,6 +184,10 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
         AbbreviationNodeVisitor abbreviationNodeVisitor = new AbbreviationNodeVisitor(this.visitor, this.listeners);
         this.visitor.addHandlers(AbbreviationNodeVisitor.VISIT_HANDLERS(abbreviationNodeVisitor));
 
+        // Handle Group nodes
+        GroupNodeVisitor groupNodeVisitor = new GroupNodeVisitor(this.visitor, this.listeners);
+        this.visitor.addHandler(groupNodeVisitor.getVisitHandler());
+
         // Handle Macro nodes
         MacroNodeVisitor macroNodeVisitor = new MacroNodeVisitor(this.visitor, this.listeners);
         this.visitor.addHandlers(MacroNodeVisitor.VISIT_HANDLERS(macroNodeVisitor));

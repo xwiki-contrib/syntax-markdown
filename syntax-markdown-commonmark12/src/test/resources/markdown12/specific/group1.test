@@ -1,0 +1,58 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# A Group with parameters, containing several blocks
+.#-----------------------------------------------------
+before
+
+<div data-xwiki-group class="box infomessage">
+
+hello **world**
+
+* item
+
+</div>
+
+after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [before]
+endParagraph
+beginGroup [[class]=[box infomessage]]
+beginParagraph
+onWord [hello]
+onSpace
+beginFormat [BOLD]
+onWord [world]
+endFormat [BOLD]
+endParagraph
+beginList [BULLETED]
+beginListItem
+onWord [item]
+endListItem
+endList [BULLETED]
+endGroup [[class]=[box infomessage]]
+beginParagraph
+onWord [after]
+endParagraph
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+before
+
+<div data-xwiki-group class="box infomessage">
+
+hello **world**
+
+* item
+
+</div>
+
+after
+.#-----------------------------------------------------
+.expect|xhtml/1.0
+.#-----------------------------------------------------
+<p>before</p><div class="box infomessage"><p>hello <strong>world</strong></p><ul><li>item</li></ul></div><p>after</p>

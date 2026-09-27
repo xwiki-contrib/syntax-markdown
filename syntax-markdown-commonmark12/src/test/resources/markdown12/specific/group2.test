@@ -1,0 +1,27 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# A Group with parameters coming from XWiki Syntax 2.1 (e.g. an info box inserted with the WYSIWYG editor's
+.# Styles dropdown), as the first element of the document.
+.#-----------------------------------------------------
+(% class="box infomessage" %)
+(((
+hello world
+)))
+
+(((
+no parameters
+)))
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+<div data-xwiki-group class="box infomessage">
+
+hello world
+
+</div>
+
+<div data-xwiki-group>
+
+no parameters
+
+</div>

@@ -1,0 +1,43 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Group inside a definition description
+.#-----------------------------------------------------
+term
+:   description
+
+    <div data-xwiki-group class="c">
+
+    in group
+
+    </div>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginDefinitionList
+beginDefinitionTerm
+onWord [term]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [description]
+beginGroup [[class]=[c]]
+beginParagraph
+onWord [in]
+onSpace
+onWord [group]
+endParagraph
+endGroup [[class]=[c]]
+endDefinitionDescription
+endDefinitionList
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+term
+:   description
+
+    <div data-xwiki-group class="c">
+
+    in group
+
+    </div>

@@ -1,0 +1,74 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Groups inside list items: the Group content is indented as list item content, it can contain paragraphs and
+.# code blocks, and some list item content can follow it.
+.#-----------------------------------------------------
+* item
+
+  <div data-xwiki-group class="c">
+
+  para1
+
+  para2
+
+  </div>
+
+  after
+* <div data-xwiki-group class="d">
+
+      code
+
+  </div>
+
+    * nested
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [item]
+beginGroup [[class]=[c]]
+beginParagraph
+onWord [para1]
+endParagraph
+beginParagraph
+onWord [para2]
+endParagraph
+endGroup [[class]=[c]]
+onWord [after]
+endListItem
+beginListItem
+beginGroup [[class]=[d]]
+onMacroStandalone [code] [language=none] [code
+]
+endGroup [[class]=[d]]
+beginList [BULLETED]
+beginListItem
+onWord [nested]
+endListItem
+endList [BULLETED]
+endListItem
+endList [BULLETED]
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* item
+
+  <div data-xwiki-group class="c">
+
+  para1
+
+  para2
+
+  </div>
+
+  after
+* <div data-xwiki-group class="d">
+
+      code
+
+  </div>
+
+    * nested
