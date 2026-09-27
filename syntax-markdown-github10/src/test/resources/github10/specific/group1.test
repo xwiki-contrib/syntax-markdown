@@ -1,0 +1,30 @@
+.#-----------------------------------------------------
+.inputexpect|markdown+github/1.0
+.# A Group with parameters
+.#-----------------------------------------------------
+<div data-xwiki-group class="box infomessage">
+
+hello **world**
+
+* item
+
+</div>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginGroup [[class]=[box infomessage]]
+beginParagraph
+onWord [hello]
+onSpace
+beginFormat [BOLD]
+onWord [world]
+endFormat [BOLD]
+endParagraph
+beginList [BULLETED]
+beginListItem
+onWord [item]
+endListItem
+endList [BULLETED]
+endGroup [[class]=[box infomessage]]
+endDocument

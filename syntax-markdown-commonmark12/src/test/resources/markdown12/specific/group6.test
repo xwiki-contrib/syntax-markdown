@@ -1,0 +1,29 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Group parameter values are HTML-escaped, and attributes without a value, with single quotes or unquoted are supported
+.#-----------------------------------------------------
+<div data-xwiki-group title="a &quot;b&quot; &lt;c> &amp; d&#10;e" hidden lang='fr' dir=ltr>
+
+text
+
+</div>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginGroup [[dir]=[ltr][hidden]=[][lang]=[fr][title]=[a "b" <c> & d
+e]]
+beginParagraph
+onWord [text]
+endParagraph
+endGroup [[dir]=[ltr][hidden]=[][lang]=[fr][title]=[a "b" <c> & d
+e]]
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+<div data-xwiki-group title="a &quot;b&quot; &lt;c&gt; &amp; d&#10;e" hidden="" lang="fr" dir="ltr">
+
+text
+
+</div>

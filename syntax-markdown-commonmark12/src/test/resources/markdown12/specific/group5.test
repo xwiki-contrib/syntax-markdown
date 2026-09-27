@@ -1,0 +1,53 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Only a div carrying the Group marker, alone in its HTML block and balanced, is a Group. All other divs are raw
+.# HTML (html macros), as before Groups were supported.
+.#-----------------------------------------------------
+<div class="notagroup">
+
+text1
+
+</div>
+
+<div data-xwiki-group>inline content</div>
+
+<div data-xwiki-group title="unclosed>
+
+text2
+
+</div>
+
+<div data-xwiki-group id=a=b>
+
+text3
+
+</div>
+
+<div data-xwiki-group class="unbalanced">
+
+text4
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+onMacroStandalone [html] [clean=false] [<div class="notagroup">]
+beginParagraph
+onWord [text1]
+endParagraph
+onMacroStandalone [html] [clean=false] [</div>]
+onMacroStandalone [html] [clean=false] [<div data-xwiki-group>inline content</div>]
+onMacroStandalone [html] [clean=false] [<div data-xwiki-group title="unclosed>]
+beginParagraph
+onWord [text2]
+endParagraph
+onMacroStandalone [html] [clean=false] [</div>]
+onMacroStandalone [html] [clean=false] [<div data-xwiki-group id=a=b>]
+beginParagraph
+onWord [text3]
+endParagraph
+onMacroStandalone [html] [clean=false] [</div>]
+onMacroStandalone [html] [clean=false] [<div data-xwiki-group class="unbalanced">]
+beginParagraph
+onWord [text4]
+endParagraph
+endDocument

@@ -20,17 +20,21 @@
 package org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer;
 
 import java.io.StringReader;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
+import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.GroupPostProcessor;
 import org.xwiki.rendering.internal.renderer.xwiki20.XWikiSyntaxListenerChain;
 import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.HeaderLevel;
@@ -58,6 +62,43 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private static final String TRIPLE_BACKTICK = BACKTICK + BACKTICK + BACKTICK;
 
+    private static final String NEW_LINE = "\n";
+
+    private static final String EMPTY_LINE = NEW_LINE + NEW_LINE;
+
+    private static final Pattern HTML_ATTRIBUTE_NAME = Pattern.compile("[^\\s\"'>/=\\p{Cntrl}]+");
+
+    /**
+     * State of a Group being rendered.
+     */
+    private static final class GroupState
+    {
+        /**
+         * Whether the Group is not rendered as a div, but only its content is rendered.
+         */
+        private boolean isFlattened;
+
+        /**
+         * The prefix to put in front of each line of the Group so that it stays inside the container in which it's
+         * located (list item, definition description).
+         */
+        private String linePrefix;
+
+        private boolean isInListItem;
+
+        private boolean wasFirstElementRendered;
+
+        private boolean wasAtContainerStart;
+
+        private String previousPendingSeparator;
+
+        /**
+         * Length of the rendered Group content just after rendering its first element when this element is a
+         * standalone code macro rendered as an indented code block, -1 otherwise.
+         */
+        private int indentedCodeEndIndex = -1;
+    }
+
     protected ResourceReferenceSerializer linkReferenceSerializer;
 
     protected ResourceReferenceSerializer imageReferenceSerializer;
@@ -80,6 +121,20 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private Stack<Boolean> isOnFirstHeadCellInTableRow = new Stack<>();
 
     private Stack<Map<String, String>> abbreviations = new Stack<>();
+
+    private Deque<GroupState> groupStates = new ArrayDeque<>();
+
+    /**
+     * Whether nothing has been printed yet in the current container (list item, definition description).
+     */
+    private boolean isAtContainerStart;
+
+    /**
+     * Line prefix of the container of the last rendered Group, set until something is printed after it, so that
+     * any content following the Group in the same container is separated from it by an empty line (otherwise it
+     * would be considered part of the HTML block of the Group closing tag).
+     */
+    private String pendingSeparator;
 
     /**
      * @param listenerChain the chain of listener filters used to compute various states
@@ -182,6 +237,134 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     }
 
     @Override
+    public void beginGroup(Map<String, String> parameters)
+    {
+        GroupState state = new GroupState();
+        this.groupStates.push(state);
+
+        // Markdown tables can't contain blocks, thus only the Group content is rendered.
+        if (getBlockState().isInTableCell()) {
+            state.isFlattened = true;
+            return;
+        }
+
+        state.linePrefix = getContainerLinePrefix();
+        state.isInListItem = getBlockState().isInList();
+        state.wasFirstElementRendered = this.isFirstElementRendered;
+        state.wasAtContainerStart = this.isAtContainerStart;
+        state.previousPendingSeparator = this.pendingSeparator;
+
+        // The Group content is an independent document which is rendered separately so that it can be wrapped.
+        pushPrinter(createMarkdownPrinter(new DefaultWikiPrinter()));
+        this.isFirstElementRendered = false;
+        this.isAtContainerStart = false;
+        this.pendingSeparator = null;
+        getListenerChain().pushAllStackableListeners();
+    }
+
+    @Override
+    public void endGroup(Map<String, String> parameters)
+    {
+        GroupState state = this.groupStates.pop();
+        if (state.isFlattened) {
+            return;
+        }
+
+        MarkdownEscapeWikiPrinter groupPrinter = getMarkdownPrinter();
+        groupPrinter.flush();
+        String content = groupPrinter.toString();
+        getListenerChain().popAllStackableListeners();
+        popPrinter();
+
+        this.isFirstElementRendered = state.wasFirstElementRendered;
+        this.isAtContainerStart = state.wasAtContainerStart;
+        this.pendingSeparator = state.previousPendingSeparator;
+
+        if (parameters.isEmpty() && state.isInListItem && state.indentedCodeEndIndex == content.length()) {
+            // A parameterless Group whose only content is an indented code block, located in a list item, is the
+            // Group that the Markdown parser creates around indented code blocks in list items (since a code macro
+            // is standalone), and thus doesn't need to be rendered.
+            printEmptyLine();
+            print(prefixLines(content, state.linePrefix, false));
+            return;
+        }
+
+        printGroupSeparator(state);
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("<div ").append(GroupPostProcessor.GROUP_MARKER);
+        for (Map.Entry<String, String> parameter : parameters.entrySet()) {
+            if (isValidGroupParameterName(parameter.getKey())) {
+                builder.append(' ').append(parameter.getKey()).append("=\"")
+                    .append(escapeHTMLAttributeValue(parameter.getValue())).append('"');
+            }
+        }
+        builder.append('>').append(EMPTY_LINE);
+        if (!content.isEmpty()) {
+            builder.append(content).append(EMPTY_LINE);
+        }
+        builder.append("</div>");
+        print(prefixLines(builder.toString(), state.linePrefix, true));
+
+        this.pendingSeparator = state.linePrefix;
+    }
+
+    private void printGroupSeparator(GroupState state)
+    {
+        if (!state.wasAtContainerStart) {
+            if (this.isFirstElementRendered) {
+                print(EMPTY_LINE + state.linePrefix);
+            } else {
+                this.isFirstElementRendered = true;
+            }
+        }
+    }
+
+    private String getContainerLinePrefix()
+    {
+        String prefix;
+        if (getBlockState().isInList()) {
+            // List item content must be aligned with the first character following the list item marker.
+            int markerLength = StringUtils.contains(this.listStyle.peek(), '1') ? 3 : 2;
+            prefix = StringUtils.repeat(' ', (getBlockState().getListDepth() - 1) * 4 + markerLength);
+        } else if (getBlockState().isInDefinitionList()) {
+            prefix = StringUtils.repeat(' ', 4 * getBlockState().getDefinitionListDepth());
+        } else {
+            prefix = "";
+        }
+        return prefix;
+    }
+
+    private static String prefixLines(String text, String prefix, boolean skipFirstLine)
+    {
+        StringBuilder builder = new StringBuilder();
+        String[] lines = text.split(NEW_LINE, -1);
+        for (int i = 0; i < lines.length; i++) {
+            if (i > 0) {
+                builder.append(NEW_LINE);
+            }
+            // Don't generate trailing spaces on empty lines.
+            if ((i > 0 || !skipFirstLine) && !lines[i].isEmpty()) {
+                builder.append(prefix);
+            }
+            builder.append(lines[i]);
+        }
+        return builder.toString();
+    }
+
+    private static boolean isValidGroupParameterName(String name)
+    {
+        return HTML_ATTRIBUTE_NAME.matcher(name).matches() && !GroupPostProcessor.GROUP_MARKER.equals(name);
+    }
+
+    private static String escapeHTMLAttributeValue(String value)
+    {
+        // New lines are escaped too since an empty line would end the HTML block of the div opening tag.
+        return value.replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;").replace(">", "&gt;")
+            .replace(NEW_LINE, "&#10;").replace("\r", "&#13;");
+    }
+
+    @Override
     public void onHorizontalLine(Map<String, String> parameters)
     {
         printEmptyLine();
@@ -250,6 +433,15 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             print(".");
         }
         print(" ");
+        this.isAtContainerStart = true;
+    }
+
+    @Override
+    public void endListItem()
+    {
+        // The next list item doesn't need to be separated from a Group ending the current one.
+        this.pendingSeparator = null;
+        super.endListItem();
     }
 
     /**
@@ -290,6 +482,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         }
 
         print(StringUtils.repeat(' ', 4 * (getBlockState().getDefinitionListDepth() - 1)) + ":   ");
+        this.isAtContainerStart = true;
     }
 
     @Override
@@ -688,6 +881,9 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                     print(content);
                     print("\n" + TRIPLE_BACKTICK);
                 } else {
+                    GroupState groupState = this.groupStates.peek();
+                    boolean isFirstGroupElement = groupState != null && !groupState.isFlattened
+                        && getMarkdownPrinter().toString().isEmpty() && getMarkdownPrinter().getBuffer().length() == 0;
                     String lines[] = content.split("\\r?\\n");
                     int spaces = getBlockState().isInList() ? (getBlockState().getListDepth() - 1) * 4 + 2 : 0;
                     for (int i = 0; i < lines.length; i++) {
@@ -697,6 +893,10 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                         if (i < lines.length - 1) {
                             print("\n");
                         }
+                    }
+                    if (isFirstGroupElement) {
+                        getMarkdownPrinter().flush();
+                        groupState.indentedCodeEndIndex = getMarkdownPrinter().toString().length();
                     }
                 }
             }
@@ -709,7 +909,28 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     protected void print(String text)
     {
+        if (!text.isEmpty()) {
+            printPendingSeparator(text);
+            this.isAtContainerStart = false;
+        }
         getPrinter().print(text);
+    }
+
+    private void printPendingSeparator(String text)
+    {
+        if (this.pendingSeparator != null) {
+            String separator = this.pendingSeparator;
+            this.pendingSeparator = null;
+            // Nothing to do if the text starts with an empty line already.
+            if (!text.startsWith(EMPTY_LINE)) {
+                if (text.startsWith(NEW_LINE)) {
+                    // For example a nested list: the text contains the new line and the line prefix.
+                    getPrinter().print(NEW_LINE);
+                } else {
+                    getPrinter().print(EMPTY_LINE + separator);
+                }
+            }
+        }
     }
 
     protected void println(String text)

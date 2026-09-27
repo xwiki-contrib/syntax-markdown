@@ -1,0 +1,54 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Nested Groups, empty Group and a Group without parameters
+.#-----------------------------------------------------
+<div data-xwiki-group>
+
+<div data-xwiki-group id="inner" style="color:red">
+
+inner
+
+</div>
+
+outer
+
+</div>
+
+<div data-xwiki-group class="empty">
+
+</div>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginGroup
+beginGroup [[id]=[inner][style]=[color:red]]
+beginParagraph
+onWord [inner]
+endParagraph
+endGroup [[id]=[inner][style]=[color:red]]
+beginParagraph
+onWord [outer]
+endParagraph
+endGroup
+beginGroup [[class]=[empty]]
+endGroup [[class]=[empty]]
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+<div data-xwiki-group>
+
+<div data-xwiki-group id="inner" style="color:red">
+
+inner
+
+</div>
+
+outer
+
+</div>
+
+<div data-xwiki-group class="empty">
+
+</div>

@@ -1,0 +1,29 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# Groups coming from HTML (e.g. from the WYSIWYG editor). Since Markdown tables can't contain blocks, only the
+.# content of a Group located in a table cell is rendered.
+.#-----------------------------------------------------
+<html><body><div class="box infomessage"><p>info</p></div><ul><li>item<div class="d">block</div>after</li></ul><table><tr><td>cell<div class="t">in cell</div></td></tr></table></body></html>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+<div data-xwiki-group class="box infomessage">
+
+info
+
+</div>
+
+* item
+
+  <div data-xwiki-group class="d">
+
+  block
+
+  </div>
+
+  after
+
+| ------------- |
+| cell
+
+in cell |

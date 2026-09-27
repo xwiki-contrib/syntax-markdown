@@ -65,16 +65,39 @@ public class ListNodeVisitor extends AbstractNodeVisitor
      */
     private class ParagraphWrappingListener extends WrappingListener
     {
+        /**
+         * A Group contains an independent document, in which paragraphs must be kept.
+         */
+        private int groupDepth;
+
+        @Override
+        public void beginGroup(Map<String, String> parameters)
+        {
+            this.groupDepth++;
+            super.beginGroup(parameters);
+        }
+
+        @Override
+        public void endGroup(Map<String, String> parameters)
+        {
+            super.endGroup(parameters);
+            this.groupDepth--;
+        }
+
         @Override
         public void beginParagraph(Map<String, String> parameters)
         {
-            // Ignore
+            if (this.groupDepth > 0) {
+                super.beginParagraph(parameters);
+            }
         }
 
         @Override
         public void endParagraph(Map<String, String> parameters)
         {
-            // Ignore
+            if (this.groupDepth > 0) {
+                super.endParagraph(parameters);
+            }
         }
     }
 
