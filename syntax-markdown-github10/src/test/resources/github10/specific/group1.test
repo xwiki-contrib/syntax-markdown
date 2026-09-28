@@ -2,7 +2,7 @@
 .inputexpect|markdown+github/1.0
 .# A Group with parameters
 .#-----------------------------------------------------
-<div data-xwiki-group class="box infomessage">
+<div class="box infomessage">
 
 hello **world**
 
