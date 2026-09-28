@@ -14,13 +14,13 @@ no parameters
 .#-----------------------------------------------------
 .expect|markdown/1.2
 .#-----------------------------------------------------
-<div data-xwiki-group class="box infomessage">
+<div class="box infomessage">
 
 hello world
 
 </div>
 
-<div data-xwiki-group>
+<div>
 
 no parameters
 

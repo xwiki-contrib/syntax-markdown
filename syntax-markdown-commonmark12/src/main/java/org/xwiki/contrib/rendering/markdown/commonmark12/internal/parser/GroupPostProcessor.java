@@ -36,21 +36,16 @@ import com.vladsch.flexmark.util.ast.NodeTracker;
 import com.vladsch.flexmark.util.sequence.Escaping;
 
 /**
- * Replaces an HTML block containing only a {@code <div>} opening tag that carries the Group marker attribute, its
- * matching HTML block containing only a {@code </div>} closing tag (at the same nesting level), and all the nodes
- * located between them, with a {@link GroupBlock} containing these nodes. Any other div is left as is (i.e. as raw
- * HTML), so that existing content doesn't change meaning.
+ * Replaces an HTML block containing only a {@code <div>} opening tag, its matching HTML block containing only a
+ * {@code </div>} closing tag (at the same nesting level), and all the nodes located between them, with a
+ * {@link GroupBlock} containing these nodes, the same way the HTML parser converts a div into a Group. Any other div
+ * (e.g. an HTML block containing both the opening and the closing tags) is left as is, i.e. as raw HTML.
  *
  * @version $Id$
- * @since 8.9.2
+ * @since 8.10.0
  */
 public class GroupPostProcessor extends NodePostProcessor
 {
-    /**
-     * The attribute that marks a div as denoting a Group.
-     */
-    public static final String GROUP_MARKER = "data-xwiki-group";
-
     private static final String OPENING_TAG_PREFIX = "<div";
 
     private static final String TAG_SUFFIX = ">";
@@ -96,7 +91,7 @@ public class GroupPostProcessor extends NodePostProcessor
         }
 
         Map<String, String> attributes = parseOpeningTag(node);
-        if (attributes == null || !attributes.containsKey(GROUP_MARKER)) {
+        if (attributes == null) {
             return;
         }
 
@@ -105,7 +100,6 @@ public class GroupPostProcessor extends NodePostProcessor
             return;
         }
 
-        attributes.remove(GROUP_MARKER);
         GroupBlock group = new GroupBlock(attributes);
         Node current = node.getNext();
         while (current != closingNode) {

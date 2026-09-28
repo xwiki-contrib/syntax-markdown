@@ -34,7 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
-import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.GroupPostProcessor;
 import org.xwiki.rendering.internal.renderer.xwiki20.XWikiSyntaxListenerChain;
 import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.HeaderLevel;
@@ -292,7 +291,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         printGroupSeparator(state);
 
         StringBuilder builder = new StringBuilder();
-        builder.append("<div ").append(GroupPostProcessor.GROUP_MARKER);
+        builder.append("<div");
         for (Map.Entry<String, String> parameter : parameters.entrySet()) {
             if (isValidGroupParameterName(parameter.getKey())) {
                 builder.append(' ').append(parameter.getKey()).append("=\"")
@@ -354,7 +353,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private static boolean isValidGroupParameterName(String name)
     {
-        return HTML_ATTRIBUTE_NAME.matcher(name).matches() && !GroupPostProcessor.GROUP_MARKER.equals(name);
+        return HTML_ATTRIBUTE_NAME.matcher(name).matches();
     }
 
     private static String escapeHTMLAttributeValue(String value)

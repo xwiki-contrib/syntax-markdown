@@ -29,18 +29,18 @@ import com.vladsch.flexmark.util.ast.Block;
 import com.vladsch.flexmark.util.sequence.BasedSequence;
 
 /**
- * Flexmark node representing an XWiki Group, i.e. the blocks located between a {@code <div data-xwiki-group>} HTML
- * block and its matching {@code </div>} HTML block.
+ * Flexmark node representing an XWiki Group, i.e. the blocks located between a {@code <div>} HTML block and its
+ * matching {@code </div>} HTML block.
  *
  * @version $Id$
- * @since 8.9.2
+ * @since 8.10.0
  */
 public class GroupBlock extends Block
 {
     private final Map<String, String> parameters;
 
     /**
-     * @param parameters the Group parameters (i.e. the attributes of the div, except the Group marker)
+     * @param parameters the Group parameters (i.e. the attributes of the div)
      */
     public GroupBlock(Map<String, String> parameters)
     {

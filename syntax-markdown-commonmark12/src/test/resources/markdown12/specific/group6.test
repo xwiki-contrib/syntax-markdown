@@ -2,7 +2,7 @@
 .input|markdown/1.2
 .# Group parameter values are HTML-escaped, and attributes without a value, with single quotes or unquoted are supported
 .#-----------------------------------------------------
-<div data-xwiki-group title="a &quot;b&quot; &lt;c> &amp; d&#10;e" hidden lang='fr' dir=ltr>
+<div title="a &quot;b&quot; &lt;c> &amp; d&#10;e" hidden lang='fr' dir=ltr>
 
 text
 
@@ -22,7 +22,7 @@ endDocument
 .#-----------------------------------------------------
 .expect|markdown/1.2
 .#-----------------------------------------------------
-<div data-xwiki-group title="a &quot;b&quot; &lt;c&gt; &amp; d&#10;e" hidden="" lang="fr" dir="ltr">
+<div title="a &quot;b&quot; &lt;c&gt; &amp; d&#10;e" hidden="" lang="fr" dir="ltr">
 
 text
 

@@ -2,9 +2,9 @@
 .input|markdown/1.2
 .# Nested Groups, empty Group and a Group without parameters
 .#-----------------------------------------------------
-<div data-xwiki-group>
+<div>
 
-<div data-xwiki-group id="inner" style="color:red">
+<div id="inner" style="color:red">
 
 inner
 
@@ -14,7 +14,7 @@ outer
 
 </div>
 
-<div data-xwiki-group class="empty">
+<div class="empty">
 
 </div>
 .#-----------------------------------------------------
@@ -37,9 +37,9 @@ endDocument
 .#-----------------------------------------------------
 .expect|markdown/1.2
 .#-----------------------------------------------------
-<div data-xwiki-group>
+<div>
 
-<div data-xwiki-group id="inner" style="color:red">
+<div id="inner" style="color:red">
 
 inner
 
@@ -49,6 +49,6 @@ outer
 
 </div>
 
-<div data-xwiki-group class="empty">
+<div class="empty">
 
 </div>

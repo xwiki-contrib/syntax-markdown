@@ -7,7 +7,7 @@
 .#-----------------------------------------------------
 .expect|markdown/1.2
 .#-----------------------------------------------------
-<div data-xwiki-group class="box infomessage">
+<div class="box infomessage">
 
 info
 
@@ -15,7 +15,7 @@ info
 
 * item
 
-  <div data-xwiki-group class="d">
+  <div class="d">
 
   block
 

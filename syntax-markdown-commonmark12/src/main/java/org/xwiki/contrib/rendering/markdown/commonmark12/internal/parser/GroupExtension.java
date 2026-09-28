@@ -23,11 +23,11 @@ import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.data.MutableDataHolder;
 
 /**
- * Parses XWiki Groups, written in Markdown as a {@code <div data-xwiki-group>} HTML block (the Group marker), followed
- * by the Markdown content of the Group and a {@code </div>} HTML block. See {@link GroupPostProcessor}.
+ * Parses XWiki Groups, written in Markdown as a {@code <div>} HTML block, followed by the Markdown content of the
+ * Group and a {@code </div>} HTML block. See {@link GroupPostProcessor}.
  *
  * @version $Id$
- * @since 8.9.2
+ * @since 8.10.0
  */
 public class GroupExtension implements Parser.ParserExtension
 {

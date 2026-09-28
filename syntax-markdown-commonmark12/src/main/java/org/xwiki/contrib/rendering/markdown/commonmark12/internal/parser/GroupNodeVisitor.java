@@ -30,7 +30,7 @@ import com.vladsch.flexmark.util.ast.VisitHandler;
  * Handle Group events.
  *
  * @version $Id$
- * @since 8.9.2
+ * @since 8.10.0
  */
 public class GroupNodeVisitor extends AbstractNodeVisitor
 {

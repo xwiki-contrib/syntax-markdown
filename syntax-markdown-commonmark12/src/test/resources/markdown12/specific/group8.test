@@ -5,7 +5,7 @@
 term
 :   description
 
-    <div data-xwiki-group class="c">
+    <div class="c">
 
     in group
 
@@ -36,7 +36,7 @@ endDocument
 term
 :   description
 
-    <div data-xwiki-group class="c">
+    <div class="c">
 
     in group
 
