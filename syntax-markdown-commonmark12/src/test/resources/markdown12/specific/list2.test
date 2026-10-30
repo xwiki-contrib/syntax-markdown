@@ -1,0 +1,24 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# A paragraph located after some content in a list item or a definition description doesn't need a div, while a
+.# paragraph that is the first content of the list item, or a Group with parameters, still does
+.#-----------------------------------------------------
+<html><body><ul><li>a<p>b</p></li><li><p>c</p></li><li>d<div class="x"><p>e</p></div></li></ul></body></html>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* a
+
+  b
+* <div>
+
+  c
+
+  </div>
+* d
+
+  <div class="x">
+
+  e
+
+  </div>

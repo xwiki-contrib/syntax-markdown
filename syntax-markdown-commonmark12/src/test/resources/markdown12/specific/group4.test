@@ -36,7 +36,11 @@ beginParagraph
 onWord [para2]
 endParagraph
 endGroup [[class]=[c]]
+beginGroup
+beginParagraph
 onWord [after]
+endParagraph
+endGroup
 endListItem
 beginListItem
 beginGroup [[class]=[d]]

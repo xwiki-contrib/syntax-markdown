@@ -31,6 +31,7 @@ import com.vladsch.flexmark.ast.BulletList;
 import com.vladsch.flexmark.ast.BulletListItem;
 import com.vladsch.flexmark.ast.OrderedList;
 import com.vladsch.flexmark.ast.OrderedListItem;
+import com.vladsch.flexmark.ast.Paragraph;
 import com.vladsch.flexmark.ext.definition.DefinitionItem;
 import com.vladsch.flexmark.ext.definition.DefinitionList;
 import com.vladsch.flexmark.ext.definition.DefinitionTerm;
@@ -167,7 +168,18 @@ public class ListNodeVisitor extends AbstractNodeVisitor
         WrappingListener paragraphListener = new ParagraphWrappingListener();
         paragraphListener.setWrappedListener(getListener());
         pushListener(paragraphListener);
-        getVisitor().visitChildren(node);
+        for (Node child : node.getChildren()) {
+            if (child instanceof Paragraph && child != node.getFirstChild()) {
+                // Only the first paragraph of the list item (or definition description) is inlined in it. The
+                // following ones would be merged with the previous content otherwise, so they are kept in a Group
+                // (as done by the XWiki and XHTML syntaxes).
+                getListener().beginGroup(Collections.emptyMap());
+                getVisitor().visit(child);
+                getListener().endGroup(Collections.emptyMap());
+            } else {
+                getVisitor().visit(child);
+            }
+        }
         popListener();
     }
 }

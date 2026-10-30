@@ -25,7 +25,11 @@ beginSection
 beginHeader [1, HTitle]
 onWord [Title]
 endHeader [1, HTitle]
+beginGroup
+beginParagraph
 onWord [text]
+endParagraph
+endGroup
 endSection
 endListItem
 endList [BULLETED]
