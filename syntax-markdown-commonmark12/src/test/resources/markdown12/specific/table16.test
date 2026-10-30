@@ -1,0 +1,32 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that column alignments are kept for a table without header row, and that the delimiter of a centered
+.# column of minimal size is still valid (":-:")
+.#-----------------------------------------------------
+|     |     |     |
+| :-- | --: | :-: |
+| a   |   b |  c  |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableCell [[align]=[left]]
+onWord [a]
+endTableCell [[align]=[left]]
+beginTableCell [[align]=[right]]
+onWord [b]
+endTableCell [[align]=[right]]
+beginTableCell [[align]=[center]]
+onWord [c]
+endTableCell [[align]=[center]]
+endTableRow
+endTable
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|     |     |     |
+| :-- | --: | :-: |
+| a   |   b |  c  |

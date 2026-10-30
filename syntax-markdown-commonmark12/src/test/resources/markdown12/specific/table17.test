@@ -1,0 +1,13 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that a column gets the alignment of the cells specifying one, ignoring the cells without alignment (first
+.# column: header cell only, second column: body cell only), and gets no alignment when they disagree (third column)
+.#-----------------------------------------------------
+|=(% align="center" %)h1|=h2|=(% align="left" %)h3
+|a|(% align="right" %)b|(% align="right" %)c
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+| h1  |  h2 | h3  |
+| :-: | --: | --- |
+|  a  |   b |  c  |
