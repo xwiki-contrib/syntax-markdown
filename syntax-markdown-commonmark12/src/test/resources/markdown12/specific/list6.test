@@ -1,0 +1,27 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# A list following a definition list in a list item, and a definition list without term following a code block or a
+.# table: they are separated by an empty line so that they're not read back as part of the previous block
+.#-----------------------------------------------------
+<html><body><ul><li>a<dl><dt>t</dt><dd>d</dd></dl><ul><li>b</li></ul></li></ul><pre>c</pre><dl><dd>d</dd></dl><table><tr><td>e</td></tr></table><dl><dd>f</dd></dl></body></html>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* a
+
+  t
+  :   d
+
+    * b
+
+```
+c
+```
+
+:   d
+
+|     |
+| --- |
+|  e  |
+
+:   f

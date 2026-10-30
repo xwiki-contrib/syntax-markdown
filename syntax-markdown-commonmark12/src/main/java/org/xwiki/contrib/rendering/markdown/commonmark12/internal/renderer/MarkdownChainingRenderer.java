@@ -263,6 +263,11 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         private Deque<QuotationState> previousQuotationStates;
 
         /**
+         * The states of the items in which the Group is located, restored at the end of the Group.
+         */
+        private Deque<ItemState> previousItemStates;
+
+        /**
          * Length of the rendered Group content just after rendering its first element when this element is a
          * standalone code macro rendered as an indented code block, -1 otherwise.
          */
@@ -290,6 +295,37 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
          * The definition list depth at the start of the quotation.
          */
         private int definitionListDepth;
+
+        /**
+         * The number of items (list items, definition descriptions) in which the quotation is located, so that the
+         * items located inside the quotation are rendered relatively to it.
+         */
+        private int itemDepth;
+    }
+
+    /**
+     * State of a list item or definition description being rendered.
+     */
+    private static final class ItemState
+    {
+        /**
+         * The prefix of the line containing the item marker.
+         */
+        private final String markerPrefix;
+
+        /**
+         * The prefix of the item content lines, aligned with the first character following the item marker.
+         */
+        private final String contentPrefix;
+
+        private final boolean isListItem;
+
+        ItemState(String markerPrefix, String contentPrefix, boolean isListItem)
+        {
+            this.markerPrefix = markerPrefix;
+            this.contentPrefix = contentPrefix;
+            this.isListItem = isListItem;
+        }
     }
 
     protected ResourceReferenceSerializer linkReferenceSerializer;
@@ -347,6 +383,16 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      * The states of the quotations being rendered, in the current Group (or document).
      */
     private Deque<QuotationState> quotationStates = new ArrayDeque<>();
+
+    /**
+     * The states of the list items and definition descriptions being rendered, in the current Group (or document).
+     */
+    private Deque<ItemState> itemStates = new ArrayDeque<>();
+
+    /**
+     * For each list and definition list being rendered, the prefix of the lines containing its item markers.
+     */
+    private Deque<String> itemMarkerPrefixes = new ArrayDeque<>();
 
     /**
      * Whether nothing has been printed yet in the current container (list item, definition description).
@@ -516,8 +562,8 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         }
 
         state.isInListItem = isInList();
-        state.isInDefinitionDescription = !state.isInListItem && getDefinitionListDepth() > 0
-            && !this.isInDefinitionTerm;
+        ItemState itemState = getItemState();
+        state.isInDefinitionDescription = itemState != null && !itemState.isListItem && !this.isInDefinitionTerm;
         state.isTransparent = parameters.isEmpty() && isDirectlyInQuotation();
         state.isAfterIndentedCodeBlock = isAfterIndentedCodeBlock() || isAfterList();
 
@@ -526,6 +572,8 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         state.printer = getMarkdownPrinter();
         state.previousQuotationStates = this.quotationStates;
         this.quotationStates = new ArrayDeque<>();
+        state.previousItemStates = this.itemStates;
+        this.itemStates = new ArrayDeque<>();
         getListenerChain().pushAllStackableListeners();
     }
 
@@ -540,6 +588,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         getMarkdownPrinter().flush();
         getListenerChain().popAllStackableListeners();
         this.quotationStates = state.previousQuotationStates;
+        this.itemStates = state.previousItemStates;
         String content = endBufferedContainer(state);
 
         if (parameters.isEmpty() && state.isInListItem && state.indentedCodeEndIndex == content.length()
@@ -651,20 +700,20 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private String getContainerLinePrefix()
     {
-        String prefix;
-        if (isInList()) {
-            // List item content must be aligned with the first character following the list item marker.
-            int markerLength = StringUtils.contains(this.listStyle.peek(), '1') ? 3 : 2;
-            prefix = StringUtils.repeat(' ', (getListDepth() - 1) * 4 + markerLength);
-        } else {
-            prefix = getDefinitionListLinePrefix();
-        }
-        return prefix;
+        ItemState itemState = getItemState();
+        return itemState != null ? itemState.contentPrefix : StringUtils.EMPTY;
     }
 
-    private String getDefinitionListLinePrefix()
+    /**
+     * @return the state of the list item or definition description in which the current block is located, relatively
+     *     to the quotation in which it's located (since the content of a quotation is rendered separately), or
+     *     {@code null} if the current block is not located in a list item or a definition description
+     */
+    private ItemState getItemState()
     {
-        return StringUtils.repeat(' ', 4 * getDefinitionListDepth());
+        QuotationState quotationState = this.quotationStates.peek();
+        int itemDepth = quotationState != null ? quotationState.itemDepth : 0;
+        return this.itemStates.size() > itemDepth ? this.itemStates.peek() : null;
     }
 
     /**
@@ -794,11 +843,17 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginList(ListType listType, Map<String, String> parameters)
     {
-        if (getListDepth() == 1) {
-            // The list is not located in a list item (its container line prefix is not the one of its items).
-            printBlockSeparator(getDefinitionListLinePrefix());
+        ItemState itemState = getItemState();
+        if (itemState != null && itemState.isListItem) {
+            // Nested lists are indented relatively to the marker of the list item in which they're located. A list
+            // directly following a definition list would be read back as part of its last definition description.
+            print(getBlockState().getPreviousEvent() == BlockStateChainingListener.Event.DEFINITION_LIST ? EMPTY_LINE
+                : NEW_LINE);
+            this.itemMarkerPrefixes.push(itemState.markerPrefix + "    ");
         } else {
-            print("\n");
+            String linePrefix = getContainerLinePrefix();
+            printBlockSeparator(linePrefix);
+            this.itemMarkerPrefixes.push(linePrefix);
         }
 
         if (listType == ListType.BULLETED) {
@@ -812,14 +867,23 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     public void endList(ListType listType, Map<String, String> parameters)
     {
         this.listStyle.pop();
+        this.itemMarkerPrefixes.pop();
         // Ensure that any not printed characters are flushed.
         // TODO: Fix this better by introducing a state listener to handle escapes
         markListEnd();
     }
 
     @Override
+    public void beginDefinitionList(Map<String, String> parameters)
+    {
+        super.beginDefinitionList(parameters);
+        this.itemMarkerPrefixes.push(getContainerLinePrefix());
+    }
+
+    @Override
     public void endDefinitionList(Map<String, String> parameters)
     {
+        this.itemMarkerPrefixes.pop();
         super.endDefinitionList(parameters);
         markListEnd();
     }
@@ -831,14 +895,24 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             print("\n");
         }
 
-        print(StringUtils.repeat(" ", (getListDepth() - 1) * 4));
-        print(this.listStyle.peek());
-        if (StringUtils.contains(this.listStyle.peek(), '1')) {
-            print(".");
+        String markerPrefix = this.itemMarkerPrefixes.peek();
+        String marker = this.listStyle.peek();
+        if (StringUtils.contains(marker, '1')) {
+            marker += ".";
         }
-        print(" ");
+        marker += " ";
+        ItemState parentItemState = getItemState();
+        if (getBlockState().getListItemIndex() > 0 || parentItemState != null && parentItemState.isListItem) {
+            // The line prefix of the first item of a list that is not nested in a list item is printed with the
+            // separator of the list.
+            print(markerPrefix);
+        }
+        print(marker);
         markBlockContentStart();
         this.isAtContainerStart = true;
+        // List item content must be aligned with the first character following the list item marker.
+        this.itemStates.push(new ItemState(markerPrefix, markerPrefix + StringUtils.repeat(' ', marker.length()),
+            true));
     }
 
     @Override
@@ -848,6 +922,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         this.pendingSeparator = null;
         // The list item may be empty: the blocks following it must not be considered as its first content.
         this.isAtContainerStart = false;
+        this.itemStates.pop();
         super.endListItem();
     }
 
@@ -884,20 +959,25 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginDefinitionDescription()
     {
+        String markerPrefix = this.itemMarkerPrefixes.peek();
         if (getBlockState().getDefinitionListItemIndex() > 0) {
-            print("\n");
+            print(NEW_LINE + markerPrefix);
+        } else {
+            // A definition list starting with a description (no term) must be separated from the previous block,
+            // otherwise the description marker would be appended to its last line (e.g. a code block closing fence).
+            printBlockSeparator(markerPrefix);
         }
-
-        print(StringUtils.repeat(' ', 4 * (getDefinitionListDepth() - 1)) + ":   ");
+        print(":   ");
         markBlockContentStart();
         this.isAtContainerStart = true;
+        this.itemStates.push(new ItemState(markerPrefix, markerPrefix + "    ", false));
     }
 
     @Override
     public void beginDefinitionTerm()
     {
-        printEmptyLine();
-        print(StringUtils.repeat(' ', 4 * (getDefinitionListDepth() - 1)));
+        // A term that is the first content of a list item directly follows the list item marker.
+        printBlockSeparator(this.itemMarkerPrefixes.peek());
         markBlockContentStart();
         this.isInDefinitionTerm = true;
     }
@@ -909,6 +989,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         // The definition description may be empty: the blocks following it must not be considered as its first
         // content.
         this.isAtContainerStart = false;
+        this.itemStates.pop();
     }
 
     @Override
@@ -931,6 +1012,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         }
         state.listDepth = getBlockState().getListDepth();
         state.definitionListDepth = getBlockState().getDefinitionListDepth();
+        state.itemDepth = this.itemStates.size();
         this.quotationStates.push(state);
     }
 
