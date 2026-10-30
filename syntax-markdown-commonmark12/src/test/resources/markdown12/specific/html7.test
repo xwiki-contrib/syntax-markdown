@@ -1,0 +1,15 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Verify that only the text between the HTML tags is escaped in HTML macros
+.#-----------------------------------------------------
+Hello {{html clean="false"}}<a href="x_y" title='*b*'>a*b</a>{{/html}}
+
+{{html clean="false"}}
+<strong class="x_y">a_b</strong> c*d*
+{{/html}}
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+Hello <a href="x_y" title='*b*'>a\*b</a>
+
+<strong class="x_y">a\_b</strong> c\*d\*

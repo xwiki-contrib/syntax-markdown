@@ -21,6 +21,8 @@ package org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.MarkdownConfiguration;
@@ -50,6 +52,19 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     private static final String FORMAT_TWO_PARAMS = "[[%s|%s]]";
 
     private static final String FORMAT_THREE_PARAMS = "[[%s|%s|%s]]";
+
+    private static final String HTML_ATTRIBUTE =
+        "\\s+[a-zA-Z_:][a-zA-Z0-9_.:-]*(?:\\s*=\\s*(?:[^\\s\"'=<>`]+|'[^']*'|\"[^\"]*\"))?";
+
+    private static final String HTML_OPEN_TAG = "<[a-zA-Z][a-zA-Z0-9-]*(?:" + HTML_ATTRIBUTE + ")*\\s*/?>";
+
+    private static final String HTML_CLOSING_TAG = "</[a-zA-Z][a-zA-Z0-9-]*\\s*>";
+
+    /**
+     * HTML tags, comments, processing instructions, declarations and CDATA sections, which are kept verbatim.
+     */
+    private static final Pattern HTML_TAG_PATTERN = Pattern.compile(HTML_OPEN_TAG + '|' + HTML_CLOSING_TAG
+        + "|<!--[\\s\\S]*?-->|<\\?[\\s\\S]*?\\?>|<![a-zA-Z][^>]*>|<!\\[CDATA\\[[\\s\\S]*?\\]\\]>");
 
     private MarkdownConfiguration configuration;
 
@@ -226,9 +241,19 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
                 printEmptyLine();
             }
 
-            // Use Markdown printer to escape content inside HTML macros
-            getMarkdownPrinter().printDelayed(createMacroPrinter().renderMacro(id, parameters, content, isInline));
-            getMarkdownPrinter().flush();
+            // Keep the HTML tags (and thus their attributes) verbatim and only escape the text located between them.
+            String html =
+                StringUtils.defaultString(createMacroPrinter().renderMacro(id, parameters, content, isInline));
+            MarkdownEscapeWikiPrinter printer = getMarkdownPrinter();
+            Matcher matcher = HTML_TAG_PATTERN.matcher(html);
+            int position = 0;
+            while (matcher.find()) {
+                printer.printDelayed(html.substring(position, matcher.start()));
+                print(matcher.group());
+                position = matcher.end();
+            }
+            printer.printDelayed(html.substring(position));
+            printer.flush();
             isHandled = true;
         }
 
