@@ -1,0 +1,48 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that column alignments are read and rendered back, with the cell content padded according to them
+.#-----------------------------------------------------
+| Left | Right | None | Center |
+| :--- | ----: | ---- | :----: |
+| a | b | c | d |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableHeadCell [[align]=[left]]
+onWord [Left]
+endTableHeadCell [[align]=[left]]
+beginTableHeadCell [[align]=[right]]
+onWord [Right]
+endTableHeadCell [[align]=[right]]
+beginTableHeadCell
+onWord [None]
+endTableHeadCell
+beginTableHeadCell [[align]=[center]]
+onWord [Center]
+endTableHeadCell [[align]=[center]]
+endTableRow
+beginTableRow
+beginTableCell [[align]=[left]]
+onWord [a]
+endTableCell [[align]=[left]]
+beginTableCell [[align]=[right]]
+onWord [b]
+endTableCell [[align]=[right]]
+beginTableCell
+onWord [c]
+endTableCell
+beginTableCell [[align]=[center]]
+onWord [d]
+endTableCell [[align]=[center]]
+endTableRow
+endTable
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+| Left | Right | None | Center |
+| :--- | ----: | ---- | :----: |
+| a    |     b |  c   |   d    |

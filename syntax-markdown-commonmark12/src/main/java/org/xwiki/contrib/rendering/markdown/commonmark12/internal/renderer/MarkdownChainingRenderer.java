@@ -91,6 +91,14 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private static final String TABLE_CELL_LINE_BREAK = "<br/>";
 
+    private static final String TABLE_ALIGN_PARAMETER = "align";
+
+    private static final String TABLE_ALIGN_LEFT = "left";
+
+    private static final String TABLE_ALIGN_RIGHT = "right";
+
+    private static final String TABLE_ALIGN_CENTER = "center";
+
     /**
      * The minimum cell size, to account for the header separator "---".
      */
@@ -195,6 +203,11 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      * For each table, whether it's the first content of its container (e.g. list item).
      */
     private Stack<Boolean> tableAtContainerStart = new Stack<>();
+
+    /**
+     * For each cell of each row of each table, its alignment ({@code null} when the cell has no alignment).
+     */
+    private Stack<List<List<String>>> tableCellAlignments = new Stack<>();
 
     private Stack<Map<String, String>> abbreviations = new Stack<>();
 
@@ -893,6 +906,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         this.tableAtContainerStart.push(this.isAtContainerStart);
         this.tableCells.push(new ArrayList<>());
         this.tableHeadRows.push(new ArrayList<>());
+        this.tableCellAlignments.push(new ArrayList<>());
     }
 
     @Override
@@ -900,6 +914,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         List<List<String>> rows = this.tableCells.pop();
         List<Boolean> headRows = this.tableHeadRows.pop();
+        List<List<String>> alignments = this.tableCellAlignments.pop();
         this.isFirstElementRendered = this.tableAfterRenderedElement.pop();
         this.pendingSeparator = this.tablePendingSeparators.pop();
         this.isAtContainerStart = this.tableAtContainerStart.pop();
@@ -944,33 +959,98 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             }
         }
 
-        printTableRow(headerRow, ' ', true, maxColumnSizes);
+        List<String> columnAlignments = getTableColumnAlignments(alignments, maxColumns);
+
+        printTableRow(headerRow, columnAlignments, maxColumnSizes);
         print(NEW_LINE + linePrefix);
-        printTableRow(headerRow, '-', false, maxColumnSizes);
+        printTableDelimiterRow(columnAlignments, maxColumnSizes);
         for (List<String> columnCells : bodyRows) {
             print(NEW_LINE + linePrefix);
-            printTableRow(columnCells, ' ', true, maxColumnSizes);
+            printTableRow(columnCells, columnAlignments, maxColumnSizes);
         }
     }
 
-    private void printTableRow(List<String> columnCells, char separator, boolean printCellText,
-        List<Integer> maxColumnSizes)
+    /**
+     * Markdown only supports an alignment per column (set in the delimiter row), while the XWiki model has an
+     * alignment per cell. A column gets the alignment specified by its cells, ignoring the cells without alignment
+     * (e.g. it's common to align only the body cells, or only the header cell). When some cells specify different
+     * alignments, there's no right choice and thus the column gets no alignment.
+     *
+     * @param alignments the alignment of each cell of each row ({@code null} when the cell has no alignment)
+     * @param maxColumns the number of columns of the table
+     * @return the alignment of each column ({@code null} when the column has no alignment)
+     */
+    private List<String> getTableColumnAlignments(List<List<String>> alignments, int maxColumns)
+    {
+        List<String> columnAlignments = new ArrayList<>(Collections.nCopies(maxColumns, null));
+        List<Boolean> conflicts = new ArrayList<>(Collections.nCopies(maxColumns, false));
+        for (List<String> rowAlignments : alignments) {
+            for (int i = 0; i < rowAlignments.size(); i++) {
+                String alignment = rowAlignments.get(i);
+                if (alignment != null) {
+                    String columnAlignment = columnAlignments.get(i);
+                    if (columnAlignment == null) {
+                        columnAlignments.set(i, alignment);
+                    } else if (!columnAlignment.equals(alignment)) {
+                        conflicts.set(i, true);
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < maxColumns; i++) {
+            if (conflicts.get(i)) {
+                columnAlignments.set(i, null);
+            }
+        }
+        return columnAlignments;
+    }
+
+    private void printTableRow(List<String> columnCells, List<String> columnAlignments, List<Integer> maxColumnSizes)
     {
         print("|");
         for (int j = 0; j < columnCells.size(); j++) {
             String cell = columnCells.get(j);
-            int spaceSize = (maxColumnSizes.get(j) - cell.length()) / 2;
-            print(" ");
-            print(StringUtils.repeat(separator, spaceSize));
-            if (printCellText) {
-                print(cell);
+            int paddingSize = maxColumnSizes.get(j) - cell.length();
+            // Pad the cell text according to the column alignment, centering it by default.
+            int leftPaddingSize;
+            String alignment = columnAlignments.get(j);
+            if (TABLE_ALIGN_LEFT.equals(alignment)) {
+                leftPaddingSize = 0;
+            } else if (TABLE_ALIGN_RIGHT.equals(alignment)) {
+                leftPaddingSize = paddingSize;
             } else {
-                print(StringUtils.repeat(separator, cell.length()));
+                leftPaddingSize = paddingSize / 2;
             }
-            print(
-                StringUtils.repeat(separator, maxColumnSizes.get(j) - cell.length() - spaceSize));
             print(" ");
-            print("|");
+            print(StringUtils.repeat(' ', leftPaddingSize));
+            print(cell);
+            print(StringUtils.repeat(' ', paddingSize - leftPaddingSize));
+            print(" |");
+        }
+    }
+
+    private void printTableDelimiterRow(List<String> columnAlignments, List<Integer> maxColumnSizes)
+    {
+        print("|");
+        for (int j = 0; j < columnAlignments.size(); j++) {
+            String alignment = columnAlignments.get(j);
+            // The column size is at least 3, which leaves room for at least one dash between colons.
+            int dashCount = maxColumnSizes.get(j);
+            boolean colonOnLeft = TABLE_ALIGN_LEFT.equals(alignment) || TABLE_ALIGN_CENTER.equals(alignment);
+            boolean colonOnRight = TABLE_ALIGN_RIGHT.equals(alignment) || TABLE_ALIGN_CENTER.equals(alignment);
+            print(" ");
+            if (colonOnLeft) {
+                print(":");
+                dashCount--;
+            }
+            if (colonOnRight) {
+                dashCount--;
+            }
+            print(StringUtils.repeat('-', dashCount));
+            if (colonOnRight) {
+                print(":");
+            }
+            print(" |");
         }
     }
 
@@ -1001,6 +1081,21 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
         List<String> cellsInLastRow = this.tableCells.peek().get(this.tableCells.peek().size() - 1);
         cellsInLastRow.add(cellText);
+        List<String> alignmentsInLastRow =
+            this.tableCellAlignments.peek().get(this.tableCellAlignments.peek().size() - 1);
+        alignmentsInLastRow.add(getTableCellAlignment(parameters));
+    }
+
+    private String getTableCellAlignment(Map<String, String> parameters)
+    {
+        String alignment = StringUtils.lowerCase(StringUtils.trim(parameters.get(TABLE_ALIGN_PARAMETER)));
+        if (TABLE_ALIGN_LEFT.equals(alignment) || TABLE_ALIGN_RIGHT.equals(alignment)
+            || TABLE_ALIGN_CENTER.equals(alignment))
+        {
+            return alignment;
+        }
+        // Other alignments (e.g. "justify") cannot be expressed in Markdown.
+        return null;
     }
 
     @Override
@@ -1025,6 +1120,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         this.tableCells.peek().add(new ArrayList<>());
         this.tableHeadRows.peek().add(true);
+        this.tableCellAlignments.peek().add(new ArrayList<>());
     }
 
     @Override
