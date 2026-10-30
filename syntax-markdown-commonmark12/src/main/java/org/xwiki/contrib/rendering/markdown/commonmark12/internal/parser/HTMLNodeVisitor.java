@@ -66,6 +66,7 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
         DeepInlineHTMLExtension.class,
         WikiLinkExtension.class,
         MacroExtension.class,
+        MacroBlockExtension.class,
         GroupExtension.class,
         TablesExtension.class,
         DefinitionExtension.class

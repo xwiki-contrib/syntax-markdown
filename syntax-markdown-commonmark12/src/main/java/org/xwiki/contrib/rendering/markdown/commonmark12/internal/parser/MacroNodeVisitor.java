@@ -67,7 +67,9 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
     public void visit(MacroBlock node)
     {
         Map<String, String> parameters = node.getAttributes();
-        String content = node.getMacroContentChars().toString();
+        // The content lines of the macro block (see MacroBlockParser) don't include the prefixes of the containers
+        // (e.g. quotation, list item) in which the macro is located.
+        String content = node.getContentChars().toString();
         getListener().onMacro(node.getMacroNode().getName().toString(), parameters, normalizeMacroContent(content),
             false);
     }

@@ -1,0 +1,32 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that the content of a standalone macro is kept as is, including a nested macro having the same name and
+.# some Markdown content, and that a macro that isn't closed contains all the remaining lines of its container.
+.#-----------------------------------------------------
+{{info}}
+{{info}}
+x
+{{/info}}
+
+* y
+{{/info}}
+
+> {{info}}
+> z
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+onMacroStandalone [info] [] [{{info}}
+x
+{{/info}}
+
+* y]
+beginQuotation
+beginQuotationLine
+beginGroup
+onMacroStandalone [info] [] [z]
+endGroup
+endQuotationLine
+endQuotation
+endDocument

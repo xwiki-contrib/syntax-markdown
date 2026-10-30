@@ -1,0 +1,67 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Macro blocks: the closing tag of a nested macro block having the same name doesn't close the macro block (even
+.# when the nested macro block follows a paragraph line, or when its opening tag is followed by some text), the macro
+.# block content stops at the end of its container (no lazy continuation line), and the macro block content isn't
+.# parsed as Markdown (e.g. the abbreviation definitions it contains don't apply to the rest of the document)
+.#-----------------------------------------------------
+{{info}}
+a
+{{info}}
+b
+{{/info}}
+c
+{{/info}}
+
+{{info}}
+{{info}}d
+{{/info}}
+{{info}}e{{/info}}
+f
+{{/info}}
+
+> {{info}}
+> x
+{{/info}}
+after
+
+{{info}}
+*[term]: expansion
+{{/info}}
+
+term
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+onMacroStandalone [info] [] [a
+{{info}}
+b
+{{/info}}
+c]
+onMacroStandalone [info] [] [{{info}}d
+{{/info}}
+{{info}}e{{/info}}
+f]
+beginQuotation
+beginQuotationLine
+beginGroup
+onMacroStandalone [info] [] [x]
+endGroup
+endQuotationLine
+endQuotation
+beginParagraph
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onSpecialSymbol [/]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onSpace
+onWord [after]
+endParagraph
+onMacroStandalone [info] [] [*[term]: expansion]
+beginParagraph
+onWord [term]
+endParagraph
+endDocument
