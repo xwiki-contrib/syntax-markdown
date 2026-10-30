@@ -1,0 +1,25 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that the HTML tags are kept verbatim when parsing HTML
+.#-----------------------------------------------------
+Hello <a href="x_y" title='*b*'>a\*b</a>
+
+<strong class="x_y">a\_b</strong> c\*d\*
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [Hello]
+onSpace
+onMacroInline [html] [clean=false] [<a href="x_y" title='*b*'>a*b</a>]
+endParagraph
+beginParagraph
+onMacroInline [html] [clean=false] [<strong class="x_y">a_b</strong>]
+onSpace
+onWord [c]
+onSpecialSymbol [*]
+onWord [d]
+onSpecialSymbol [*]
+endParagraph
+endDocument
