@@ -43,6 +43,7 @@ import com.vladsch.flexmark.parser.block.MatchedBlockParser;
 import com.vladsch.flexmark.parser.block.ParserState;
 import com.vladsch.flexmark.util.ast.Block;
 import com.vladsch.flexmark.util.data.DataHolder;
+import com.vladsch.flexmark.util.data.MutableDataSet;
 import com.vladsch.flexmark.util.sequence.BasedSequence;
 
 /**
@@ -65,6 +66,14 @@ public class MacroBlockParser extends AbstractBlockParser
     private static final String CLOSE_MARKER = "}}";
 
     private static final String CLOSED_TAG_END = "/}}";
+
+    private static final Pattern LINE_ENDINGS = Pattern.compile("\\r\\n|\\r|\\n");
+
+    /**
+     * The patterns used to check the content of a macro, created with the default options (the patterns depend only
+     * on an option used by the IDE plugins).
+     */
+    private static final MacroParsing DEFAULT_PARSING = new MacroParsing(new MutableDataSet());
 
     private final MacroBlock block = new MacroBlock();
 
@@ -131,6 +140,32 @@ public class MacroBlockParser extends AbstractBlockParser
             text.subSequence(closeStart, closeStart + CLOSE_MARKER.length()));
         macroClose.setCharsFromContent();
         return macroClose;
+    }
+
+    /**
+     * Indicates if some content, written on the lines located between the opening and closing tags of a standalone
+     * macro, is read back as the macro content, i.e. if none of its lines is read as the closing tag of the macro and
+     * if it closes the nested macros having the same name that it opens (otherwise the closing tag of the macro would
+     * close one of them).
+     *
+     * @param macroName the macro name
+     * @param content the macro content
+     * @return {@code true} if the content is read back as the macro content, {@code false} otherwise
+     */
+    public static boolean isStandaloneMacroContent(String macroName, String content)
+    {
+        int depth = 0;
+        for (String line : LINE_ENDINGS.split(content, -1)) {
+            if (DEFAULT_PARSING.matchClosingLine(macroName, line) != null) {
+                if (depth == 0) {
+                    return false;
+                }
+                depth--;
+            } else if (DEFAULT_PARSING.isOpeningLine(macroName, line)) {
+                depth++;
+            }
+        }
+        return depth == 0;
     }
 
     @Override

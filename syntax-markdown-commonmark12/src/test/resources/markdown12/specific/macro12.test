@@ -1,0 +1,22 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Verify that the macro parameter values and the inline macro contents are rendered so that they don't end the
+.# macro (and thus the paragraph in which it's located): the line endings and the double quotes of the parameter
+.# values are written as character references (as well as the ampersands that would otherwise start such a
+.# reference), and the line endings of the inline macro contents are replaced by spaces.
+.#-----------------------------------------------------
+{{info title="a
+
+b <b>c</b>"/}}
+
+x {{info title="d
+# e" other="f~"g'h&quot;i&j\k}}l"/}} y {{info}}m
+
+n
+> o{{/info}} p
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+{{info title="a&#10;&#10;b <b>c</b>"/}}
+
+x {{info title="d&#10;# e" other="f&quot;g'h&amp;quot;i&j\k}}l"/}} y {{info}}m  n > o{{/info}} p

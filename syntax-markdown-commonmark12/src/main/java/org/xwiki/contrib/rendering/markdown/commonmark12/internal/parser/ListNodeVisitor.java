@@ -29,6 +29,7 @@ import org.xwiki.rendering.listener.WrappingListener;
 
 import com.vladsch.flexmark.ast.BulletList;
 import com.vladsch.flexmark.ast.BulletListItem;
+import com.vladsch.flexmark.ast.HtmlCommentBlock;
 import com.vladsch.flexmark.ast.OrderedList;
 import com.vladsch.flexmark.ast.OrderedListItem;
 import com.vladsch.flexmark.ast.Paragraph;
@@ -47,6 +48,8 @@ import com.vladsch.flexmark.util.ast.VisitHandler;
  */
 public class ListNodeVisitor extends AbstractNodeVisitor
 {
+    private static final String EMPTY_DEFINITION_DESCRIPTION = "<!-- -->";
+
     static <V extends ListNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
@@ -158,11 +161,26 @@ public class ListNodeVisitor extends AbstractNodeVisitor
             getListener().beginDefinitionList(Collections.emptyMap());
         }
         getListener().beginDefinitionDescription();
-        visitChildrenAndSwallowParagraphs(node);
+        if (!isEmptyDefinitionDescription(node)) {
+            visitChildrenAndSwallowParagraphs(node);
+        }
         getListener().endDefinitionDescription();
         if (isOutsideDefinitionList && !(node.getNext() instanceof DefinitionItem)) {
             getListener().endDefinitionList(Collections.emptyMap());
         }
+    }
+
+    /**
+     * @param node the definition description
+     * @return {@code true} if the only content of the definition description is the empty HTML comment that the
+     *     Markdown renderer puts in empty definition descriptions (since a definition description can't be empty in
+     *     Markdown), {@code false} otherwise
+     */
+    private boolean isEmptyDefinitionDescription(DefinitionItem node)
+    {
+        Node child = node.getFirstChild();
+        return child instanceof HtmlCommentBlock && child.getNext() == null
+            && EMPTY_DEFINITION_DESCRIPTION.equals(child.getChars().trim().toString());
     }
 
     private void visitListItem(Node node)

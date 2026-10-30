@@ -20,7 +20,11 @@
 package org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser;
 
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.rendering.listener.Listener;
@@ -34,6 +38,17 @@ import com.vladsch.flexmark.util.ast.VisitHandler;
 
 public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisitor
 {
+    private static final Pattern DECODED_REFERENCE = Pattern.compile("&(amp|quot|#10|#13);");
+
+    private static final Map<String, String> DECODED_CHARACTERS = new HashMap<>();
+
+    static {
+        DECODED_CHARACTERS.put("amp", "&");
+        DECODED_CHARACTERS.put("quot", "\"");
+        DECODED_CHARACTERS.put("#10", "\n");
+        DECODED_CHARACTERS.put("#13", "\r");
+    }
+
     public MacroNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners)
     {
         super(visitor, listeners);
@@ -52,7 +67,7 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
     public void visit(Macro node)
     {
         if (!node.isBlockMacro()) {
-            Map<String, String> parameters = node.getAttributes();
+            Map<String, String> parameters = decodeParameterValues(node.getAttributes());
             String content = node.getMacroContentChars().toString();
             getListener().onMacro(node.getName().toString(), parameters, normalizeMacroContent(content), true);
         }
@@ -66,12 +81,32 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
     @Override
     public void visit(MacroBlock node)
     {
-        Map<String, String> parameters = node.getAttributes();
+        Map<String, String> parameters = decodeParameterValues(node.getAttributes());
         // The content lines of the macro block (see MacroBlockParser) don't include the prefixes of the containers
         // (e.g. quotation, list item) in which the macro is located.
         String content = node.getContentChars().toString();
         getListener().onMacro(node.getMacroNode().getName().toString(), parameters, normalizeMacroContent(content),
             false);
+    }
+
+    /**
+     * Decode the character references that the Markdown renderer generates in the macro parameter values, for the
+     * characters that can't be written as is (the line endings and the quotes). The other character references are
+     * kept as is.
+     */
+    private Map<String, String> decodeParameterValues(Map<String, String> parameters)
+    {
+        Map<String, String> decodedParameters = new LinkedHashMap<>();
+        for (Map.Entry<String, String> parameter : parameters.entrySet()) {
+            Matcher matcher = DECODED_REFERENCE.matcher(parameter.getValue());
+            StringBuffer value = new StringBuffer();
+            while (matcher.find()) {
+                matcher.appendReplacement(value, Matcher.quoteReplacement(DECODED_CHARACTERS.get(matcher.group(1))));
+            }
+            matcher.appendTail(value);
+            decodedParameters.put(parameter.getKey(), value.toString());
+        }
+        return decodedParameters;
     }
 
     private String normalizeMacroContent(String content)
