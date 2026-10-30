@@ -1,0 +1,39 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that only the pipes of the text located in table cells are escaped, and not the pipes located inside some
+.# syntax (links, images, macros, HTML tags, code spans), which would be kept in their content (see table31 for the
+.# round trip). The separator of the wiki links and images located inside some emphasis is escaped, since a pipe
+.# breaks the emphasis and the wiki link (splitting the cell), even if the backslash is then kept in their label.
+.#-----------------------------------------------------
+|=Element|=Content
+|Text|a~|b ##c~|d##
+|Link|[[label>>Space.Page]]
+|Link label|[[a~|b>>Space.Page]]
+|URL link|[[a~|b>>https://www.xwiki.org/]] [[https://www.xwiki.org/a~|b]]
+|URL link emphasis|[[//a~|b//>>https://www.xwiki.org/]]
+|Image|[[image:a.png]]
+|URL image|[[image:https://www.xwiki.org/a.png||alt="a~|b"]]
+|Macro|{{info title="a|b"/}} {{info}}c|d{{/info}}
+|HTML|{{html}}<span title="a|b">c|d</span>{{/html}}
+|HTML backticks|{{html}}<span title="`">|a</span><span title="`">b</span>{{/html}}
+|Invalid HTML|{{html}}<!-- a -- b|c --> <span title={|}>d</span>{{/html}}
+|Bold|**a~|b [[label>>Space.Page]] [[image:a.png]] [[image:b.png||alt="c"]]**
+|Bold URL|**[[a~|b>>https://www.xwiki.org/]] [[image:https://www.xwiki.org/a.png||alt="a~|b"]]**
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|      Element      | Content |
+| ----------------- | --- |
+|       Text        | a\|b `c|d` |
+|       Link        | [[label|Space.Page]] |
+|    Link label     | [[a&#124;b|Space.Page]] |
+|     URL link      | [a\|b](https://www.xwiki.org/) <https://www.xwiki.org/a|b> |
+| URL link emphasis | [_a\|b_](https://www.xwiki.org/) |
+|       Image       | ![[a.png|a.png]] |
+|     URL image     | ![a\|b](https://www.xwiki.org/a.png) |
+|       Macro       | {{info title="a|b"/}} {{info}}c|d{{/info}} |
+|       HTML        | <span title="a|b">c\|d</span> |
+|  HTML backticks   | <span title="`">\|a</span><span title="`">b</span> |
+|   Invalid HTML    | \<!-- a -- b\|c --> \<span title={\|}>d</span> |
+|       Bold        | **a\|b [[label\|Space.Page]] ![[a.png]] ![[c\|b.png]]** |
+|     Bold URL      | **[a\|b](https://www.xwiki.org/) ![a\|b](https://www.xwiki.org/a.png)** |

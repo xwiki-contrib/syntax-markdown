@@ -79,6 +79,14 @@ public class Markdown12LargeContentTest
             renderToMarkdown("|a" + StringUtils.repeat("\\\\", COUNT) + "b"));
     }
 
+    @Test
+    public void largeHTMLComment() throws Exception
+    {
+        String html = "<!--" + StringUtils.repeat(" a", COUNT) + " -->";
+
+        assertEquals("c " + html, renderToMarkdown("c {{html}}" + html + "{{/html}}"));
+    }
+
     private String renderToMarkdown(String input) throws Exception
     {
         XDOM xdom = this.mocker.<Parser>getInstance(Parser.class, "xwiki/2.1").parse(new StringReader(input));
