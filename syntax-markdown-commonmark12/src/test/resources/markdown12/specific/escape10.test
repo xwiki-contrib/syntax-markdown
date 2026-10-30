@@ -1,0 +1,23 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# Blocks located after an empty definition description: an empty HTML comment is put in the definition
+.# description since otherwise it would contain the block following it when read back
+.#-----------------------------------------------------
+<html><body><dl><dt>t</dt><dd></dd></dl><pre>&lt;b&gt;</pre><dl><dt>t2</dt><dd></dd><dt>t3</dt><dd>d3</dd></dl><p>after</p></body></html>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+t
+:   <!-- -->
+
+```
+<b>
+```
+
+t2
+:   <!-- -->
+
+t3
+:   d3
+
+after

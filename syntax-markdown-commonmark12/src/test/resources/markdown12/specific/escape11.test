@@ -1,0 +1,48 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# The Markdown generated for blocks located after an empty definition description (see escape10.test) is read back
+.# with empty definition descriptions, and the blocks outside of the definition list
+.#-----------------------------------------------------
+t
+:   <!-- -->
+
+```
+<b>
+```
+
+t2
+:   <!-- -->
+
+t3
+:   d3
+
+after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginDefinitionList
+beginDefinitionTerm
+onWord [t]
+endDefinitionTerm
+beginDefinitionDescription
+endDefinitionDescription
+endDefinitionList
+onMacroStandalone [code] [language=none] [<b>]
+beginDefinitionList
+beginDefinitionTerm
+onWord [t2]
+endDefinitionTerm
+beginDefinitionDescription
+endDefinitionDescription
+beginDefinitionTerm
+onWord [t3]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [d3]
+endDefinitionDescription
+endDefinitionList
+beginParagraph
+onWord [after]
+endParagraph
+endDocument

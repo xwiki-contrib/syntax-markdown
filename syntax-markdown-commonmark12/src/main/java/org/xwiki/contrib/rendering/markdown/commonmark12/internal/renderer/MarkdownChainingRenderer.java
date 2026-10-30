@@ -73,6 +73,11 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private static final String EMPTY_LINE = NEW_LINE + NEW_LINE;
 
+    /**
+     * The content of an empty definition description.
+     */
+    private static final String EMPTY_DEFINITION_DESCRIPTION = "<!-- -->";
+
     private static final String LINE_ENDINGS = "\r\n|\r|\n";
 
     private static final Pattern HEADING_CLOSING_SEQUENCE = Pattern.compile("(^|\\p{Blank})(#+\\p{Blank}*)$");
@@ -96,6 +101,9 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private static final Pattern TABLE_CELL_EMPTY_LINE =
         Pattern.compile("(\\r\\n|\\r(?!\\n)|\\n)[ \\t]*(\\r\\n|\\r(?!\\n)|\\n)");
 
+    /**
+     * The line break HTML tag that replaces the line breaks located in a table cell.
+     */
     private static final String TABLE_CELL_LINE_BREAK = "<br/>";
 
     private static final Pattern TABLE_CELL_NEW_LINES = Pattern.compile(LINE_ENDINGS);
@@ -393,6 +401,23 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      * For each list and definition list being rendered, the prefix of the lines containing its item markers.
      */
     private Deque<String> itemMarkerPrefixes = new ArrayDeque<>();
+
+    /**
+     * For each definition list being rendered, whether it has a term (otherwise its descriptions are read back as
+     * paragraphs, since a definition description must follow a term in Markdown).
+     */
+    private Deque<Boolean> definitionListHasTerm = new ArrayDeque<>();
+
+    /**
+     * Whether the definition description being rendered is read back as a definition description.
+     */
+    private boolean isDefinitionDescriptionReadBack;
+
+    /**
+     * The number of list items and quotations in which the current block is located, whatever the Groups located
+     * between them.
+     */
+    private int listItemAndQuotationDepth;
 
     /**
      * Whether nothing has been printed yet in the current container (list item, definition description).
@@ -878,12 +903,14 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         super.beginDefinitionList(parameters);
         this.itemMarkerPrefixes.push(getContainerLinePrefix());
+        this.definitionListHasTerm.push(false);
     }
 
     @Override
     public void endDefinitionList(Map<String, String> parameters)
     {
         this.itemMarkerPrefixes.pop();
+        this.definitionListHasTerm.pop();
         super.endDefinitionList(parameters);
         markListEnd();
     }
@@ -913,6 +940,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         // List item content must be aligned with the first character following the list item marker.
         this.itemStates.push(new ItemState(markerPrefix, markerPrefix + StringUtils.repeat(' ', marker.length()),
             true));
+        this.listItemAndQuotationDepth++;
     }
 
     @Override
@@ -923,6 +951,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         // The list item may be empty: the blocks following it must not be considered as its first content.
         this.isAtContainerStart = false;
         this.itemStates.pop();
+        this.listItemAndQuotationDepth--;
         super.endListItem();
     }
 
@@ -970,6 +999,11 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         print(":   ");
         markBlockContentStart();
         this.isAtContainerStart = true;
+        // A definition description must follow a term, and in a list item or a quotation only the first description
+        // following a term is read back as a definition description (the following ones are read back as text).
+        this.isDefinitionDescriptionReadBack = this.definitionListHasTerm.peek()
+            && (getBlockState().getPreviousEvent() == BlockStateChainingListener.Event.DEFINITION_TERM
+                || this.listItemAndQuotationDepth == 0);
         this.itemStates.push(new ItemState(markerPrefix, markerPrefix + "    ", false));
     }
 
@@ -980,12 +1014,20 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         printBlockSeparator(this.itemMarkerPrefixes.peek());
         markBlockContentStart();
         this.isInDefinitionTerm = true;
+        this.definitionListHasTerm.pop();
+        this.definitionListHasTerm.push(true);
     }
 
     @Override
     public void endDefinitionDescription()
     {
         getMarkdownPrinter().flush();
+        if (this.isAtContainerStart && this.isDefinitionDescriptionReadBack && !isInTableCell()) {
+            // When read back, an empty definition description contains the block that follows it (even when they
+            // are separated by empty lines), so we put an empty HTML comment in it, which the parser reads back as an
+            // empty definition description. A definition list located in a table cell is rendered as text.
+            print(EMPTY_DEFINITION_DESCRIPTION);
+        }
         // The definition description may be empty: the blocks following it must not be considered as its first
         // content.
         this.isAtContainerStart = false;
@@ -1014,12 +1056,14 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         state.definitionListDepth = getBlockState().getDefinitionListDepth();
         state.itemDepth = this.itemStates.size();
         this.quotationStates.push(state);
+        this.listItemAndQuotationDepth++;
     }
 
     @Override
     public void endQuotation(Map<String, String> parameters)
     {
         QuotationState state = this.quotationStates.pop();
+        this.listItemAndQuotationDepth--;
         if (state.isFlattened) {
             return;
         }
@@ -1627,16 +1671,25 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         String cellText = cellPrinter.toString();
         popPrinter();
 
-        // A table row must be on a single line. Blocks separated by an empty line (e.g. paragraphs) are separated by
-        // 2 line breaks to keep them visually separated. Note that the pipes of the text, which would be considered
-        // as cell separators, have been escaped when printed (see createMarkdownPrinter).
-        cellText = TABLE_CELL_LINE_BREAKS.matcher(cellText.trim()).replaceAll(
-            result -> TABLE_CELL_EMPTY_LINE.matcher(result.group()).find()
-                ? TABLE_CELL_LINE_BREAK + TABLE_CELL_LINE_BREAK : TABLE_CELL_LINE_BREAK);
+        // A table row must be on a single line. Note that the pipes of the text, which would be considered as cell
+        // separators, have been escaped when printed (see createMarkdownPrinter).
+        cellText = replaceTableCellLineBreaks(cellText.trim());
 
         List<TableCellState> cellsInLastRow = this.tableCells.peek().get(this.tableCells.peek().size() - 1);
         cellsInLastRow.add(new TableCellState(cellText, getTableCellAlignment(parameters),
             getTableCellColspan(parameters), getTableCellRowspan(parameters), isHead, parameters));
+    }
+
+    /**
+     * @param text some text located in a table cell
+     * @return the text with its line breaks (and the spaces around them) replaced by line break tags, since a table
+     *     row must be on a single line, several line breaks (e.g. between paragraphs) being replaced by 2 line break
+     *     tags to keep the blocks visually separated
+     */
+    protected static String replaceTableCellLineBreaks(String text)
+    {
+        return TABLE_CELL_LINE_BREAKS.matcher(text).replaceAll(result -> TABLE_CELL_EMPTY_LINE.matcher(result.group())
+            .find() ? TABLE_CELL_LINE_BREAK + TABLE_CELL_LINE_BREAK : TABLE_CELL_LINE_BREAK);
     }
 
     private int getTableCellRowspan(Map<String, String> parameters)

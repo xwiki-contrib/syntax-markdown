@@ -1,0 +1,59 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Verify that the character references written for the line endings and the double quotes of the macro parameter
+.# values (and for the ampersands starting such a reference) are decoded, and that the standalone macros located in
+.# list items and quotations stay in them.
+.#-----------------------------------------------------
+{{info title="a&#10;&#10;b <b>c</b>"/}}
+
+x {{info title="d&#10;# e" other="f&quot;g'h&amp;quot;i&j\k}}l&lt;"/}} y
+
+* q
+
+  {{info title="r&#10;s"}}
+  t
+
+    u
+  {{/info}}
+
+> {{info title="v&#10;&#10;w"}}
+> x
+>
+> y
+> {{/info}}
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+onMacroStandalone [info] [title=a
+
+b <b>c</b>]
+beginParagraph
+onWord [x]
+onSpace
+onMacroInline [info] [title=d
+# e|other=f"g'h&quot;i&j\k}}l&lt;]
+onSpace
+onWord [y]
+endParagraph
+beginList [BULLETED]
+beginListItem
+onWord [q]
+onMacroStandalone [info] [title=r
+s] [t
+
+  u]
+endListItem
+endList [BULLETED]
+beginQuotation
+beginQuotationLine
+beginGroup
+onMacroStandalone [info] [title=v
+
+w] [x
+
+y]
+endGroup
+endQuotationLine
+endQuotation
+endDocument

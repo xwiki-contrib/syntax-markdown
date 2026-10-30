@@ -27,16 +27,29 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.MarkdownConfiguration;
+import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.MacroBlockParser;
 import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
 import org.xwiki.rendering.listener.reference.ResourceReference;
 import org.xwiki.rendering.listener.reference.ResourceType;
 import org.xwiki.rendering.renderer.reference.ResourceReferenceSerializer;
 
+import com.vladsch.flexmark.ast.Code;
+import com.vladsch.flexmark.ast.DelimitedLinkNode;
+import com.vladsch.flexmark.ast.HtmlInlineBase;
+import com.vladsch.flexmark.ast.InlineLinkNode;
+import com.vladsch.flexmark.ast.Paragraph;
+import com.vladsch.flexmark.ast.RefNode;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughSubscriptExtension;
+import com.vladsch.flexmark.ext.wikilink.WikiNode;
+import com.vladsch.flexmark.ext.xwiki.macros.Macro;
+import com.vladsch.flexmark.ext.xwiki.macros.MacroAttribute;
+import com.vladsch.flexmark.ext.xwiki.macros.MacroClose;
 import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.misc.Extension;
+import com.vladsch.flexmark.util.sequence.BasedSequence;
 
 /**
  * Convert listener events to Markdown 1.2.
@@ -66,6 +79,16 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     private static final String NEW_LINE_ENTITY = "&#10;";
 
+    /**
+     * The macro identifiers supported by the Markdown macro syntax (the same as the HTML tag names).
+     */
+    private static final Pattern MACRO_ID = Pattern.compile("[A-Za-z][A-Za-z0-9-]*");
+
+    /**
+     * The macro parameter names supported by the Markdown macro syntax (the same as the HTML attribute names).
+     */
+    private static final Pattern MACRO_PARAMETER_NAME = Pattern.compile("[a-zA-Z_:][a-zA-Z0-9:._-]*");
+
     private static final Pattern NEW_LINES = Pattern.compile("\\r\\n|\\r|\\n");
 
     /**
@@ -78,9 +101,34 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     private static final Pattern EMAIL_AUTOLINK = Pattern.compile("[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]"
         + "(?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*+");
 
+    /**
+     * The characters starting or ending the inline syntaxes that could hide the closing tag of an inline macro: a code
+     * span, a link or a wiki link (an opening angle bracket can also start an HTML tag or an autolink, see
+     * {@link #HTML_START}).
+     */
+    private static final String TAG_HIDING_CHARACTERS = "`[]";
+
+    /**
+     * The start of an HTML tag, comment, processing instruction or declaration, or of an autolink.
+     */
+    private static final Pattern HTML_START = Pattern.compile("<[a-zA-Z/!?]");
+
+    /**
+     * The text written before an inline macro when parsing it to check it, so that it isn't parsed as a standalone
+     * macro.
+     */
+    private static final String INLINE_MACRO_CHECK_PREFIX = "a ";
+
     private MarkdownConfiguration configuration;
 
     private boolean isStrikethroughSupported;
+
+    private final Markdown12MacroRenderer macroSyntaxPrinter = new Markdown12MacroRenderer();
+
+    /**
+     * The parser used to check the inline macros, created when needed.
+     */
+    private Parser macroCheckParser;
 
     /**
      * The number of emphasis (e.g. bold) currently open, which are written using delimiters (e.g. "**").
@@ -462,6 +510,139 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         return false;
     }
 
+    /**
+     * @return {@code true} if the macro identifier and parameter names are supported by the Markdown macro syntax,
+     *     {@code false} otherwise
+     */
+    private boolean isMacroSyntaxSupported(String id, Map<String, String> parameters)
+    {
+        if (!MACRO_ID.matcher(id).matches()) {
+            return false;
+        }
+        for (String parameterName : parameters.keySet()) {
+            if (!MACRO_PARAMETER_NAME.matcher(parameterName).matches()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @return {@code true} if the macro content is read back as is when the macro is written using the Markdown macro
+     *     syntax, {@code false} otherwise (e.g. if the content contains the closing tag of the macro)
+     */
+    private boolean isMacroContentSupported(String id, Map<String, String> parameters, String content,
+        boolean isInline)
+    {
+        if (content == null) {
+            return true;
+        } else if (isInTableCell()) {
+            // The macros located in table cells are written as inline macros on the line of the table row, the line
+            // endings of their content being written as line break tags.
+            return isInlineMacroSupported(
+                replaceTableCellLineBreaks(this.macroSyntaxPrinter.renderTableCellMacro(id, parameters, content)));
+        } else if (isInline) {
+            return isInlineMacroSupported(this.macroSyntaxPrinter.renderInlineMacro(id, parameters, content));
+        } else {
+            return MacroBlockParser.isStandaloneMacroContent(id, content);
+        }
+    }
+
+    /**
+     * Indicates if an inline macro is read back as the same macro, whatever the text written after it. The macro is
+     * parsed on its own: it must be closed by its closing tag (and thus the tags having the same name located in its
+     * content must be balanced and not hidden by another syntax, e.g. a code span), and its content must not contain
+     * the start of an inline syntax that isn't ended in the macro (e.g. a backtick that doesn't start a code span on
+     * its own), since the text written after the macro could end it, hiding the closing tag of the macro.
+     *
+     * @param macro the inline macro, as written (e.g. {@code {{info}}content{{/info}}})
+     * @return {@code true} if the macro is read back as the same macro, {@code false} otherwise
+     */
+    private boolean isInlineMacroSupported(String macro)
+    {
+        if (this.macroCheckParser == null) {
+            this.macroCheckParser = Parser.builder(this.configuration.getOptions()).build();
+        }
+        int macroStart = INLINE_MACRO_CHECK_PREFIX.length();
+        Node paragraph = this.macroCheckParser.parse(INLINE_MACRO_CHECK_PREFIX + macro).getFirstChild();
+        Node macroNode =
+            paragraph instanceof Paragraph && paragraph.getNext() == null ? paragraph.getLastChild() : null;
+        return macroNode instanceof Macro && macroNode.getStartOffset() == macroStart
+            && macroNode.getLastChild() instanceof MacroClose
+            && macroNode.getLastChild().getEndOffset() == macroStart + macro.length()
+            && !hasUnendedInlineSyntax(macroNode);
+    }
+
+    /**
+     * @return {@code true} if the node contains a character starting or ending an inline syntax that could hide the
+     *     closing tag of the macro in which the node is located (see {@link #TAG_HIDING_CHARACTERS}) outside of the
+     *     syntaxes ended in the node, {@code false} otherwise
+     */
+    private boolean hasUnendedInlineSyntax(Node node)
+    {
+        if (node instanceof Code || node instanceof HtmlInlineBase
+            || (node instanceof DelimitedLinkNode && ((DelimitedLinkNode) node).getOpeningMarker().isNotNull()))
+        {
+            // The code spans, the inline HTML and the autolinks written between angle brackets are ended in the node,
+            // and their content can't be read as another syntax.
+            return false;
+        }
+
+        // The characters of the macro tags, and the brackets, destinations and titles of the links and images, are
+        // part of syntaxes ended in the node. The text of a wiki link is located between its markers, and the content
+        // of a macro after its opening tag.
+        boolean isTextOwner = !(node instanceof MacroClose || node instanceof MacroAttribute
+            || node instanceof InlineLinkNode || node instanceof RefNode);
+        int offset = node.getStartOffset();
+        int end = node.getEndOffset();
+        if (node instanceof Macro) {
+            offset = ((Macro) node).getClosingMarker().getEndOffset();
+        } else if (node instanceof WikiNode) {
+            offset = ((WikiNode) node).getOpeningMarker().getEndOffset();
+            end = ((WikiNode) node).getClosingMarker().getStartOffset();
+        }
+        for (Node child : node.getChildren()) {
+            if ((isTextOwner && hasTagHidingCharacter(node, offset, child.getStartOffset()))
+                || hasUnendedInlineSyntax(child))
+            {
+                return true;
+            }
+            offset = Math.max(offset, child.getEndOffset());
+        }
+        return isTextOwner && hasTagHidingCharacter(node, offset, end);
+    }
+
+    private boolean hasTagHidingCharacter(Node node, int start, int end)
+    {
+        if (start >= end) {
+            return false;
+        }
+        BasedSequence text = node.getChars().baseSubSequence(start, end);
+        // The character following an opening angle bracket can be located after the checked text.
+        BasedSequence htmlText =
+            node.getChars().baseSubSequence(start, Math.min(end + 1, node.getChars().getBaseSequence().length()));
+        return StringUtils.containsAny(text, TAG_HIDING_CHARACTERS) || HTML_START.matcher(htmlText).find();
+    }
+
+    /**
+     * Write the macro as text, keeping its line endings as new lines (a line ending in the text would be read back as
+     * a space, and a blank line would end the paragraph).
+     */
+    private void printMacroAsText(String id, Map<String, String> parameters, String content, boolean isInline)
+    {
+        if (!isInline) {
+            // A standalone macro is separated from the previous blocks, including in a table cell.
+            printEmptyLine();
+        }
+        String[] lines = NEW_LINES.split(createMacroPrinter().renderMacro(id, parameters, content, isInline), -1);
+        for (int i = 0; i < lines.length; i++) {
+            if (i > 0) {
+                onNewLine();
+            }
+            printText(lines[i]);
+        }
+    }
+
     protected boolean handleHtmlMacro(String id, Map<String, String> parameters, String content, boolean isInline)
     {
         boolean isHandled = false;
@@ -509,13 +690,26 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
             return;
         }
 
-        if (!isInline && isInTableCell() && !CODE_MACRO_ID.equals(id)) {
+        if (!CODE_MACRO_ID.equals(id)
+            && (!isMacroSyntaxSupported(id, parameters) || !isMacroContentSupported(id, parameters, content, isInline)))
+        {
+            // The macro can't be written using the Markdown macro syntax, which would then be read back as Markdown or
+            // as other macros. Write it as text instead, so that it's at least read back as the same text.
+            printMacroAsText(id, parameters, content, isInline);
+            return;
+        }
+
+        if (isInTableCell() && !CODE_MACRO_ID.equals(id)) {
             // Markdown table cells can only contain inline content on a single line, thus a standalone macro located
             // in a table cell is rendered as an inline macro (the line endings around its content would be rendered
-            // as line breaks, and thus added to its content, otherwise). It's separated from the previous blocks of
-            // the cell by an empty line, as other blocks.
-            printEmptyLine();
-            super.onMacro(id, parameters, content, true);
+            // as line breaks, and thus added to its content, otherwise), separated from the previous blocks of the
+            // cell by an empty line, as other blocks. The line endings of the content of the macros located in table
+            // cells are kept, and written as line break tags when the table cell ends.
+            if (!isInline) {
+                printEmptyLine();
+            }
+            onWikiSyntax();
+            print(this.macroSyntaxPrinter.renderTableCellMacro(id, parameters, content));
             return;
         }
 

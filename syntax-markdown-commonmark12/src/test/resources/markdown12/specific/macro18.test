@@ -1,0 +1,27 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Verify that an inline macro (or a macro located in a table cell) is rendered as text when it wouldn't be read back
+.# as the same macro whatever follows it, i.e. when its content contains the start of an inline syntax that isn't
+.# ended in the macro (e.g. a backtick, an opening angle bracket followed by a letter, a bracket) and that could thus
+.# hide the closing tag of the macro, or when its content ends with a backslash.
+.#-----------------------------------------------------
+x {{info}}a`{{/info}} y` {{info}}b\{{/info}} {{info}}c{{/info}} {{info}}[[d{{/info}} e]]
+
+x {{info}}<b title="{{/info}} {{success}}">{{/success}} {{info}}`f` <b>g</b> [[h|i]] j < k{{/info}}
+
+[[label {{info}}l](http://m.org){{/info}} n>>http://o.org]]
+
+|{{info}}p {{info}}q{{/info}}
+r{{/info}}|{{info}}s`{{/info}} {{success}}` {{html}}<b>t</b>{{/html}}{{/success}}
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+x \{{info}}a\`\{{/info}} y\` \{{info}}b\\\{{/info}} {{info}}c{{/info}} \{{info}}\[\[d\{{/info}} e]]
+
+x \{{info}}\<b title="\{{/info}} {{success}}">{{/success}} {{info}}`f` <b>g</b> [[h|i]] j < k{{/info}}
+
+[label \{{info}}l\](http://m.org)\{{/info}} n](http://o.org)
+
+|                                             |  |
+| ------------------------------------------- | --- |
+| {{info}}p {{info}}q{{/info}}<br/>r{{/info}} | \{{info}}s\`\{{/info}} \{{success}}\` \{{html}}\<b>t\</b>\{{/html}}\{{/success}} |

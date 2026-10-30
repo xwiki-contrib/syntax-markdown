@@ -1,0 +1,35 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Verify that a macro whose identifier or parameter names are not supported by the Markdown macro syntax, or whose
+.# content would not be read back as is (e.g. since one of its lines would be read as the closing tag of the macro), is
+.# rendered as text, keeping its line endings, so that it's read back as the same text
+.#-----------------------------------------------------
+x {{info a<b>c="d"/}} {{my_macro}}<b>e</b>{{/my_macro}} f
+
+{{my_macro}}
+g
+
+<b>h</b>
+{{/my_macro}}
+
+{{info}}
+i {{info}}
+{{/info}}
+{{warning}}j{{/warning}}
+{{/info}}
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+x \{{info a\<b>c="d"/}} \{{my\_macro}}\<b>e\</b>\{{/my\_macro}} f
+
+\{{my\_macro}}  
+g  
+\
+\<b>h\</b>  
+\{{/my\_macro}}
+
+\{{info}}  
+i \{{info}}  
+\{{/info}}  
+\{{warning}}j\{{/warning}}  
+\{{/info}}
