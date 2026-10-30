@@ -1,0 +1,26 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Fenced code blocks generated for standalone verbatim (see verbatim3.test) are read back with the same content,
+.# including leading spaces.
+.#-----------------------------------------------------
+before
+
+````
+  indented ```
+**not bold**
+````
+
+```
+with parameters
+```
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [before]
+endParagraph
+onMacroStandalone [code] [language=none] [  indented ```
+**not bold**]
+onMacroStandalone [code] [language=none] [with parameters]
+endDocument

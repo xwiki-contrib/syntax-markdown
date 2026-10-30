@@ -1,0 +1,85 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Code spans and code blocks generated for verbatim located in headings, list items, quotations and table cells
+.# (see verbatim5.test) are read back with the same content.
+.#-----------------------------------------------------
+# Heading ``a`b``
+
+* item `x*y`
+    * nested `multi line`
+
+>  quote `[[not a link]]`
+
+| head `a|b` |         head2         |
+| ---------- | --------------------- |
+| cell `c|d` | `block in table cell` |
+
+* <div>
+
+  ```
+  block in list
+  ```
+
+  </div>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginSection
+beginHeader [1, HHeading]
+onWord [Heading]
+onSpace
+onMacroInline [code] [language=none] [a`b]
+endHeader [1, HHeading]
+beginList [BULLETED]
+beginListItem
+onWord [item]
+onSpace
+onMacroInline [code] [language=none] [x*y]
+beginList [BULLETED]
+beginListItem
+onWord [nested]
+onSpace
+onMacroInline [code] [language=none] [multi line]
+endListItem
+endList [BULLETED]
+endListItem
+endList [BULLETED]
+beginQuotation
+beginQuotationLine
+onWord [quote]
+onSpace
+onMacroInline [code] [language=none] [[[not a link]]]
+endQuotationLine
+endQuotation
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [head]
+onSpace
+onMacroInline [code] [language=none] [a|b]
+endTableHeadCell
+beginTableHeadCell
+onWord [head2]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [cell]
+onSpace
+onMacroInline [code] [language=none] [c|d]
+endTableCell
+beginTableCell
+onMacroInline [code] [language=none] [block in table cell]
+endTableCell
+endTableRow
+endTable
+beginList [BULLETED]
+beginListItem
+beginGroup
+onMacroStandalone [code] [language=none] [block in list]
+endGroup
+endListItem
+endList [BULLETED]
+endSection
+endDocument

@@ -16,16 +16,16 @@ beginDocument
 beginParagraph
 onWord [a]
 onSpace
-onMacroInline [code] [language=none] [ b`{{info}}c{{/info}}` ]
+onMacroInline [code] [language=none] [b`{{info}}c{{/info}}`]
 onSpace
 onWord [d]
 endParagraph
 beginParagraph
 onWord [a]
 onSpace
-onMacroInline [code] [language=none] [ `b ]
+onMacroInline [code] [language=none] [`b]
 onSpace
-onMacroInline [code] [language=none] [ c`{{info}}d{{/info}}` ]
+onMacroInline [code] [language=none] [c`{{info}}d{{/info}}`]
 onSpace
 onWord [e]
 endParagraph

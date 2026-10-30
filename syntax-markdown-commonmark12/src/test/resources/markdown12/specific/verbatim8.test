@@ -1,0 +1,36 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Pipes located in code spans in table cells, which are not cell separators
+.#-----------------------------------------------------
+|    `a|b`     | ``c`|`d`` |
+| ------------ | --------- |
+| x \| `e|f` y |   `g\`    |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableHeadCell
+onMacroInline [code] [language=none] [a|b]
+endTableHeadCell
+beginTableHeadCell
+onMacroInline [code] [language=none] [c`|`d]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [x]
+onSpace
+onSpecialSymbol [|]
+onSpace
+onMacroInline [code] [language=none] [e|f]
+onSpace
+onWord [y]
+endTableCell
+beginTableCell
+onMacroInline [code] [language=none] [g\]
+endTableCell
+endTableRow
+endTable
+endDocument
