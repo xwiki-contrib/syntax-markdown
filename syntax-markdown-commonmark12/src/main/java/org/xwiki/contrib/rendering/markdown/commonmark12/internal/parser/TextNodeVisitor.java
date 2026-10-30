@@ -50,7 +50,7 @@ public class TextNodeVisitor extends AbstractNodeVisitor
 
     public void visit(Text node)
     {
-        parseInline(node.getChars().toString());
+        parseInline(node.getChars().unescape());
 
         // Descend into children (could be omitted in this case because Text nodes don't have children).
         getVisitor().visitChildren(node);
