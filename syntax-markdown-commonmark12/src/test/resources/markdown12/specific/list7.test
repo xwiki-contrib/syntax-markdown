@@ -1,0 +1,67 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# The Markdown generated in list6.test: the list stays outside of the definition description, and the definition
+.# description following the table is read back in a definition list (while the one following the code block, which
+.# isn't preceded by a term, is read back as a paragraph)
+.#-----------------------------------------------------
+* a
+
+  t
+  :   d
+
+    * b
+
+```
+c
+```
+
+:   d
+
+|     |
+| --- |
+|  e  |
+
+:   f
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [a]
+beginDefinitionList
+beginDefinitionTerm
+onWord [t]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [d]
+endDefinitionDescription
+endDefinitionList
+beginList [BULLETED]
+beginListItem
+onWord [b]
+endListItem
+endList [BULLETED]
+endListItem
+endList [BULLETED]
+onMacroStandalone [code] [language=none] [c]
+beginParagraph
+onSpecialSymbol [:]
+onSpace
+onSpace
+onSpace
+onWord [d]
+endParagraph
+beginTable
+beginTableRow
+beginTableCell
+onWord [e]
+endTableCell
+endTableRow
+endTable
+beginDefinitionList
+beginDefinitionDescription
+onWord [f]
+endDefinitionDescription
+endDefinitionList
+endDocument

@@ -1,0 +1,140 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Tables, definition lists, lists and Groups located in list items and definition descriptions nested in each
+.# other: their lines are prefixed with the indentation of all their containers
+.#-----------------------------------------------------
+* a
+
+  term
+  :   b
+
+      |  x  |
+      | --- |
+      |  y  |
+
+      * c
+      * d
+
+        <div class="e">
+
+        f
+
+        </div>
+
+1. term2
+   :   g
+
+term3
+:   h
+
+    * i
+
+      |  z  |
+      | --- |
+      |  w  |
+    * j
+
+      term4
+      :   k
+
+          <div class="l">
+
+          m
+
+          </div>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [a]
+beginDefinitionList
+beginDefinitionTerm
+onWord [term]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [b]
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [x]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [y]
+endTableCell
+endTableRow
+endTable
+beginList [BULLETED]
+beginListItem
+onWord [c]
+endListItem
+beginListItem
+onWord [d]
+beginGroup [[class]=[e]]
+beginParagraph
+onWord [f]
+endParagraph
+endGroup [[class]=[e]]
+endListItem
+endList [BULLETED]
+endDefinitionDescription
+endDefinitionList
+endListItem
+endList [BULLETED]
+beginList [NUMBERED]
+beginListItem
+beginDefinitionList
+beginDefinitionTerm
+onWord [term2]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [g]
+endDefinitionDescription
+endDefinitionList
+endListItem
+endList [NUMBERED]
+beginDefinitionList
+beginDefinitionTerm
+onWord [term3]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [h]
+beginList [BULLETED]
+beginListItem
+onWord [i]
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [z]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [w]
+endTableCell
+endTableRow
+endTable
+endListItem
+beginListItem
+onWord [j]
+beginDefinitionList
+beginDefinitionTerm
+onWord [term4]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [k]
+beginGroup [[class]=[l]]
+beginParagraph
+onWord [m]
+endParagraph
+endGroup [[class]=[l]]
+endDefinitionDescription
+endDefinitionList
+endListItem
+endList [BULLETED]
+endDefinitionDescription
+endDefinitionList
+endDocument

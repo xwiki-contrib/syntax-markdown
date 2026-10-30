@@ -1,0 +1,24 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# Definition lists located in list items, and lists located in definition descriptions, stay in their container
+.#-----------------------------------------------------
+<html><body><ul><li>a<dl><dt>t</dt><dd>d</dd></dl></li></ul><ol><li><dl><dt>t2</dt><dd>d2</dd></dl></li></ol><dl><dt>t3</dt><dd>d3<ul><li>x</li><li>y<dl><dt>t4</dt><dd>d4</dd></dl></li></ul></dd></dl></body></html>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* a
+
+  t
+  :   d
+
+1. t2
+   :   d2
+
+t3
+:   d3
+
+    * x
+    * y
+
+      t4
+      :   d4

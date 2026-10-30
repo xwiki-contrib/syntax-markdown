@@ -151,9 +151,18 @@ public class ListNodeVisitor extends AbstractNodeVisitor
 
     public void visit(DefinitionItem node)
     {
+        // The flexmark definition extension doesn't put in a definition list the descriptions that directly follow a
+        // table (e.g. "|a|\n\n:   b"), while a definition description must be located in a definition list.
+        boolean isOutsideDefinitionList = !(node.getParent() instanceof DefinitionList);
+        if (isOutsideDefinitionList && !(node.getPrevious() instanceof DefinitionItem)) {
+            getListener().beginDefinitionList(Collections.emptyMap());
+        }
         getListener().beginDefinitionDescription();
         visitChildrenAndSwallowParagraphs(node);
         getListener().endDefinitionDescription();
+        if (isOutsideDefinitionList && !(node.getNext() instanceof DefinitionItem)) {
+            getListener().endDefinitionList(Collections.emptyMap());
+        }
     }
 
     private void visitListItem(Node node)
