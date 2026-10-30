@@ -1,0 +1,55 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# A Group located in a quotation: its paragraphs are kept (the Group contains an independent document) and don't
+.# close the quotation line in which the Group is located
+.#-----------------------------------------------------
+> before
+>
+> <div class="box">
+>
+> paragraph1
+>
+> paragraph2
+>
+> </div>
+>
+> after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginQuotation
+beginQuotationLine
+onWord [before]
+endQuotationLine
+beginQuotationLine
+beginGroup
+beginGroup [[class]=[box]]
+beginParagraph
+onWord [paragraph1]
+endParagraph
+beginParagraph
+onWord [paragraph2]
+endParagraph
+endGroup [[class]=[box]]
+endGroup
+endQuotationLine
+beginQuotationLine
+onWord [after]
+endQuotationLine
+endQuotation
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+> before
+>
+> <div class="box">
+>
+> paragraph1
+>
+> paragraph2
+>
+> </div>
+>
+> after

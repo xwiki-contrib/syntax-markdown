@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.xwiki.rendering.listener.HeaderLevel;
@@ -27,6 +28,18 @@ import org.xwiki.rendering.listener.WrappingListener;
 
 /**
  * Special listener for handling blockquotes and converting them from the Flexmark Model to the XWiki Model.
+ * <p>
+ * The XWiki Model only supports inline content in quotation lines (see
+ * <a href="http://jira.xwiki.org/browse/XRENDERING-259">XRENDERING-259</a>). Thus:
+ * <ul>
+ * <li>the paragraphs located directly in the quotation are converted into quotation lines,</li>
+ * <li>the other blocks (lists, tables, groups, standalone macros, etc.) located directly in the quotation are wrapped
+ * in a Group (which contains an independent document) located in its own quotation line, consecutive blocks sharing
+ * the same Group, as the XHTML parser does,</li>
+ * <li>nested quotations are located in the current quotation line, as the XWiki 2.1 parser does,</li>
+ * <li>the content of the block containers located inside the quotation (e.g. the paragraphs of a Group) is left
+ * untouched.</li>
+ * </ul>
  *
  * @version $Id$
  * @since 8.4
@@ -39,7 +52,12 @@ public class QuoteListener extends WrappingListener
     private boolean quotationLineStarted;
 
     /**
-     * Depth of the block containers (lists, quotations, groups, etc.) opened inside the quotation. The headings
+     * Whether a Group wrapping blocks located directly in the quotation has been started or not.
+     */
+    private boolean blockGroupStarted;
+
+    /**
+     * Depth of the block containers (lists, quotations, groups, etc.) opened inside the quotation. The blocks
      * located inside these containers are not direct children of the quotation.
      */
     private int containerDepth;
@@ -49,24 +67,55 @@ public class QuoteListener extends WrappingListener
      */
     public void closeOpenedQuotationLines()
     {
+        closeOpenedBlockGroup();
         if (this.quotationLineStarted) {
             endQuotationLine();
         }
         this.quotationLineStarted = false;
     }
 
+    private void closeOpenedBlockGroup()
+    {
+        if (this.blockGroupStarted) {
+            super.endGroup(Collections.emptyMap());
+        }
+        this.blockGroupStarted = false;
+    }
+
+    /**
+     * Called before a block that is not allowed in a quotation line is started. When the block is located directly in
+     * the quotation, make sure it's wrapped in a Group located in a quotation line.
+     */
+    private void beginBlock()
+    {
+        if (this.containerDepth == 0 && !this.blockGroupStarted) {
+            closeOpenedQuotationLines();
+            beginQuotationLine();
+            this.quotationLineStarted = true;
+            super.beginGroup(Collections.emptyMap());
+            this.blockGroupStarted = true;
+        }
+    }
+
     @Override
     public void beginParagraph(Map<String, String> parameters)
     {
-        closeOpenedQuotationLines();
-        beginQuotationLine();
-        this.quotationLineStarted = true;
+        if (this.containerDepth == 0) {
+            closeOpenedQuotationLines();
+            beginQuotationLine();
+            this.quotationLineStarted = true;
+        } else {
+            // A paragraph located in a block container (e.g. a Group) inside the quotation is kept.
+            super.beginParagraph(parameters);
+        }
     }
 
     @Override
     public void endParagraph(Map<String, String> parameters)
     {
-        // Ignore
+        if (this.containerDepth > 0) {
+            super.endParagraph(parameters);
+        }
     }
 
     @Override
@@ -82,8 +131,25 @@ public class QuoteListener extends WrappingListener
     }
 
     @Override
+    public void onMacro(String id, Map<String, String> parameters, String content, boolean isInline)
+    {
+        if (!isInline) {
+            beginBlock();
+        }
+        super.onMacro(id, parameters, content, isInline);
+    }
+
+    @Override
+    public void onHorizontalLine(Map<String, String> parameters)
+    {
+        beginBlock();
+        super.onHorizontalLine(parameters);
+    }
+
+    @Override
     public void beginList(ListType type, Map<String, String> parameters)
     {
+        beginBlock();
         this.containerDepth++;
         super.beginList(type, parameters);
     }
@@ -98,6 +164,7 @@ public class QuoteListener extends WrappingListener
     @Override
     public void beginDefinitionList(Map<String, String> parameters)
     {
+        beginBlock();
         this.containerDepth++;
         super.beginDefinitionList(parameters);
     }
@@ -112,6 +179,11 @@ public class QuoteListener extends WrappingListener
     @Override
     public void beginQuotation(Map<String, String> parameters)
     {
+        // A nested quotation is located in the current quotation line (if any), as the XWiki 2.1 parser does, and not
+        // in the Group wrapping the blocks preceding it.
+        if (this.containerDepth == 0) {
+            closeOpenedBlockGroup();
+        }
         this.containerDepth++;
         super.beginQuotation(parameters);
     }
@@ -126,6 +198,7 @@ public class QuoteListener extends WrappingListener
     @Override
     public void beginGroup(Map<String, String> parameters)
     {
+        beginBlock();
         this.containerDepth++;
         super.beginGroup(parameters);
     }
@@ -140,6 +213,7 @@ public class QuoteListener extends WrappingListener
     @Override
     public void beginTable(Map<String, String> parameters)
     {
+        beginBlock();
         this.containerDepth++;
         super.beginTable(parameters);
     }

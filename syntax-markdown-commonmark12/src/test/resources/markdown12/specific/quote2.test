@@ -1,0 +1,95 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Several kinds of blocks located in a quotation: consecutive non paragraph blocks share the same Group, and a
+.# nested quotation is located in the current quotation line (as with the XWiki 2.1 parser)
+.#-----------------------------------------------------
+> paragraph1
+>
+> 1. one
+> 2. two
+>
+> ```java
+> code
+> ```
+>
+> ---
+>
+> paragraph2
+>
+> > nested
+> >
+> > * item
+>
+> paragraph3
+
+after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginQuotation
+beginQuotationLine
+onWord [paragraph1]
+endQuotationLine
+beginQuotationLine
+beginGroup
+beginList [NUMBERED]
+beginListItem
+onWord [one]
+endListItem
+beginListItem
+onWord [two]
+endListItem
+endList [NUMBERED]
+onMacroStandalone [code] [language=java] [code]
+onHorizontalLine
+endGroup
+endQuotationLine
+beginQuotationLine
+onWord [paragraph2]
+beginQuotation
+beginQuotationLine
+onWord [nested]
+endQuotationLine
+beginQuotationLine
+beginGroup
+beginList [BULLETED]
+beginListItem
+onWord [item]
+endListItem
+endList [BULLETED]
+endGroup
+endQuotationLine
+endQuotation
+endQuotationLine
+beginQuotationLine
+onWord [paragraph3]
+endQuotationLine
+endQuotation
+beginParagraph
+onWord [after]
+endParagraph
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+> paragraph1
+>
+> 1. one
+> 1. two
+>
+> ```java
+> code
+> ```
+>
+> ---
+>
+> paragraph2
+>
+> > nested
+> >
+> > * item
+>
+> paragraph3
+
+after

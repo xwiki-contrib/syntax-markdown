@@ -1,0 +1,17 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# A list located in a quotation, as saved by the WYSIWYG editor: the XHTML parser wraps the blocks following the
+.# first one in a Group located in the last quotation line, which must be rendered inside the quotation
+.#-----------------------------------------------------
+<html><body><blockquote><p>quotes format example<br/>next string</p><ul><li>letter</li><li>letter</li></ul><p>after</p></blockquote></body></html>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+> quotes format example
+>
+> next string
+>
+> * letter
+> * letter
+>
+> after

@@ -1,7 +1,7 @@
 .#-----------------------------------------------------
 .input|markdown/1.2
 .# A heading inside a list item located after some text inside a quotation: the section is scoped to the list item
-.# and the quotation line containing the list isn't closed by the heading
+.# and the quotation line containing the Group wrapping the list isn't closed by the heading
 .#-----------------------------------------------------
 > before
 >
@@ -16,6 +16,9 @@ beginDocument
 beginQuotation
 beginQuotationLine
 onWord [before]
+endQuotationLine
+beginQuotationLine
+beginGroup
 beginList [BULLETED]
 beginListItem
 beginSection
@@ -26,6 +29,7 @@ onWord [text]
 endSection
 endListItem
 endList [BULLETED]
+endGroup
 endQuotationLine
 endQuotation
 beginParagraph

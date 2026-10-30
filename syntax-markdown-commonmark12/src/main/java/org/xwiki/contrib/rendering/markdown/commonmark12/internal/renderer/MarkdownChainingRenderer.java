@@ -70,34 +70,70 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private static final Pattern HTML_ATTRIBUTE_NAME = Pattern.compile("[^\\s\"'>/=\\p{Cntrl}]+");
 
     /**
-     * State of a Group being rendered.
+     * State of a block container (Group, Quotation) being rendered, whose content is rendered separately so that it
+     * can be wrapped.
      */
-    private static final class GroupState
+    private static class ContainerState
     {
         /**
-         * Whether the Group is not rendered as a div, but only its content is rendered.
+         * Whether the container is not rendered as a block (e.g. in a table cell), but only its content is rendered.
          */
-        private boolean isFlattened;
+        protected boolean isFlattened;
 
         /**
-         * The prefix to put in front of each line of the Group so that it stays inside the container in which it's
-         * located (list item, definition description).
+         * The prefix to put in front of each line of the container so that it stays inside the container in which
+         * it's located (list item, definition description).
          */
-        private String linePrefix;
+        protected String linePrefix;
 
+        protected boolean wasFirstElementRendered;
+
+        protected boolean wasAtContainerStart;
+
+        protected String previousPendingSeparator;
+    }
+
+    /**
+     * State of a Group being rendered.
+     */
+    private static final class GroupState extends ContainerState
+    {
         private boolean isInListItem;
 
-        private boolean wasFirstElementRendered;
+        /**
+         * Whether the Group is a parameterless Group located directly in a quotation, which is rendered without div
+         * since a Markdown quotation can contain any block.
+         */
+        private boolean isTransparent;
 
-        private boolean wasAtContainerStart;
-
-        private String previousPendingSeparator;
+        /**
+         * The states of the quotations in which the Group is located, restored at the end of the Group since the
+         * Group content is an independent document.
+         */
+        private Deque<QuotationState> previousQuotationStates;
 
         /**
          * Length of the rendered Group content just after rendering its first element when this element is a
          * standalone code macro rendered as an indented code block, -1 otherwise.
          */
         private int indentedCodeEndIndex = -1;
+    }
+
+    /**
+     * State of a Quotation being rendered.
+     */
+    private static final class QuotationState extends ContainerState
+    {
+        /**
+         * The list depth at the start of the quotation, so that the lists located inside the quotation are rendered
+         * relatively to it.
+         */
+        private int listDepth;
+
+        /**
+         * The definition list depth at the start of the quotation.
+         */
+        private int definitionListDepth;
     }
 
     protected ResourceReferenceSerializer linkReferenceSerializer;
@@ -109,8 +145,6 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private boolean isFirstElementRendered;
 
     private Stack<String> listStyle = new Stack<>();
-
-    private int previousQuoteDepth;
 
     private Stack<List<List<String>>> tableCells = new Stack<>();
 
@@ -124,6 +158,11 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private Stack<Map<String, String>> abbreviations = new Stack<>();
 
     private Deque<GroupState> groupStates = new ArrayDeque<>();
+
+    /**
+     * The states of the quotations being rendered, in the current Group (or document).
+     */
+    private Deque<QuotationState> quotationStates = new ArrayDeque<>();
 
     /**
      * Whether nothing has been printed yet in the current container (list item, definition description).
@@ -267,17 +306,13 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             return;
         }
 
-        state.linePrefix = getContainerLinePrefix();
-        state.isInListItem = getBlockState().isInList();
-        state.wasFirstElementRendered = this.isFirstElementRendered;
-        state.wasAtContainerStart = this.isAtContainerStart;
-        state.previousPendingSeparator = this.pendingSeparator;
+        state.isInListItem = isInList();
+        state.isTransparent = parameters.isEmpty() && isDirectlyInQuotation();
 
         // The Group content is an independent document which is rendered separately so that it can be wrapped.
-        pushPrinter(createMarkdownPrinter(new DefaultWikiPrinter()));
-        this.isFirstElementRendered = false;
-        this.isAtContainerStart = false;
-        this.pendingSeparator = null;
+        beginBufferedContainer(state);
+        state.previousQuotationStates = this.quotationStates;
+        this.quotationStates = new ArrayDeque<>();
         getListenerChain().pushAllStackableListeners();
     }
 
@@ -289,15 +324,10 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             return;
         }
 
-        MarkdownEscapeWikiPrinter groupPrinter = getMarkdownPrinter();
-        groupPrinter.flush();
-        String content = groupPrinter.toString();
+        getMarkdownPrinter().flush();
         getListenerChain().popAllStackableListeners();
-        popPrinter();
-
-        this.isFirstElementRendered = state.wasFirstElementRendered;
-        this.isAtContainerStart = state.wasAtContainerStart;
-        this.pendingSeparator = state.previousPendingSeparator;
+        this.quotationStates = state.previousQuotationStates;
+        String content = endBufferedContainer(state);
 
         if (parameters.isEmpty() && state.isInListItem && state.indentedCodeEndIndex == content.length()) {
             // A parameterless Group whose only content is an indented code block, located in a list item, is the
@@ -309,6 +339,15 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         }
 
         printGroupSeparator(state);
+
+        if (state.isTransparent) {
+            // A parameterless Group located directly in a quotation is the Group that the Markdown and XHTML parsers
+            // create around the blocks of a quotation (since a quotation line can only contain inline content), and
+            // thus doesn't need to be rendered.
+            print(prefixLines(content, state.linePrefix, true));
+            this.pendingSeparator = state.linePrefix;
+            return;
+        }
 
         StringBuilder builder = new StringBuilder();
         builder.append("<div");
@@ -328,7 +367,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         this.pendingSeparator = state.linePrefix;
     }
 
-    private void printGroupSeparator(GroupState state)
+    private void printGroupSeparator(ContainerState state)
     {
         if (!state.wasAtContainerStart) {
             if (this.isFirstElementRendered) {
@@ -339,19 +378,93 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         }
     }
 
+    /**
+     * Start rendering the content of a block container separately, so that it can be wrapped once it's ended.
+     *
+     * @param state the state of the container, in which the current rendering state is saved
+     */
+    private void beginBufferedContainer(ContainerState state)
+    {
+        state.linePrefix = getContainerLinePrefix();
+        state.wasFirstElementRendered = this.isFirstElementRendered;
+        state.wasAtContainerStart = this.isAtContainerStart;
+        state.previousPendingSeparator = this.pendingSeparator;
+
+        pushPrinter(createMarkdownPrinter(new DefaultWikiPrinter()));
+        this.isFirstElementRendered = false;
+        this.isAtContainerStart = false;
+        this.pendingSeparator = null;
+    }
+
+    /**
+     * Stop rendering the content of a block container separately, and restore the rendering state saved when it
+     * started.
+     *
+     * @param state the state of the container
+     * @return the rendered content of the container
+     */
+    private String endBufferedContainer(ContainerState state)
+    {
+        MarkdownEscapeWikiPrinter containerPrinter = getMarkdownPrinter();
+        containerPrinter.flush();
+        String content = containerPrinter.toString();
+        popPrinter();
+
+        this.isFirstElementRendered = state.wasFirstElementRendered;
+        this.isAtContainerStart = state.wasAtContainerStart;
+        this.pendingSeparator = state.previousPendingSeparator;
+
+        return content;
+    }
+
     private String getContainerLinePrefix()
     {
         String prefix;
-        if (getBlockState().isInList()) {
+        if (isInList()) {
             // List item content must be aligned with the first character following the list item marker.
             int markerLength = StringUtils.contains(this.listStyle.peek(), '1') ? 3 : 2;
-            prefix = StringUtils.repeat(' ', (getBlockState().getListDepth() - 1) * 4 + markerLength);
-        } else if (getBlockState().isInDefinitionList()) {
-            prefix = StringUtils.repeat(' ', 4 * getBlockState().getDefinitionListDepth());
+            prefix = StringUtils.repeat(' ', (getListDepth() - 1) * 4 + markerLength);
+        } else if (getDefinitionListDepth() > 0) {
+            prefix = StringUtils.repeat(' ', 4 * getDefinitionListDepth());
         } else {
             prefix = "";
         }
         return prefix;
+    }
+
+    /**
+     * @return the list depth, relative to the quotation in which the current block is located (since the content of
+     *     a quotation is rendered separately)
+     */
+    private int getListDepth()
+    {
+        QuotationState quotationState = this.quotationStates.peek();
+        return getBlockState().getListDepth() - (quotationState != null ? quotationState.listDepth : 0);
+    }
+
+    private boolean isInList()
+    {
+        return getListDepth() > 0;
+    }
+
+    /**
+     * @return the definition list depth, relative to the quotation in which the current block is located
+     */
+    private int getDefinitionListDepth()
+    {
+        QuotationState quotationState = this.quotationStates.peek();
+        return getBlockState().getDefinitionListDepth()
+            - (quotationState != null ? quotationState.definitionListDepth : 0);
+    }
+
+    /**
+     * @return {@code true} if the current block is located directly in a quotation (or a quotation line), i.e. not in
+     *     a list or definition list located inside the quotation
+     */
+    private boolean isDirectlyInQuotation()
+    {
+        return !this.quotationStates.isEmpty() && !this.quotationStates.peek().isFlattened && !isInList()
+            && getDefinitionListDepth() == 0;
     }
 
     private static String prefixLines(String text, String prefix, boolean skipFirstLine)
@@ -418,7 +531,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginList(ListType listType, Map<String, String> parameters)
     {
-        if (getBlockState().getListDepth() == 1) {
+        if (getListDepth() == 1) {
             printEmptyLine();
         } else {
             print("\n");
@@ -447,7 +560,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             print("\n");
         }
 
-        print(StringUtils.repeat(" ", (getBlockState().getListDepth() - 1) * 4));
+        print(StringUtils.repeat(" ", (getListDepth() - 1) * 4));
         print(this.listStyle.peek());
         if (StringUtils.contains(this.listStyle.peek(), '1')) {
             print(".");
@@ -462,6 +575,8 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         // The next list item doesn't need to be separated from a Group ending the current one.
         this.pendingSeparator = null;
+        // The list item may be empty: the blocks following it must not be considered as its first content.
+        this.isAtContainerStart = false;
         super.endListItem();
     }
 
@@ -502,7 +617,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             print("\n");
         }
 
-        print(StringUtils.repeat(' ', 4 * (getBlockState().getDefinitionListDepth() - 1)) + ":   ");
+        print(StringUtils.repeat(' ', 4 * (getDefinitionListDepth() - 1)) + ":   ");
         markBlockContentStart();
         this.isAtContainerStart = true;
     }
@@ -511,7 +626,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     public void beginDefinitionTerm()
     {
         printEmptyLine();
-        print(StringUtils.repeat(' ', 4 * (getBlockState().getDefinitionListDepth() - 1)));
+        print(StringUtils.repeat(' ', 4 * (getDefinitionListDepth() - 1)));
         markBlockContentStart();
     }
 
@@ -519,6 +634,9 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     public void endDefinitionDescription()
     {
         getMarkdownPrinter().flush();
+        // The definition description may be empty: the blocks following it must not be considered as its first
+        // content.
+        this.isAtContainerStart = false;
     }
 
     @Override
@@ -530,32 +648,68 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginQuotation(Map<String, String> parameters)
     {
-        if (!getBlockState().isInQuotationLine()) {
-            printEmptyLine();
+        QuotationState state = new QuotationState();
+        // Markdown tables can't contain blocks, thus only the quotation content is rendered.
+        if (getBlockState().isInTableCell()) {
+            state.isFlattened = true;
+        } else {
+            // The quotation content is rendered separately so that all its lines can be prefixed once it's ended.
+            beginBufferedContainer(state);
         }
-        this.previousQuoteDepth = getBlockState().getQuotationDepth();
+        state.listDepth = getBlockState().getListDepth();
+        state.definitionListDepth = getBlockState().getDefinitionListDepth();
+        this.quotationStates.push(state);
+    }
+
+    @Override
+    public void endQuotation(Map<String, String> parameters)
+    {
+        QuotationState state = this.quotationStates.pop();
+        if (state.isFlattened) {
+            return;
+        }
+
+        String content = endBufferedContainer(state);
+
+        printGroupSeparator(state);
+        StringBuilder builder = new StringBuilder();
+        String[] lines = content.split(NEW_LINE, -1);
+        for (int i = 0; i < lines.length; i++) {
+            if (i > 0) {
+                builder.append(NEW_LINE);
+            }
+            // Don't generate trailing spaces on empty lines.
+            builder.append(lines[i].isEmpty() ? ">" : "> ").append(lines[i]);
+        }
+        print(prefixLines(builder.toString(), state.linePrefix, true));
+
+        // Any content following the quotation in the same container must be separated from it by an empty line,
+        // otherwise it would be considered part of the quotation (lazy continuation line).
+        this.pendingSeparator = state.linePrefix;
     }
 
     @Override
     public void beginQuotationLine()
     {
-        if (getBlockState().getQuotationLineIndex() > 0) {
-            print("\n");
-            print(">");
-            if (this.previousQuoteDepth > 2) {
-                print(StringUtils.repeat(" >", this.previousQuoteDepth - 2));
+        if (this.quotationStates.peek().isFlattened) {
+            if (getBlockState().getQuotationLineIndex() > 0) {
+                print(" ");
             }
-            print("\n");
+        } else {
+            // Each quotation line is rendered as a paragraph of the quotation.
+            this.isAtContainerStart = false;
+            printEmptyLine();
+            this.isAtContainerStart = true;
+            markBlockContentStart();
         }
-
-        print(StringUtils.repeat("> ", getBlockState().getQuotationDepth()));
-        markBlockContentStart();
     }
 
     @Override
     public void endQuotationLine()
     {
         getMarkdownPrinter().flush();
+        // The blocks following the quotation line (even if it's empty) must be separated from it.
+        this.isAtContainerStart = false;
     }
 
     @Override
@@ -934,7 +1088,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                     boolean isFirstGroupElement = groupState != null && !groupState.isFlattened
                         && getMarkdownPrinter().toString().isEmpty() && getMarkdownPrinter().getBuffer().length() == 0;
                     String lines[] = content.split("\\r?\\n");
-                    int spaces = getBlockState().isInList() ? (getBlockState().getListDepth() - 1) * 4 + 2 : 0;
+                    int spaces = isInList() ? (getListDepth() - 1) * 4 + 2 : 0;
                     for (int i = 0; i < lines.length; i++) {
                         // If we're in a list, for each list item level, we add 4 + 2 more spaces, see spec at
                         // https://spec.commonmark.org/0.28/#list-items
