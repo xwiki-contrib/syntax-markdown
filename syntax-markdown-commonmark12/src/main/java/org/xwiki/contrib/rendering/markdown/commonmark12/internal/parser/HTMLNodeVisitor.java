@@ -25,6 +25,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +42,7 @@ import com.vladsch.flexmark.ext.wikilink.WikiLinkExtension;
 import com.vladsch.flexmark.ext.xwiki.macros.MacroExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.ast.Document;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
@@ -69,6 +71,26 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
         DefinitionExtension.class
     ));
 
+    /**
+     * A line break HTML tag without any attribute (e.g. {@code <br>}, {@code <br/>} or {@code <br />}), in any case.
+     */
+    private static final Pattern LINE_BREAK_PATTERN = Pattern.compile("<br\\s*/?>", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * The document for which {@link #inlineHTMLParser} and {@link #inlineHTMLRenderer} have been created.
+     */
+    private Document inlineHTMLDocument;
+
+    /**
+     * The parser used to parse the Markdown embedded in inline HTML, created once per document.
+     */
+    private Parser inlineHTMLParser;
+
+    /**
+     * The renderer used to render as HTML the Markdown embedded in inline HTML, created once per document.
+     */
+    private HtmlRenderer inlineHTMLRenderer;
+
     static <V extends HTMLNodeVisitor> VisitHandler<?>[] VISIT_HANDLERS(final V visitor)
     {
         return new VisitHandler<?>[]{
@@ -85,23 +107,53 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
         super(visitor, listeners);
     }
 
+    /**
+     * @param node the node to check
+     * @return {@code true} if the passed node is an inline line break HTML tag without attributes (which is equivalent
+     *     to a new line), {@code false} otherwise
+     */
+    static boolean isLineBreak(Node node)
+    {
+        return node instanceof HtmlInline && LINE_BREAK_PATTERN.matcher(node.getChars()).matches();
+    }
+
     public void visit(HtmlInline node)
     {
-        // When we have an inline HTML macro with its raw content, we need to parse it and render it as HTML to
-        // support possibly embedded Markdown content. We use the same options (emulation profile, extensions) as the
-        // ones used to parse the whole document so that the embedded Markdown is parsed the same way.
-        MutableDataSet options = new MutableDataSet(node.getDocument());
-        // We already know we are in an inline context, so we disable block parsing.
-        options.set(Parser.HTML_BLOCK_PARSER, false);
-        options.set(Parser.EXTENSIONS, getInlineHTMLExtensions(Parser.EXTENSIONS.get(options)));
-        Parser parser = Parser.builder(options).build();
-        Node parsedNode = parser.parse(node.getChars().toString());
+        // A line break HTML tag without attributes is equivalent to a new line, which we generate instead of an HTML
+        // macro so that it can be edited and rendered back as Markdown (e.g. the Markdown renderer uses such tag for
+        // new lines in table cells since table rows have to be on a single line). Note that a line break tag found
+        // inside some HTML element has been merged with it and is thus kept in the generated HTML macro.
+        if (isLineBreak(node)) {
+            getListener().onNewLine();
+            return;
+        }
 
-        HtmlRenderer renderer = HtmlRenderer.builder(options).build();
-        String outputHtml = renderer.render(parsedNode);
+        String html = node.getChars().toString();
+
+        // When we have an inline HTML macro with its raw content, we need to parse it and render it as HTML to
+        // support possibly embedded Markdown content.
+        initializeInlineHTMLParser(node.getDocument());
+        Node parsedNode = this.inlineHTMLParser.parse(html);
+        String outputHtml = this.inlineHTMLRenderer.render(parsedNode);
 
         // Parsing the node on its own will put in a paragraph, so we remove <p></p> tags and linebreak from the output.
         generateHTMLMacro(StringUtils.removeEnd(StringUtils.removeStart(outputHtml, "<p>"), "</p>\n"), true);
+    }
+
+    private void initializeInlineHTMLParser(Document document)
+    {
+        // We use the same options (emulation profile, extensions, reference repository) as the ones used to parse the
+        // whole document so that the embedded Markdown is parsed the same way. Since these options depend only on the
+        // document, the parser and renderer are created only once per document.
+        if (this.inlineHTMLDocument != document) {
+            MutableDataSet options = new MutableDataSet(document);
+            // We already know we are in an inline context, so we disable block parsing.
+            options.set(Parser.HTML_BLOCK_PARSER, false);
+            options.set(Parser.EXTENSIONS, getInlineHTMLExtensions(Parser.EXTENSIONS.get(options)));
+            this.inlineHTMLParser = Parser.builder(options).build();
+            this.inlineHTMLRenderer = HtmlRenderer.builder(options).build();
+            this.inlineHTMLDocument = document;
+        }
     }
 
     private List<Extension> getInlineHTMLExtensions(Collection<Extension> extensions)

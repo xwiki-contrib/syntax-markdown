@@ -1,0 +1,33 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that inline line break HTML tags without attributes are parsed as new lines, whatever their case and form.
+.#-----------------------------------------------------
+a<br>b<br/>c<br />d<BR>e
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onNewLine
+onWord [b]
+onNewLine
+onWord [c]
+onNewLine
+onWord [d]
+onNewLine
+onWord [e]
+endParagraph
+endDocument
+.#-----------------------------------------------------
+.expect|xhtml/1.0
+.#-----------------------------------------------------
+<p>a<br/>b<br/>c<br/>d<br/>e</p>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+a  
+b  
+c  
+d  
+e

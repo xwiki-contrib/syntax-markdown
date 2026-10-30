@@ -2,7 +2,7 @@
 .inputexpect|markdown/1.2
 .# Verify that inline HTML void elements don't swallow the rest of the paragraph, which is still parsed as Markdown.
 .#-----------------------------------------------------
-a <br> [[Page]] ~~s~~ b <img src="x.png"> **c**
+a <wbr> [[Page]] ~~s~~ b <img src="x.png"> **c**
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -10,7 +10,7 @@ beginDocument
 beginParagraph
 onWord [a]
 onSpace
-onMacroInline [html] [clean=false] [<br>]
+onMacroInline [html] [clean=false] [<wbr>]
 onSpace
 beginLink [Typed = [false] Type = [doc] Reference = [Page]] [false]
 endLink [Typed = [false] Type = [doc] Reference = [Page]] [false]

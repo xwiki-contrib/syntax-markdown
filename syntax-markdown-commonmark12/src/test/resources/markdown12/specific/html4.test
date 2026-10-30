@@ -3,7 +3,7 @@
 .inputexpect|markdown/1.2
 .# Test inline closing, self-closing and non closed XHTML tags
 .#-----------------------------------------------------
-hello<br/>closing tags are parsed on their own</a> and <em>non closed tags too
+hello<wbr/>closing tags are parsed on their own</a> and <em>non closed tags too
 
 the paragraph
 .#-----------------------------------------------------
@@ -12,9 +12,9 @@ the paragraph
 beginDocument
 beginParagraph
 onWord [hello]
-beginMacroMarkerInline [html] [clean=false] [<br/>]
-onRawText [<br/>] [xhtml/1.0]
-endMacroMarkerInline [html] [clean=false] [<br/>]
+beginMacroMarkerInline [html] [clean=false] [<wbr/>]
+onRawText [<wbr/>] [xhtml/1.0]
+endMacroMarkerInline [html] [clean=false] [<wbr/>]
 onWord [closing]
 onSpace
 onWord [tags]
@@ -54,4 +54,4 @@ endDocument
 .#-----------------------------------------------------
 .expect|xhtml/1.0
 .#-----------------------------------------------------
-<p>hello<br/>closing tags are parsed on their own</a> and <em>non closed tags too</p><p>the paragraph</p>
+<p>hello<wbr/>closing tags are parsed on their own</a> and <em>non closed tags too</p><p>the paragraph</p>

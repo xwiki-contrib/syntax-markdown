@@ -1,0 +1,32 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that inline line break HTML tags are parsed as new lines inside table cells.
+.#-----------------------------------------------------
+| a<br>b |
+| --- |
+| c<br/>d |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [a]
+onNewLine
+onWord [b]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [c]
+onNewLine
+onWord [d]
+endTableCell
+endTableRow
+endTable
+endDocument
+.#-----------------------------------------------------
+.expect|xhtml/1.0
+.#-----------------------------------------------------
+<table><tr><th scope="col">a<br/>b</th></tr><tr><td>c<br/>d</td></tr></table>

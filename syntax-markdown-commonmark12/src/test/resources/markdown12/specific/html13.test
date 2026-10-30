@@ -1,0 +1,19 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Verify that inline line break HTML tags with attributes, or inside some other HTML element, are kept as HTML.
+.#-----------------------------------------------------
+a<br class="x">b <span>c<br>d</span> e
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onMacroInline [html] [clean=false] [<br class="x">]
+onWord [b]
+onSpace
+onMacroInline [html] [clean=false] [<span>c<br>d</span>]
+onSpace
+onWord [e]
+endParagraph
+endDocument

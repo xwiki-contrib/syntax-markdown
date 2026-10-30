@@ -1,0 +1,19 @@
+.#-----------------------------------------------------
+.input|markdown+github/1.0
+.# Verify that inline line break HTML tags without attributes are parsed as new lines.
+.#-----------------------------------------------------
+a<br>b<BR/>c<br class="x">d
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onNewLine
+onWord [b]
+onNewLine
+onWord [c]
+onMacroInline [html] [clean=false] [<br class="x">]
+onWord [d]
+endParagraph
+endDocument
