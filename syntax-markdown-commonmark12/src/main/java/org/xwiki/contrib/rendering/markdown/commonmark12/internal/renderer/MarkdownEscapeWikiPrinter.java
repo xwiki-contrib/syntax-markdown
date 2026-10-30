@@ -138,6 +138,16 @@ public class MarkdownEscapeWikiPrinter extends LookaheadWikiPrinter
         return this.escapeHandler.escapeBlockHTML(html);
     }
 
+    /**
+     * @param raw some raw content to print
+     * @return the raw content where the pipes that would be considered as table cell separators are escaped
+     * @since 8.10.0
+     */
+    public String escapeRawPipes(String raw)
+    {
+        return this.escapeHandler.escapeRawPipes(raw);
+    }
+
     public void setOnNewLine(boolean onNewLine)
     {
         this.escapeHandler.setOnNewLine(onNewLine);
@@ -150,6 +160,15 @@ public class MarkdownEscapeWikiPrinter extends LookaheadWikiPrinter
     public void setInLinkLabel(boolean inLinkLabel)
     {
         this.escapeHandler.setInLinkLabel(inLinkLabel);
+    }
+
+    /**
+     * @param inTableCell true if the printed text is located inside a table cell
+     * @since 8.10.0
+     */
+    public void setInTableCell(boolean inTableCell)
+    {
+        this.escapeHandler.setInTableCell(inTableCell);
     }
 
     public boolean isOnNewLine()

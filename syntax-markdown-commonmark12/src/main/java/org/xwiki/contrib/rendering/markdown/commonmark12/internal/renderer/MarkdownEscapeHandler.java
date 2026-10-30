@@ -65,8 +65,10 @@ public class MarkdownEscapeHandler
         // Definition descriptions
         Pattern.compile("\\p{Blank}*(:)(?:\\p{Blank}|$)"));
 
+    // Note that the HTML syntax recognized by the Markdown parser (flexmark-java) excludes the curly brackets from the
+    // unquoted attribute values.
     private static final String HTML_ATTRIBUTE =
-        "\\s+[a-zA-Z_:][a-zA-Z0-9_.:-]*(?:\\s*=\\s*(?:[^\\s\"'=<>`]+|'[^']*'|\"[^\"]*\"))?";
+        "\\s+[a-zA-Z_:][a-zA-Z0-9_.:-]*(?:\\s*=\\s*(?:[^\\x00-\\x20\"'=<>`{}]+|'[^']*'|\"[^\"]*\"))?";
 
     // The repetition of the attributes is possessive to avoid a stack overflow on large content (it doesn't change the
     // matched strings since backtracking into it can't lead to a match).
@@ -75,10 +77,14 @@ public class MarkdownEscapeHandler
     private static final String HTML_CLOSING_TAG = "</[a-zA-Z][a-zA-Z0-9-]*\\s*>";
 
     /**
-     * HTML tags, comments, processing instructions, declarations and CDATA sections, which are kept verbatim.
+     * HTML tags, comments, processing instructions, declarations and CDATA sections, which are kept verbatim. They
+     * must match exactly the inline HTML recognized by the Markdown parser (see
+     * https://spec.commonmark.org/0.29/#raw-html), otherwise some text that is read back as text would not be escaped
+     * (e.g. a pipe splitting a table cell). The repetition in the comments is possessive to avoid a stack overflow on
+     * large content.
      */
     private static final Pattern HTML_TAG_PATTERN = Pattern.compile(HTML_OPEN_TAG + '|' + HTML_CLOSING_TAG
-        + "|<!--[\\s\\S]*?-->|<\\?[\\s\\S]*?\\?>|<![a-zA-Z][^>]*>|<!\\[CDATA\\[[\\s\\S]*?\\]\\]>");
+        + "|<!---->|<!--(?:-?[^>-])(?:-?[^-])*+-->|<\\?.*?\\?>|<![a-zA-Z]+\\s+[^>]*>|<!\\[CDATA\\[[\\s\\S]*?\\]\\]>");
 
     private static final String HTML_BLOCK_INDENTATION = "^ {0,3}";
 
@@ -117,6 +123,8 @@ public class MarkdownEscapeHandler
 
     private boolean inLinkLabel;
 
+    private boolean inTableCell;
+
     public void setOnNewLine(boolean onNewLine)
     {
         this.onNewLine = onNewLine;
@@ -135,6 +143,16 @@ public class MarkdownEscapeHandler
     public void setInLinkLabel(boolean inLinkLabel)
     {
         this.inLinkLabel = inLinkLabel;
+    }
+
+    /**
+     * @param inTableCell true if the escaped text is located inside a table cell, in which case the pipes (that would
+     *     be considered as cell separators) are escaped too
+     * @since 8.10.0
+     */
+    public void setInTableCell(boolean inTableCell)
+    {
+        this.inTableCell = inTableCell;
     }
 
     /**
@@ -163,6 +181,45 @@ public class MarkdownEscapeHandler
     public String escapeInlineHTML(String html)
     {
         return escapeHTML(html, isOnNewLine());
+    }
+
+    /**
+     * Escape the pipes located between the HTML tags of some raw content located in a table cell, which would be
+     * considered as cell separators, keeping the rest of the content verbatim. The content is kept unchanged when not
+     * located in a table cell.
+     *
+     * @param raw the raw content to escape
+     * @return the raw content with the pipes located between the HTML tags escaped
+     * @since 8.10.0
+     */
+    public String escapeRawPipes(String raw)
+    {
+        if (!this.inTableCell) {
+            return raw;
+        }
+        StringBuilder builder = new StringBuilder(raw.length());
+        Matcher matcher = HTML_TAG_PATTERN.matcher(raw);
+        int position = 0;
+        while (matcher.find()) {
+            appendEscapedPipes(builder, raw, position, matcher.start());
+            builder.append(matcher.group());
+            position = matcher.end();
+        }
+        appendEscapedPipes(builder, raw, position, raw.length());
+        return builder.toString();
+    }
+
+    private void appendEscapedPipes(StringBuilder builder, String text, int start, int end)
+    {
+        boolean isEscaped = false;
+        for (int i = start; i < end; i++) {
+            char c = text.charAt(i);
+            if (c == '|' && !isEscaped) {
+                builder.append(ESCAPE_CHAR);
+            }
+            builder.append(c);
+            isEscaped = c == '\\' && !isEscaped;
+        }
     }
 
     /**
@@ -304,6 +361,12 @@ public class MarkdownEscapeHandler
                 case '&':
                     // HTML entities
                     result = escapeEntities && ENTITY_PATTERN.matcher(text).region(index, text.length()).lookingAt();
+                    break;
+                case '|':
+                    // Table cell separator. Pipes located inside link labels are escaped too: the link would be broken
+                    // by a pipe located inside some emphasis of its label. Note that the wiki link labels encode them
+                    // as HTML entities instead.
+                    result = this.inTableCell;
                     break;
                 case '!':
                     // Image syntax when the text is followed by some link syntax

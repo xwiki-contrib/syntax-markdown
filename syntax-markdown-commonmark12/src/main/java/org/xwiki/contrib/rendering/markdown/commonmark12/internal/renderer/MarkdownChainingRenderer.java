@@ -93,6 +93,8 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private static final String TABLE_CELL_LINE_BREAK = "<br/>";
 
+    private static final Pattern TABLE_CELL_NEW_LINES = Pattern.compile(LINE_ENDINGS);
+
     private static final String TABLE_ALIGN_PARAMETER = "align";
 
     private static final String TABLE_ALIGN_LEFT = "left";
@@ -1464,13 +1466,12 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         String cellText = cellPrinter.toString();
         popPrinter();
 
-        // A table row must be on a single line, and a non escaped pipe would be considered as a cell separator.
-        // Blocks separated by an empty line (e.g. paragraphs) are separated by 2 line breaks to keep them visually
-        // separated.
+        // A table row must be on a single line. Blocks separated by an empty line (e.g. paragraphs) are separated by
+        // 2 line breaks to keep them visually separated. Note that the pipes of the text, which would be considered
+        // as cell separators, have been escaped when printed (see createMarkdownPrinter).
         cellText = TABLE_CELL_LINE_BREAKS.matcher(cellText.trim()).replaceAll(
             result -> TABLE_CELL_EMPTY_LINE.matcher(result.group()).find()
                 ? TABLE_CELL_LINE_BREAK + TABLE_CELL_LINE_BREAK : TABLE_CELL_LINE_BREAK);
-        cellText = escapeTableCellPipes(cellText);
 
         List<TableCellState> cellsInLastRow = this.tableCells.peek().get(this.tableCells.peek().size() - 1);
         cellsInLastRow.add(new TableCellState(cellText, getTableCellAlignment(parameters),
@@ -1481,68 +1482,6 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         // Invalid row spans (not a number, lower than 1) are ignored.
         return NumberUtils.toInt(StringUtils.trim(parameters.get(TABLE_ROWSPAN_PARAMETER)), 1);
-    }
-
-    /**
-     * Escape the pipes of a table cell content that would otherwise be considered as cell separators. Pipes already
-     * escaped are kept as is, as well as the pipes located in code spans: the table parser doesn't split cells inside
-     * code spans and their content is verbatim (a backslash would be kept).
-     *
-     * @param cellText the table cell content
-     * @return the table cell content with the pipes escaped
-     */
-    private static String escapeTableCellPipes(String cellText)
-    {
-        StringBuilder builder = new StringBuilder(cellText.length());
-        int i = 0;
-        while (i < cellText.length()) {
-            char c = cellText.charAt(i);
-            if (c == '\\' && i + 1 < cellText.length()) {
-                // Escaped character.
-                builder.append(cellText, i, i + 2);
-                i += 2;
-            } else if (c == '`') {
-                // A code span ends with a backtick string of the same length as the one starting it.
-                int fenceEnd = i;
-                while (fenceEnd < cellText.length() && cellText.charAt(fenceEnd) == '`') {
-                    fenceEnd++;
-                }
-                String fence = cellText.substring(i, fenceEnd);
-                int closingFence = indexOfBacktickString(cellText, fence, fenceEnd);
-                int end = closingFence < 0 ? fenceEnd : closingFence + fence.length();
-                builder.append(cellText, i, end);
-                i = end;
-            } else {
-                if (c == '|') {
-                    builder.append('\\');
-                }
-                builder.append(c);
-                i++;
-            }
-        }
-        return builder.toString();
-    }
-
-    /**
-     * @param text the text in which to look for the backtick string
-     * @param backtickString the backtick string to look for
-     * @param fromIndex the index from which to start looking
-     * @return the index of the first backtick string of the exact same length (i.e. not part of a longer backtick
-     *     string), -1 if not found
-     */
-    private static int indexOfBacktickString(String text, String backtickString, int fromIndex)
-    {
-        int index = text.indexOf(backtickString, fromIndex);
-        int end = index + backtickString.length();
-        while (index >= 0 && end < text.length() && text.charAt(end) == '`') {
-            // Part of a longer backtick string: skip it entirely.
-            while (end < text.length() && text.charAt(end) == '`') {
-                end++;
-            }
-            index = text.indexOf(backtickString, end);
-            end = index + backtickString.length();
-        }
-        return index;
     }
 
     private String getTableCellAlignment(Map<String, String> parameters)
@@ -1609,7 +1548,14 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             if (!getBlockState().isInLine()) {
                 printEmptyLine();
             }
-            print(text);
+            String rawText = text;
+            if (isInTableCell()) {
+                // Markdown table cells can only contain inline content on a single line, thus the line endings are
+                // replaced by spaces (they would be rendered as line breaks otherwise, even inside an HTML tag), and
+                // the pipes located outside the HTML tags, which would be considered as cell separators, are escaped.
+                rawText = getMarkdownPrinter().escapeRawPipes(TABLE_CELL_NEW_LINES.matcher(text).replaceAll(" "));
+            }
+            print(rawText);
         }
     }
 
@@ -1630,7 +1576,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                     String key = abbrElement.getText();
                     String value = abbrElement.getAttributeValue("title");
                     this.abbreviations.peek().put(key, value);
-                    print(key);
+                    print(getMarkdownPrinter().escapeRawPipes(key));
                     isHandled = true;
                 }
             } catch (Exception e) {
@@ -1642,7 +1588,15 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     public MarkdownEscapeWikiPrinter createMarkdownPrinter(WikiPrinter printer)
     {
-        return new MarkdownEscapeWikiPrinter(printer, (XWikiSyntaxListenerChain) getListenerChain());
+        MarkdownEscapeWikiPrinter markdownPrinter =
+            new MarkdownEscapeWikiPrinter(printer, (XWikiSyntaxListenerChain) getListenerChain());
+        // The pipes of the text located in a table cell (including in the content of the elements located in the
+        // cell, e.g. a heading) must be escaped since they would be considered as cell separators. This is done
+        // when printing the text, and not on the whole cell content, since the pipes located inside some syntax
+        // (e.g. a link, a macro, an HTML tag or a code span) must not be escaped: the cells are split after parsing
+        // the inline content of the row, and a backslash would be kept in their content.
+        markdownPrinter.setInTableCell(isInTableCell());
+        return markdownPrinter;
     }
 
     /**

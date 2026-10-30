@@ -1,0 +1,223 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Test that the pipes located inside some syntax in table cells (see table30) are read back unchanged and don't
+.# split the cells
+.#-----------------------------------------------------
+|      Element      | Content |
+| ----------------- | --- |
+|       Text        | a\|b `c|d` |
+|       Link        | [[label|Space.Page]] |
+|    Link label     | [[a&#124;b|Space.Page]] |
+|     URL link      | [a\|b](https://www.xwiki.org/) <https://www.xwiki.org/a|b> |
+| URL link emphasis | [_a\|b_](https://www.xwiki.org/) |
+|       Image       | ![[a.png|a.png]] |
+|     URL image     | ![a\|b](https://www.xwiki.org/a.png) |
+|       Macro       | {{info title="a|b"/}} {{info}}c|d{{/info}} |
+|       HTML        | <span title="a|b">c\|d</span> |
+|  HTML backticks   | <span title="`">\|a</span><span title="`">b</span> |
+|   Invalid HTML    | \<!-- a -- b\|c --> \<span title={\|}>d</span> |
+|       Bold        | **a\|b ![[a.png]]** |
+|     Bold URL      | **[a\|b](https://www.xwiki.org/) ![a\|b](https://www.xwiki.org/a.png)** |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [Element]
+endTableHeadCell
+beginTableHeadCell
+onWord [Content]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [Text]
+endTableCell
+beginTableCell
+onWord [a]
+onSpecialSymbol [|]
+onWord [b]
+onSpace
+onMacroInline [code] [language=none] [c|d]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [Link]
+endTableCell
+beginTableCell
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onWord [label]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [Link]
+onSpace
+onWord [label]
+endTableCell
+beginTableCell
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onWord [a]
+onSpecialSymbol [|]
+onWord [b]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [URL]
+onSpace
+onWord [link]
+endTableCell
+beginTableCell
+beginLink [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/]] [false]
+onWord [a]
+onSpecialSymbol [|]
+onWord [b]
+endLink [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/]] [false]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/a|b]] [true]
+endLink [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/a|b]] [true]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [URL]
+onSpace
+onWord [link]
+onSpace
+onWord [emphasis]
+endTableCell
+beginTableCell
+beginLink [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/]] [false]
+beginFormat [ITALIC]
+onWord [a]
+onSpecialSymbol [|]
+onWord [b]
+endFormat [ITALIC]
+endLink [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/]] [false]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [Image]
+endTableCell
+beginTableCell
+onImage [Typed = [false] Type = [attach] Reference = [a.png]] [false]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [URL]
+onSpace
+onWord [image]
+endTableCell
+beginTableCell
+onImage [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/a.png]] [false] [[alt]=[a|b]]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [Macro]
+endTableCell
+beginTableCell
+onMacroInline [info] [title=a|b]
+onSpace
+onMacroInline [info] [] [c|d]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [HTML]
+endTableCell
+beginTableCell
+onMacroInline [html] [clean=false] [<span title="a|b">c|d</span>]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [HTML]
+onSpace
+onWord [backticks]
+endTableCell
+beginTableCell
+onMacroInline [html] [clean=false] [<span title="`">|a</span>]
+onMacroInline [html] [clean=false] [<span title="`">b</span>]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [Invalid]
+onSpace
+onWord [HTML]
+endTableCell
+beginTableCell
+onSpecialSymbol [<]
+onSpecialSymbol [!]
+onSpecialSymbol [-]
+onSpecialSymbol [-]
+onSpace
+onWord [a]
+onSpace
+onSpecialSymbol [-]
+onSpecialSymbol [-]
+onSpace
+onWord [b]
+onSpecialSymbol [|]
+onWord [c]
+onSpace
+onSpecialSymbol [-]
+onSpecialSymbol [-]
+onSpecialSymbol [>]
+onSpace
+onSpecialSymbol [<]
+onWord [span]
+onSpace
+onWord [title]
+onSpecialSymbol [=]
+onSpecialSymbol [{]
+onSpecialSymbol [|]
+onSpecialSymbol [}]
+onSpecialSymbol [>]
+onWord [d]
+onMacroInline [html] [clean=false] [</span>]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [Bold]
+endTableCell
+beginTableCell
+beginFormat [BOLD]
+onWord [a]
+onSpecialSymbol [|]
+onWord [b]
+onSpace
+onImage [Typed = [false] Type = [attach] Reference = [a.png]] [false]
+endFormat [BOLD]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [Bold]
+onSpace
+onWord [URL]
+endTableCell
+beginTableCell
+beginFormat [BOLD]
+beginLink [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/]] [false]
+onWord [a]
+onSpecialSymbol [|]
+onWord [b]
+endLink [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/]] [false]
+onSpace
+onImage [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/a.png]] [false] [[alt]=[a|b]]
+endFormat [BOLD]
+endTableCell
+endTableRow
+endTable
+endDocument

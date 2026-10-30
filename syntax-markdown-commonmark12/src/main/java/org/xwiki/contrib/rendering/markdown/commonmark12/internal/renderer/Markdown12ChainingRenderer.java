@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -52,6 +54,10 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     private static final String FORMAT_THREE_PARAMS = "[[%s|%s|%s]]";
 
+    private static final String WIKI_LINK_LABEL_PIPE = "&#124;";
+
+    private static final String ALT_PARAMETER = "alt";
+
     private static final String PERCENT_ENCODING = "%%%02X";
 
     private static final char DEL = 127;
@@ -75,6 +81,16 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     private boolean isStrikethroughSupported;
 
     /**
+     * The number of emphasis (e.g. bold) currently open, which are written using delimiters (e.g. "**").
+     */
+    private int emphasisDepth;
+
+    /**
+     * The number of emphasis open outside the tables being rendered.
+     */
+    private Deque<Integer> tableEmphasisDepths = new ArrayDeque<>();
+
+    /**
      * @param listenerChain the chain of listener filters used to compute various states
      * @param linkReferenceSerializer the component to use for converting {@link ResourceReference} links to strings
      * @param imageReferenceSerializer the component to use for converting {@link ResourceReference} images to strings
@@ -91,6 +107,9 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     @Override
     public void beginFormat(Format format, Map<String, String> parameters)
     {
+        if (isEmphasis(format)) {
+            this.emphasisDepth++;
+        }
         if (format.equals(Format.STRIKEDOUT) && this.isStrikethroughSupported) {
             print(STRIKEDOUT_SYMBOL);
         } else {
@@ -112,6 +131,9 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     @Override
     public void endFormat(Format format, Map<String, String> parameters)
     {
+        if (isEmphasis(format)) {
+            this.emphasisDepth--;
+        }
         if (format.equals(Format.STRIKEDOUT) && this.isStrikethroughSupported) {
             print(STRIKEDOUT_SYMBOL);
         } else {
@@ -128,6 +150,45 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
                     super.endFormat(format, parameters);
             }
         }
+    }
+
+    /**
+     * @param format a format
+     * @return {@code true} if the format is written using delimiters that are processed as emphasis by the Markdown
+     *     parser, {@code false} otherwise
+     */
+    private boolean isEmphasis(Format format)
+    {
+        switch (format) {
+            case BOLD:
+            case ITALIC:
+            case SUPERSCRIPT:
+            case SUBSCRIPT:
+                return true;
+            case STRIKEDOUT:
+                return this.isStrikethroughSupported;
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public void beginTable(Map<String, String> parameters)
+    {
+        // The emphasis opened outside a table don't apply to its cells, unless the table is written inside the cell of
+        // another table.
+        this.tableEmphasisDepths.push(this.emphasisDepth);
+        if (!isInTableCell()) {
+            this.emphasisDepth = 0;
+        }
+        super.beginTable(parameters);
+    }
+
+    @Override
+    public void endTable(Map<String, String> parameters)
+    {
+        super.endTable(parameters);
+        this.emphasisDepth = this.tableEmphasisDepths.pop();
     }
 
     @Override
@@ -175,6 +236,7 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         MarkdownEscapeHandler escapeHandler = new MarkdownEscapeHandler();
         escapeHandler.setOnNewLine(false);
         escapeHandler.setInLinkLabel(true);
+        escapeHandler.setInTableCell(isInTableCell());
         StringBuffer buffer = new StringBuffer(removeNewLines(text));
         escapeHandler.escape(buffer, null);
         return buffer.toString();
@@ -248,7 +310,7 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         // - [...](...) and <...> for URL
         // - [[...]] for Attach and all other types or references
 
-        String alt = parameters.get("alt");
+        String alt = parameters.get(ALT_PARAMETER);
         if (StringUtils.isBlank(alt)) {
             alt = reference.getReference();
         }
@@ -257,8 +319,13 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
             print(String.format("![%s](%s)", escapeText(alt), encodeImageReference(reference.getReference())));
         } else {
             onWikiSyntax();
-            print(String.format("![[%s|%s]]", escapeWikiLinkReference(alt),
-                escapeWikiLinkReference(reference.getReference())));
+            String escapedReference = escapeWikiLinkReference(reference.getReference());
+            if (isWikiSyntaxSeparatorEscaped() && StringUtils.isBlank(parameters.get(ALT_PARAMETER))) {
+                // Avoid the separator, which would be kept at the end of the alternative text.
+                print("![[" + escapedReference + "]]");
+            } else {
+                print("![[" + escapeWikiLinkReference(alt) + getWikiSyntaxSeparator() + escapedReference + "]]");
+            }
         }
     }
 
@@ -271,7 +338,9 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
                 print(String.format(FORMAT_TWO_PARAMS, serializedReference, serializeParameters(parameters)));
             }
         } else {
-            String wikiLinkLabel = escapeWikiLinkLabel(label);
+            // Only the separator located after the label can be escaped (the backslash being kept in the label).
+            String wikiLinkLabel = escapeWikiLinkLabel(label)
+                + (isWikiSyntaxSeparatorEscaped() ? MarkdownEscapeHandler.ESCAPE_CHAR : "");
             if (parameters.isEmpty()) {
                 print(String.format(FORMAT_TWO_PARAMS, wikiLinkLabel, serializedReference));
             } else {
@@ -281,11 +350,49 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         }
     }
 
+    /**
+     * @return {@code true} if the pipe separating the parts of the wiki link and wiki image syntaxes must be escaped,
+     *     {@code false} otherwise
+     */
+    private boolean isWikiSyntaxSeparatorEscaped()
+    {
+        // In a table cell, the table parser ends the pending emphasis (e.g. bold) at each pipe that is not located
+        // inside a code span, an HTML tag or an autolink, even if the pipe doesn't split the cell, e.g. a wiki link
+        // separator. The emphasis and the wiki link or image syntaxes are then broken, splitting the cell. An escaped
+        // separator doesn't split the cell, but the backslash is kept at the end of the wiki link label or of the
+        // image alternative text (the wiki link syntax doesn't support escaping its separator).
+        return isInTableCell() && this.emphasisDepth > 0;
+    }
+
+    private String getWikiSyntaxSeparator()
+    {
+        return isWikiSyntaxSeparatorEscaped() ? MarkdownEscapeHandler.ESCAPE_CHAR + '|' : "|";
+    }
+
     private String escapeWikiLinkLabel(String label)
     {
         // The wiki link label ends at the first pipe character (which can't be escaped with a backslash), but HTML
-        // entities are supported.
-        return label.replace("|", "&#124;");
+        // entities are supported. Note that the pipes of a label located in a table cell are already escaped with a
+        // backslash.
+        StringBuilder builder = new StringBuilder(label.length());
+        for (int i = 0; i < label.length(); i++) {
+            char c = label.charAt(i);
+            if (c == '|') {
+                builder.append(WIKI_LINK_LABEL_PIPE);
+            } else if (c == MarkdownEscapeHandler.ESCAPE_CHAR.charAt(0) && i + 1 < label.length()) {
+                // Escaped character.
+                i++;
+                char escaped = label.charAt(i);
+                if (escaped == '|') {
+                    builder.append(WIKI_LINK_LABEL_PIPE);
+                } else {
+                    builder.append(c).append(escaped);
+                }
+            } else {
+                builder.append(c);
+            }
+        }
+        return builder.toString();
     }
 
     private String serializeParameters(Map<String, String> parameters)
