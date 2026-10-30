@@ -1,0 +1,71 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Code blocks without language located in ordered list items, nested list items and definition descriptions:
+.# the indented code blocks are indented relatively to the content of the container
+.#-----------------------------------------------------
+1. text
+
+   ```
+   <b>a</b>
+   ```
+
+term
+:   para
+
+    ```
+    <b>b</b>
+    ```
+
+* a
+    1. b
+
+       ```
+       <b>c</b>
+       ```
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [NUMBERED]
+beginListItem
+onWord [text]
+onMacroStandalone [code] [language=none] [<b>a</b>]
+endListItem
+endList [NUMBERED]
+beginDefinitionList
+beginDefinitionTerm
+onWord [term]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [para]
+onMacroStandalone [code] [language=none] [<b>b</b>]
+endDefinitionDescription
+endDefinitionList
+beginList [BULLETED]
+beginListItem
+onWord [a]
+beginList [NUMBERED]
+beginListItem
+onWord [b]
+onMacroStandalone [code] [language=none] [<b>c</b>]
+endListItem
+endList [NUMBERED]
+endListItem
+endList [BULLETED]
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+1. text
+
+       <b>a</b>
+
+term
+:   para
+
+        <b>b</b>
+
+* a
+    1. b
+
+           <b>c</b>

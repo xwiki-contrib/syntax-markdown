@@ -1,0 +1,30 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# The Markdown generated for consecutive Groups containing only a code macro in a list item (see code15.test) is read
+.# back as two distinct code macros, and rendered back the same way.
+.#-----------------------------------------------------
+* item
+
+      a
+
+  <div>
+
+      b
+
+  </div>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [item]
+beginGroup
+onMacroStandalone [code] [language=none] [a]
+endGroup
+beginGroup
+onMacroStandalone [code] [language=none] [b]
+endGroup
+endListItem
+endList [BULLETED]
+endDocument

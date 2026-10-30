@@ -1,0 +1,40 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Code blocks without language that can't be rendered as indented code blocks: directly after a list or a
+.# definition list (they would be part of the last item) and at the beginning of a list item
+.#-----------------------------------------------------
+* item
+
+{{code}}<b>a</b>{{/code}}
+
+; term
+: def
+
+{{code}}<b>b</b>{{/code}}
+
+* a
+** b
+* (((
+{{code}}<b>c</b>{{/code}}
+)))
+** d
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* item
+
+```
+<b>a</b>
+```
+
+term
+:   def
+
+```
+<b>b</b>
+```
+
+* a
+    * b
+*     <b>c</b>
+    * d

@@ -1,0 +1,87 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
+package org.xwiki.contrib.rendering.markdown.commonmark12.internal;
+
+import java.io.StringReader;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.xwiki.rendering.block.XDOM;
+import org.xwiki.rendering.parser.Parser;
+import org.xwiki.rendering.renderer.BlockRenderer;
+import org.xwiki.rendering.renderer.printer.DefaultWikiPrinter;
+import org.xwiki.rendering.wiki.WikiModel;
+import org.xwiki.test.annotation.AllComponents;
+import org.xwiki.test.annotation.BeforeComponent;
+import org.xwiki.test.mockito.MockitoComponentManagerRule;
+
+import static org.junit.Assert.assertEquals;
+
+/**
+ * Verify that the code blocks whose content contains carriage returns (which can't be expressed in the test files
+ * since their line endings are normalized) stay code blocks when rendered to Markdown 1.2.
+ *
+ * @version $Id$
+ */
+@AllComponents
+public class Markdown12CodeLineEndingsTest
+{
+    @Rule
+    public MockitoComponentManagerRule mocker = new MockitoComponentManagerRule();
+
+    @BeforeComponent
+    public void setUpComponents() throws Exception
+    {
+        this.mocker.registerMockComponent(WikiModel.class);
+    }
+
+    @Test
+    public void codeBlocksWithCarriageReturns() throws Exception
+    {
+        String markdown = render(parse("{{code}}a\r<b>b</b>{{/code}}\n\n"
+            + "* (((\n{{code language=\"java\"}}c\r<b>d</b>{{/code}}\n)))", "xwiki/2.1"), "markdown/1.2");
+
+        assertEquals("    a\n    <b>b</b>\n\n* <div>\n\n  ```java\n  c\n  <b>d</b>\n  ```\n\n  </div>", markdown);
+
+        assertEquals("beginDocument [[syntax]=[CommonMark Markdown 1.2]]\n"
+            + "onMacroStandalone [code] [language=none] [a\n<b>b</b>]\n"
+            + "beginList [BULLETED]\n"
+            + "beginListItem\n"
+            + "beginGroup\n"
+            + "onMacroStandalone [code] [language=java] [c\n<b>d</b>]\n"
+            + "endGroup\n"
+            + "endListItem\n"
+            + "endList [BULLETED]\n"
+            + "endDocument [[syntax]=[CommonMark Markdown 1.2]]",
+            render(parse(markdown, "markdown/1.2"), "event/1.0"));
+    }
+
+    private XDOM parse(String content, String syntax) throws Exception
+    {
+        return this.mocker.<Parser>getInstance(Parser.class, syntax).parse(new StringReader(content));
+    }
+
+    private String render(XDOM xdom, String syntax) throws Exception
+    {
+        DefaultWikiPrinter printer = new DefaultWikiPrinter();
+        this.mocker.<BlockRenderer>getInstance(BlockRenderer.class, syntax).render(xdom, printer);
+        return printer.toString();
+    }
+}

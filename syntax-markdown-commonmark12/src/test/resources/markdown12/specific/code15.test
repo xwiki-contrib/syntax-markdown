@@ -1,0 +1,39 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Consecutive Groups containing only a standalone code macro without language, located in a list item. The second
+.# Group isn't omitted (as the Group that the Markdown parser creates around indented code blocks in list items is),
+.# otherwise both indented code blocks would be merged when read back.
+.#-----------------------------------------------------
+* item(((
+{{code}}a{{/code}}
+)))(((
+{{code}}b{{/code}}
+)))
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* item
+
+      a
+
+  <div>
+
+      b
+
+  </div>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [item]
+beginGroup
+onMacroStandalone [code] [] [a]
+endGroup
+beginGroup
+onMacroStandalone [code] [] [b]
+endGroup
+endListItem
+endList [BULLETED]
+endDocument

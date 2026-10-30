@@ -1,0 +1,49 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Consecutive standalone code macros without language. An indented code block directly following another one would
+.# be merged with it when read back, thus it's rendered as a fenced code block without info string instead. See
+.# code13.test for the parsing of the generated Markdown.
+.#-----------------------------------------------------
+{{code}}a{{/code}}
+
+{{code}}b{{/code}}
+
+{{code language="none"}}c{{/code}}
+
+{{code language="java"}}d{{/code}}
+
+{{code}}e{{/code}}
+
+* item(((
+{{code}}f{{/code}}
+
+{{code}}g{{/code}}
+)))
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+    a
+
+```
+b
+```
+
+    c
+
+```java
+d
+```
+
+    e
+
+* item
+
+  <div>
+
+      f
+
+  ```
+  g
+  ```
+
+  </div>
