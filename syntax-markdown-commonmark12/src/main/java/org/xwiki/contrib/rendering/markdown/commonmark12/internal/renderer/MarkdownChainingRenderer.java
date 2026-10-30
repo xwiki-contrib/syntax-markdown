@@ -2077,6 +2077,20 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     }
 
     /**
+     * Print a standalone element (e.g. a standalone macro) as a block, keeping all its lines inside the container
+     * (e.g. list item, definition description) in which it's located.
+     *
+     * @param text the standalone element to print
+     * @since 8.10.0
+     */
+    protected void printStandaloneBlock(String text)
+    {
+        String linePrefix = getContainerLinePrefix();
+        printBlockSeparator(linePrefix);
+        print(prefixLines(text, linePrefix, true));
+    }
+
+    /**
      * @return {@code true} if the current element is located in a table cell, {@code false} otherwise
      */
     protected boolean isInTableCell()

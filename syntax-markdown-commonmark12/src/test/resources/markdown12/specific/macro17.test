@@ -1,0 +1,26 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Macro block written on a single line with some content, located in a list item after some other content
+.#-----------------------------------------------------
+* a
+
+  {{info title="b"}}x{{/info}}
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [a]
+onMacroStandalone [info] [title=b] [x]
+endListItem
+endList [BULLETED]
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* a
+
+  {{info title="b"}}
+  x
+  {{/info}}
