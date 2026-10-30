@@ -1,0 +1,28 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Standalone code macros located in table cells are rendered as code spans since Markdown table cells can only
+.# contain inline content. The language is lost since Markdown has no syntax to specify the language of a code span,
+.# and line endings are replaced by spaces (as for verbatim). Consecutive code spans are separated by a space so that
+.# they're not read back as a single code span. See code11.test for the parsing of the generated Markdown.
+.#-----------------------------------------------------
+|=a|=b
+|x|(((
+{{code language="java"}}
+int i = 0;
+int j = 1;
+{{/code}}
+)))
+|y|(((
+{{code}}a`b{{/code}}
+
+{{code language="none"}}c{{/code}}
+
+{{{d}}}
+)))
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|  a  |            b            |
+| --- | ----------------------- |
+|  x  | `int i = 0; int j = 1;` |
+|  y  |     ``a`b`` `c` `d`     |
