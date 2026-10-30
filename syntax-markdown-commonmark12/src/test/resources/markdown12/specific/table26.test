@@ -1,0 +1,54 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that the columns of a cell spanning several rows are filled with an empty cell in the following rows it spans,
+.# so that the cells of these rows are not shifted to the left (Markdown doesn't support row spans), unless these empty
+.# cells would span more columns than the cells of the table
+.#-----------------------------------------------------
+|=a|=b|=c
+|(% rowspan="2" %)d|e|f
+|g|h
+
+|=a|=b|=c|=d
+|e|(% colspan="2" rowspan="3" %)f|g
+|h|i
+|j|(% rowspan="2" %)k
+|l|m|n
+
+|=a|=b|=c
+|(% rowspan="2" %)d|(% rowspan="3" %)e|f
+|g
+|h|i
+|j|k|l
+
+|(% colspan="3" rowspan="4" %)a|b
+|c
+|d
+|e
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|  a  |  b  |  c  |
+| --- | --- | --- |
+|  d  |  e  |  f  |
+|     |  g  |  h  |
+
+|  a  |  b  |  c  |  d  |
+| --- | --- | --- | --- |
+|  e  |    f     ||  g  |
+|  h  |          ||  i  |
+|  j  |          ||  k  |
+|  l  |  m  |  n  |     |
+
+|  a  |  b  |  c  |
+| --- | --- | --- |
+|  d  |  e  |  f  |
+|     |     |  g  |
+|  h  |     |  i  |
+|  j  |  k  |  l  |
+
+|     |     |
+| --- | --- |
+|  a  |  b  |
+|     |  c  |
+|     |  d  |
+|  e  |     |

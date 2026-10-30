@@ -24,6 +24,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -111,6 +112,8 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      */
     private static final int TABLE_MAX_COLSPAN = 1000;
 
+    private static final String TABLE_ROWSPAN_PARAMETER = "rowspan";
+
     /**
      * A table cell to render, collected until the end of the table since the size of the columns must be known before
      * printing the table.
@@ -129,11 +132,44 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
          */
         private final int colspan;
 
+        /**
+         * The number of rows the cell spans.
+         */
+        private final int rowspan;
+
         TableCellState(String text, String alignment, int colspan)
+        {
+            this(text, alignment, colspan, 1);
+        }
+
+        TableCellState(String text, String alignment, int colspan, int rowspan)
         {
             this.text = text;
             this.alignment = alignment;
             this.colspan = colspan;
+            this.rowspan = rowspan;
+        }
+    }
+
+    /**
+     * A table cell spanning several rows, whose columns must be kept free in the following rows that it spans.
+     */
+    private static final class TableRowSpanState
+    {
+        /**
+         * The number of columns the cell spans.
+         */
+        private final int colspan;
+
+        /**
+         * The index of the last row the cell spans.
+         */
+        private final int lastRow;
+
+        TableRowSpanState(int colspan, int lastRow)
+        {
+            this.colspan = colspan;
+            this.lastRow = lastRow;
         }
     }
 
@@ -991,6 +1027,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         this.pendingSeparator = this.tablePendingSeparators.pop();
         this.isAtContainerStart = this.tableAtContainerStart.pop();
 
+        fillTableRowSpannedColumns(rows);
         // Find the max number of columns, taking into account the cells spanning several columns. Shorter rows are
         // padded with empty cells to get a valid table.
         int maxColumns = removeTableSpannedOnlyColumns(rows);
@@ -1030,6 +1067,47 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         for (List<TableCellState> rowCells : bodyRows) {
             print(NEW_LINE + linePrefix);
             printTableRow(rowCells, columnAlignments, columnSizes);
+        }
+    }
+
+    /**
+     * Markdown doesn't support row spans: the columns of a cell spanning several rows are filled with an empty cell in
+     * the following rows it spans (spanning the same columns), otherwise the cells of these rows would be shifted to
+     * the left. The columns spanned at the end of a row don't need to be filled. The empty cells added this way never
+     * span more columns than the cells of the table, so that a few cells spanning many rows can't generate a huge
+     * table: the remaining row spans are ignored.
+     *
+     * @param rows the cells of each row of the table, to which the empty cells are added
+     */
+    private void fillTableRowSpannedColumns(List<List<TableCellState>> rows)
+    {
+        int remainingColumns = 0;
+        for (List<TableCellState> rowCells : rows) {
+            remainingColumns += getTableRowColumnCount(rowCells);
+        }
+
+        // The cells spanning several rows, indexed by their first column. Only the last cell starting in a column is
+        // kept, the previous ones having ended.
+        Map<Integer, TableRowSpanState> rowSpans = new HashMap<>();
+        for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
+            List<TableCellState> rowCells = rows.get(rowIndex);
+            List<TableCellState> filledRowCells = new ArrayList<>(rowCells.size());
+            int column = 0;
+            for (TableCellState cell : rowCells) {
+                TableRowSpanState rowSpan = rowSpans.get(column);
+                while (rowSpan != null && rowSpan.lastRow >= rowIndex && rowSpan.colspan <= remainingColumns) {
+                    filledRowCells.add(new TableCellState("", null, rowSpan.colspan));
+                    remainingColumns -= rowSpan.colspan;
+                    column += rowSpan.colspan;
+                    rowSpan = rowSpans.get(column);
+                }
+                filledRowCells.add(cell);
+                if (cell.rowspan > 1) {
+                    rowSpans.put(column, new TableRowSpanState(cell.colspan, rowIndex + cell.rowspan - 1));
+                }
+                column += cell.colspan;
+            }
+            rows.set(rowIndex, filledRowCells);
         }
     }
 
@@ -1255,8 +1333,14 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         cellText = escapeTableCellPipes(cellText);
 
         List<TableCellState> cellsInLastRow = this.tableCells.peek().get(this.tableCells.peek().size() - 1);
-        cellsInLastRow.add(
-            new TableCellState(cellText, getTableCellAlignment(parameters), getTableCellColspan(parameters)));
+        cellsInLastRow.add(new TableCellState(cellText, getTableCellAlignment(parameters),
+            getTableCellColspan(parameters), getTableCellRowspan(parameters)));
+    }
+
+    private int getTableCellRowspan(Map<String, String> parameters)
+    {
+        // Invalid row spans (not a number, lower than 1) are ignored.
+        return NumberUtils.toInt(StringUtils.trim(parameters.get(TABLE_ROWSPAN_PARAMETER)), 1);
     }
 
     /**
@@ -1335,8 +1419,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private int getTableCellColspan(Map<String, String> parameters)
     {
-        // Invalid column spans (not a number, lower than 1) are ignored. Note that row spans cannot be expressed in
-        // Markdown and are thus ignored.
+        // Invalid column spans (not a number, lower than 1) are ignored.
         int colspan = NumberUtils.toInt(StringUtils.trim(parameters.get(TABLE_COLSPAN_PARAMETER)), 1);
         return Math.min(Math.max(colspan, 1), TABLE_MAX_COLSPAN);
     }
