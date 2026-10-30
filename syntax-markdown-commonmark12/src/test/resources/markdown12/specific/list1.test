@@ -1,0 +1,98 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Paragraphs located in the same list item or definition description: the paragraphs following the first content
+.# of the container are kept separated from it (in a Group)
+.#-----------------------------------------------------
+* a
+
+  para2
+
+  para3
+
+    * b
+
+      nested2
+* c
+    * d
+
+  after nested
+
+1. one
+
+   two
+
+Term
+:   Def plain
+
+    Second.
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [a]
+beginGroup
+beginParagraph
+onWord [para2]
+endParagraph
+endGroup
+beginGroup
+beginParagraph
+onWord [para3]
+endParagraph
+endGroup
+beginList [BULLETED]
+beginListItem
+onWord [b]
+beginGroup
+beginParagraph
+onWord [nested2]
+endParagraph
+endGroup
+endListItem
+endList [BULLETED]
+endListItem
+beginListItem
+onWord [c]
+beginList [BULLETED]
+beginListItem
+onWord [d]
+endListItem
+endList [BULLETED]
+beginGroup
+beginParagraph
+onWord [after]
+onSpace
+onWord [nested]
+endParagraph
+endGroup
+endListItem
+endList [BULLETED]
+beginList [NUMBERED]
+beginListItem
+onWord [one]
+beginGroup
+beginParagraph
+onWord [two]
+endParagraph
+endGroup
+endListItem
+endList [NUMBERED]
+beginDefinitionList
+beginDefinitionTerm
+onWord [Term]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [Def]
+onSpace
+onWord [plain]
+beginGroup
+beginParagraph
+onWord [Second]
+onSpecialSymbol [.]
+endParagraph
+endGroup
+endDefinitionDescription
+endDefinitionList
+endDocument

@@ -1,0 +1,38 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# A parameterless Group containing only a paragraph, located after some content in a definition description,
+.# doesn't need a div since it's read back the same way without it
+.#-----------------------------------------------------
+t
+:   f
+
+    <div>
+
+    g
+
+    </div>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginDefinitionList
+beginDefinitionTerm
+onWord [t]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [f]
+beginGroup
+beginParagraph
+onWord [g]
+endParagraph
+endGroup
+endDefinitionDescription
+endDefinitionList
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+t
+:   f
+
+    g

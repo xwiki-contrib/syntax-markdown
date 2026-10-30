@@ -232,6 +232,24 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         private boolean isInListItem;
 
+        private boolean isInDefinitionDescription;
+
+        /**
+         * The printer in which the Group content is rendered.
+         */
+        private MarkdownEscapeWikiPrinter printer;
+
+        /**
+         * Whether the first element of the Group is a paragraph.
+         */
+        private boolean isFirstElementParagraph;
+
+        /**
+         * Length of the rendered Group content just after rendering its first element when this element is a
+         * paragraph, -1 otherwise.
+         */
+        private int paragraphEndIndex = -1;
+
         /**
          * Whether the Group is a parameterless Group located directly in a quotation, which is rendered without div
          * since a Markdown quotation can contain any block.
@@ -498,11 +516,14 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         }
 
         state.isInListItem = isInList();
+        state.isInDefinitionDescription = !state.isInListItem && getDefinitionListDepth() > 0
+            && !this.isInDefinitionTerm;
         state.isTransparent = parameters.isEmpty() && isDirectlyInQuotation();
         state.isAfterIndentedCodeBlock = isAfterIndentedCodeBlock() || isAfterList();
 
         // The Group content is an independent document which is rendered separately so that it can be wrapped.
         beginBufferedContainer(state);
+        state.printer = getMarkdownPrinter();
         state.previousQuotationStates = this.quotationStates;
         this.quotationStates = new ArrayDeque<>();
         getListenerChain().pushAllStackableListeners();
@@ -540,6 +561,16 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         }
 
         printGroupSeparator(state);
+
+        if (parameters.isEmpty() && (state.isInListItem || state.isInDefinitionDescription)
+            && !state.wasAtContainerStart && state.paragraphEndIndex == content.length()) {
+            // A parameterless Group whose only content is a paragraph, located in a list item (or definition
+            // description) after some other content, is the Group that the Markdown parser creates around the
+            // paragraphs following the first content of a list item, and thus doesn't need to be rendered.
+            print(prefixLines(content, state.linePrefix, true));
+            this.pendingSeparator = state.linePrefix;
+            return;
+        }
 
         if (state.isTransparent) {
             // A parameterless Group located directly in a quotation is the Group that the Markdown and XHTML parsers
@@ -711,7 +742,28 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginParagraph(Map<String, String> parameters)
     {
+        GroupState groupState = this.groupStates.peek();
+        if (groupState != null && !groupState.isFlattened && isNothingPrintedIn(groupState.printer)) {
+            groupState.isFirstElementParagraph = true;
+        }
         printBlockSeparator(getContainerLinePrefix());
+    }
+
+    @Override
+    public void endParagraph(Map<String, String> parameters)
+    {
+        GroupState groupState = this.groupStates.peek();
+        if (groupState != null && groupState.isFirstElementParagraph && groupState.paragraphEndIndex < 0
+            && getMarkdownPrinter() == groupState.printer) {
+            // Remember where the first paragraph of the Group ends, to know if it's the only content of the Group.
+            groupState.printer.flush();
+            groupState.paragraphEndIndex = groupState.printer.toString().length();
+        }
+    }
+
+    private boolean isNothingPrintedIn(MarkdownEscapeWikiPrinter printer)
+    {
+        return getMarkdownPrinter() == printer && printer.toString().isEmpty() && printer.getBuffer().length() == 0;
     }
 
     @Override

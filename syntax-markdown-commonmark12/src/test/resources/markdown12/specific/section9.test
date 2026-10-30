@@ -27,7 +27,11 @@ beginSection
 beginHeader [2, HTwo]
 onWord [Two]
 endHeader [2, HTwo]
+beginGroup
+beginParagraph
 onWord [text]
+endParagraph
+endGroup
 beginList [BULLETED]
 beginListItem
 beginSection
@@ -54,6 +58,7 @@ endDocument
 * ## Two
 
   text
+
     * ### Three
 * four
 
@@ -61,4 +66,4 @@ after
 .#-----------------------------------------------------
 .expect|xhtml/1.0
 .#-----------------------------------------------------
-<ul><li><h1 id="HOne" class="wikigeneratedid"><span>One</span></h1></li><li><h2 id="HTwo" class="wikigeneratedid"><span>Two</span></h2>text<ul><li><h3 id="HThree" class="wikigeneratedid"><span>Three</span></h3></li></ul></li><li>four</li></ul><p>after</p>
+<ul><li><h1 id="HOne" class="wikigeneratedid"><span>One</span></h1></li><li><h2 id="HTwo" class="wikigeneratedid"><span>Two</span></h2><div><p>text</p></div><ul><li><h3 id="HThree" class="wikigeneratedid"><span>Three</span></h3></li></ul></li><li>four</li></ul><p>after</p>
