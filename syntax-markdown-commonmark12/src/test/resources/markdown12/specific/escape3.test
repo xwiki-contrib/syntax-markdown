@@ -1,0 +1,40 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Verify that special characters in link labels, list items, headings and table cells are escaped
+.#-----------------------------------------------------
+[[x ~]~] ~[y ~~{~~{info}} *z*>>https://xwiki.org]] wow![[label>>https://xwiki.org]]
+
+[[x ~]~] ~[y ~~{~~{info}} *z* & &amp; ~| \*>>Page]]
+
+* ~# item
+* ~- item
+* 1. item
+
+= a ~{~{info}} ~# =
+
+|~- a|~# b
+
+> ~# quote
+
+; ~# term
+: ~- definition
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+[x \]\] \[y \{{info}} \*z\*](https://xwiki.org) wow\![label](https://xwiki.org)
+
+[[x \]\] \[y \{{info}} \*z\* & \&amp; &#124; \\\*|Page]]
+
+* \# item
+* \- item
+* 1\. item
+
+# a \{{info}} \#
+
+| --- | --- |
+| - a | # b |
+
+>  \# quote
+
+\# term
+:   \- definition

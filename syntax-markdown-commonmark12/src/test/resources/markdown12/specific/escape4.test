@@ -1,0 +1,149 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that escaped special characters in links, list items and headings are parsed as text
+.#-----------------------------------------------------
+[x \]\] \[y \{{info}} \*z\*](https://xwiki.org) wow\![label](https://xwiki.org)
+
+[[x \]\] \[y \{{info}} \*z\* & \&amp; &#124; \\\*|Page]]
+
+* \# item
+* \- item
+* 1\. item
+
+# a \{{info}} \#
+
+| --- | --- |
+| - a | # b |
+
+>  \# quote
+
+\# term
+:   \- definition
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [false] Type = [url] Reference = [https://xwiki.org]] [false]
+onWord [x]
+onSpace
+onSpecialSymbol []]
+onSpecialSymbol []]
+onSpace
+onSpecialSymbol [[]
+onWord [y]
+onSpace
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onSpace
+onSpecialSymbol [*]
+onWord [z]
+onSpecialSymbol [*]
+endLink [Typed = [false] Type = [url] Reference = [https://xwiki.org]] [false]
+onSpace
+onWord [wow]
+onSpecialSymbol [!]
+beginLink [Typed = [false] Type = [url] Reference = [https://xwiki.org]] [false]
+onWord [label]
+endLink [Typed = [false] Type = [url] Reference = [https://xwiki.org]] [false]
+endParagraph
+beginParagraph
+beginLink [Typed = [false] Type = [doc] Reference = [Page]] [false]
+onWord [x]
+onSpace
+onSpecialSymbol []]
+onSpecialSymbol []]
+onSpace
+onSpecialSymbol [[]
+onWord [y]
+onSpace
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onSpace
+onSpecialSymbol [*]
+onWord [z]
+onSpecialSymbol [*]
+onSpace
+onSpecialSymbol [&]
+onSpace
+onSpecialSymbol [&]
+onWord [amp]
+onSpecialSymbol [;]
+onSpace
+onSpecialSymbol [|]
+onSpace
+onWord [\]
+onSpecialSymbol [*]
+endLink [Typed = [false] Type = [doc] Reference = [Page]] [false]
+endParagraph
+beginList [BULLETED]
+beginListItem
+onSpecialSymbol [#]
+onSpace
+onWord [item]
+endListItem
+beginListItem
+onSpecialSymbol [-]
+onSpace
+onWord [item]
+endListItem
+beginListItem
+onWord [1]
+onSpecialSymbol [.]
+onSpace
+onWord [item]
+endListItem
+endList [BULLETED]
+beginSection
+beginHeader [1, Ha7B7Binfo7D7D23]
+onWord [a]
+onSpace
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onSpace
+onSpecialSymbol [#]
+endHeader [1, Ha7B7Binfo7D7D23]
+beginTable
+beginTableRow
+beginTableCell
+onSpecialSymbol [-]
+onSpace
+onWord [a]
+endTableCell
+beginTableCell
+onSpecialSymbol [#]
+onSpace
+onWord [b]
+endTableCell
+endTableRow
+endTable
+beginQuotation
+beginQuotationLine
+onSpecialSymbol [#]
+onSpace
+onWord [quote]
+endQuotationLine
+endQuotation
+beginDefinitionList
+beginDefinitionTerm
+onSpecialSymbol [#]
+onSpace
+onWord [term]
+endDefinitionTerm
+beginDefinitionDescription
+onSpecialSymbol [-]
+onSpace
+onWord [definition]
+endDefinitionDescription
+endDefinitionList
+endSection
+endDocument

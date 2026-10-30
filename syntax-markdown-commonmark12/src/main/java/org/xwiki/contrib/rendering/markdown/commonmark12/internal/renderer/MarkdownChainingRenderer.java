@@ -65,6 +65,8 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private static final String EMPTY_LINE = NEW_LINE + NEW_LINE;
 
+    private static final Pattern HEADING_CLOSING_SEQUENCE = Pattern.compile("(^|\\p{Blank})(#+\\p{Blank}*)$");
+
     private static final Pattern HTML_ATTRIBUTE_NAME = Pattern.compile("[^\\s\"'>/=\\p{Cntrl}]+");
 
     /**
@@ -135,6 +137,8 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      */
     private String pendingSeparator;
 
+    private int monospaceDepth;
+
     /**
      * @param listenerChain the chain of listener filters used to compute various states
      * @param linkReferenceSerializer the component to use for converting {@link ResourceReference} links to strings
@@ -171,6 +175,9 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             }
         }
         this.abbreviations.pop();
+
+        // Make sure that any delayed text is printed.
+        getMarkdownPrinter().flush();
     }
 
     @Override
@@ -196,7 +203,13 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                 print("<sub>");
                 break;
             case MONOSPACE:
-                print("`");
+                if (this.monospaceDepth == 0) {
+                    // Accumulate the content since the code span delimiters depend on it.
+                    printPendingSeparator(BACKTICK);
+                    this.isAtContainerStart = false;
+                    pushPrinter(createInlineMarkdownPrinter());
+                }
+                this.monospaceDepth++;
                 break;
             case NONE:
             default:
@@ -227,7 +240,14 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                 print("</sub>");
                 break;
             case MONOSPACE:
-                print("`");
+                this.monospaceDepth--;
+                if (this.monospaceDepth == 0) {
+                    MarkdownEscapeWikiPrinter monospacePrinter = getMarkdownPrinter();
+                    monospacePrinter.flush();
+                    String code = monospacePrinter.toString();
+                    popPrinter();
+                    print(formatCodeSpan(code));
+                }
                 break;
             case NONE:
             default:
@@ -381,7 +401,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         printEmptyLine();
         print(StringUtils.repeat("#", level.getAsInt()) + " ");
-        pushPrinter(createMarkdownPrinter(new DefaultWikiPrinter()));
+        pushPrinter(createInlineMarkdownPrinter());
     }
 
     @Override
@@ -391,7 +411,8 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         headingPrinter.flush();
         String heading = headingPrinter.toString();
         popPrinter();
-        print(heading);
+        // Make sure that the heading content doesn't end with what would be considered a closing sequence.
+        print(HEADING_CLOSING_SEQUENCE.matcher(heading).replaceFirst("$1\\\\$2"));
     }
 
     @Override
@@ -432,6 +453,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             print(".");
         }
         print(" ");
+        markBlockContentStart();
         this.isAtContainerStart = true;
     }
 
@@ -481,6 +503,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         }
 
         print(StringUtils.repeat(' ', 4 * (getBlockState().getDefinitionListDepth() - 1)) + ":   ");
+        markBlockContentStart();
         this.isAtContainerStart = true;
     }
 
@@ -489,6 +512,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         printEmptyLine();
         print(StringUtils.repeat(' ', 4 * (getBlockState().getDefinitionListDepth() - 1)));
+        markBlockContentStart();
     }
 
     @Override
@@ -525,6 +549,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         }
 
         print(StringUtils.repeat("> ", getBlockState().getQuotationDepth()));
+        markBlockContentStart();
     }
 
     @Override
@@ -536,10 +561,15 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginLink(ResourceReference reference, boolean isFreeStandingURI, Map<String, String> parameters)
     {
+        // The separator needed after a Group must be printed before the link, and not in its label.
+        printPendingSeparator("[");
+        this.isAtContainerStart = false;
+
         MarkdownEscapeWikiPrinter linkLabelPrinter = createMarkdownPrinter(new DefaultWikiPrinter());
 
         // Make sure the escape handler knows there is already characters before
         linkLabelPrinter.setOnNewLine(getMarkdownPrinter().isOnNewLine());
+        linkLabelPrinter.setInLinkLabel(true);
 
         // Defer printing the link content since we need to gather all nested elements
         pushPrinter(linkLabelPrinter);
@@ -608,7 +638,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void onSpace()
     {
-        print(" ");
+        printText(" ");
     }
 
     @Override
@@ -621,7 +651,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void onWord(String word)
     {
-        print(word);
+        printText(word);
     }
 
     @Override
@@ -632,17 +662,17 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         // - Handle ... as ellipsis
         // - Handle -- as range
         if (symbol == 8220) {
-            print("<<");
+            printText("<<");
         } else if (symbol == 8221) {
-            print(">>");
+            printText(">>");
         } else if (symbol == 8212) {
-            print("---");
+            printText("---");
         } else if (symbol == 8230) {
-            print("...");
+            printText("...");
         } else if (symbol == 8211) {
-            print("--");
+            printText("--");
         } else {
-            print("" + symbol);
+            printText(String.valueOf(symbol));
         }
     }
 
@@ -736,7 +766,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginTableCell(Map<String, String> parameters)
     {
-        pushPrinter(createMarkdownPrinter(new DefaultWikiPrinter()));
+        pushPrinter(createInlineMarkdownPrinter());
     }
 
     @Override
@@ -825,6 +855,26 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         return new MarkdownEscapeWikiPrinter(printer, (XWikiSyntaxListenerChain) getListenerChain());
     }
 
+    /**
+     * @return a new printer for some content that is located in the middle of a line (e.g. heading or table cell
+     *     content), where the syntaxes recognized only at the beginning of lines don't apply
+     */
+    private MarkdownEscapeWikiPrinter createInlineMarkdownPrinter()
+    {
+        MarkdownEscapeWikiPrinter printer = createMarkdownPrinter(new DefaultWikiPrinter());
+        printer.setOnNewLine(false);
+        return printer;
+    }
+
+    /**
+     * Indicate that what follows is at the beginning of the content of a block (e.g. after a list item marker), where
+     * the syntaxes recognized at the beginning of lines apply.
+     */
+    private void markBlockContentStart()
+    {
+        getMarkdownPrinter().setOnNewLine(true);
+    }
+
     @Override
     public void setPrinter(WikiPrinter printer)
     {
@@ -870,7 +920,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         if (id.equals("code")) {
             if (isInline) {
                 // Inline should generate back ticks
-                print(BACKTICK + content + BACKTICK);
+                print(formatCodeSpan(StringUtils.defaultString(content)));
             } else {
                 // Standalone should generate fenced blocks or triple backticks with language if a language was
                 // specified (and no language if language is none).
@@ -906,6 +956,28 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         return isHandled;
     }
 
+    /**
+     * @param code the content of the code span
+     * @return the code span syntax for the passed content, using backtick strings that can't be found in the content
+     *     (so that the content can't end the code span) and keeping it on a single line (so that block syntaxes are
+     *     not recognized inside it)
+     */
+    private String formatCodeSpan(String code)
+    {
+        String singleLineCode = code.replaceAll("\\r?\\n", " ");
+        int longestBacktickString = 0;
+        int backtickString = 0;
+        for (int i = 0; i < singleLineCode.length(); i++) {
+            backtickString = singleLineCode.charAt(i) == '`' ? backtickString + 1 : 0;
+            longestBacktickString = Math.max(longestBacktickString, backtickString);
+        }
+        String delimiter = StringUtils.repeat(BACKTICK, longestBacktickString + 1);
+        // A space is needed between the delimiter and a backtick located at the beginning or end of the content.
+        String padding =
+            singleLineCode.startsWith(BACKTICK) || singleLineCode.endsWith(BACKTICK) ? " " : StringUtils.EMPTY;
+        return delimiter + padding + singleLineCode + padding + delimiter;
+    }
+
     protected void print(String text)
     {
         if (!text.isEmpty()) {
@@ -915,7 +987,34 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         getPrinter().print(text);
     }
 
-    private void printPendingSeparator(String text)
+    /**
+     * Print some text, which is escaped so that it's not interpreted as Markdown syntax (except inside monospace
+     * content, which is verbatim).
+     *
+     * @param text the text to print
+     * @since 8.10.0
+     */
+    protected void printText(String text)
+    {
+        if (this.monospaceDepth > 0) {
+            print(text);
+        } else {
+            if (!text.isEmpty()) {
+                printPendingSeparator(text);
+                this.isAtContainerStart = false;
+            }
+            // The text is escaped when the printer is flushed, i.e. when some markup is printed after it.
+            getMarkdownPrinter().printDelayed(text);
+        }
+    }
+
+    /**
+     * Print the separator that is needed between a Group and the content that follows it, if any.
+     *
+     * @param text the text that is going to be printed after the separator
+     * @since 8.10.0
+     */
+    protected void printPendingSeparator(String text)
     {
         if (this.pendingSeparator != null) {
             String separator = this.pendingSeparator;
@@ -927,6 +1026,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                     getPrinter().print(NEW_LINE);
                 } else {
                     getPrinter().print(EMPTY_LINE + separator);
+                    markBlockContentStart();
                 }
             }
         }

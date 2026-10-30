@@ -2,9 +2,19 @@
 .input|markdown/1.2
 .# Verify that the HTML tags are kept verbatim when parsing HTML
 .#-----------------------------------------------------
-Hello <a href="x_y" title='*b*'>a\*b</a>
+Hello <a href="x_y" title='*b*'>a\*b \[c]</a>
 
-<strong class="x_y">a\_b</strong> c\*d\*
+<div class="x_y">
+*a* _b_
+</div>
+
+<div>
+
+\*a\* \[\[b]]
+
+</div>
+
+<strong>a\_b</strong> c\*d\*
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -12,10 +22,26 @@ beginDocument
 beginParagraph
 onWord [Hello]
 onSpace
-onMacroInline [html] [clean=false] [<a href="x_y" title='*b*'>a*b</a>]
+onMacroInline [html] [clean=false] [<a href="x_y" title='*b*'>a*b [c]</a>]
 endParagraph
+onMacroStandalone [html] [clean=false] [<div class="x_y">
+*a* _b_
+</div>]
+beginGroup
 beginParagraph
-onMacroInline [html] [clean=false] [<strong class="x_y">a_b</strong>]
+onSpecialSymbol [*]
+onWord [a]
+onSpecialSymbol [*]
+onSpace
+onSpecialSymbol [[]
+onSpecialSymbol [[]
+onWord [b]
+onSpecialSymbol []]
+onSpecialSymbol []]
+endParagraph
+endGroup
+beginParagraph
+onMacroInline [html] [clean=false] [<strong>a_b</strong>]
 onSpace
 onWord [c]
 onSpecialSymbol [*]

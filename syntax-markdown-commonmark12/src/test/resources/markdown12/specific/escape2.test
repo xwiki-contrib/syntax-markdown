@@ -1,0 +1,169 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that escaped special characters are parsed as text
+.#-----------------------------------------------------
+text \{{info}}foo\{{/info}} {x}  
+see \[\[Page]] and a\_b \*c\* \~d\~ x\^2\^ !\[\[img.png]] wow!  
+\# not heading  
+10\. not list  
+a \<b>c\</b> d \&amp; e < f & g  
+\> not quote  
+\: not definition  
+\+ not list  
+\- not list  
+\=== not heading  
+\~\~\~ not code  
+back\\slash \\\* `a_b` `a_b`
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [text]
+onSpace
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onWord [foo]
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onSpecialSymbol [/]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onSpace
+onSpecialSymbol [{]
+onWord [x]
+onSpecialSymbol [}]
+onNewLine
+onWord [see]
+onSpace
+onSpecialSymbol [[]
+onSpecialSymbol [[]
+onWord [Page]
+onSpecialSymbol []]
+onSpecialSymbol []]
+onSpace
+onWord [and]
+onSpace
+onWord [a]
+onSpecialSymbol [_]
+onWord [b]
+onSpace
+onSpecialSymbol [*]
+onWord [c]
+onSpecialSymbol [*]
+onSpace
+onSpecialSymbol [~]
+onWord [d]
+onSpecialSymbol [~]
+onSpace
+onWord [x]
+onSpecialSymbol [^]
+onWord [2]
+onSpecialSymbol [^]
+onSpace
+onSpecialSymbol [!]
+onSpecialSymbol [[]
+onSpecialSymbol [[]
+onWord [img]
+onSpecialSymbol [.]
+onWord [png]
+onSpecialSymbol []]
+onSpecialSymbol []]
+onSpace
+onWord [wow]
+onSpecialSymbol [!]
+onNewLine
+onSpecialSymbol [#]
+onSpace
+onWord [not]
+onSpace
+onWord [heading]
+onNewLine
+onWord [10]
+onSpecialSymbol [.]
+onSpace
+onWord [not]
+onSpace
+onWord [list]
+onNewLine
+onWord [a]
+onSpace
+onSpecialSymbol [<]
+onWord [b]
+onSpecialSymbol [>]
+onWord [c]
+onSpecialSymbol [<]
+onSpecialSymbol [/]
+onWord [b]
+onSpecialSymbol [>]
+onSpace
+onWord [d]
+onSpace
+onSpecialSymbol [&]
+onWord [amp]
+onSpecialSymbol [;]
+onSpace
+onWord [e]
+onSpace
+onSpecialSymbol [<]
+onSpace
+onWord [f]
+onSpace
+onSpecialSymbol [&]
+onSpace
+onWord [g]
+onNewLine
+onSpecialSymbol [>]
+onSpace
+onWord [not]
+onSpace
+onWord [quote]
+onNewLine
+onSpecialSymbol [:]
+onSpace
+onWord [not]
+onSpace
+onWord [definition]
+onNewLine
+onSpecialSymbol [+]
+onSpace
+onWord [not]
+onSpace
+onWord [list]
+onNewLine
+onSpecialSymbol [-]
+onSpace
+onWord [not]
+onSpace
+onWord [list]
+onNewLine
+onSpecialSymbol [=]
+onSpecialSymbol [=]
+onSpecialSymbol [=]
+onSpace
+onWord [not]
+onSpace
+onWord [heading]
+onNewLine
+onSpecialSymbol [~]
+onSpecialSymbol [~]
+onSpecialSymbol [~]
+onSpace
+onWord [not]
+onSpace
+onWord [code]
+onNewLine
+onWord [back\slash]
+onSpace
+onWord [\]
+onSpecialSymbol [*]
+onSpace
+onMacroInline [code] [language=none] [a_b]
+onSpace
+onMacroInline [code] [language=none] [a_b]
+endParagraph
+endDocument

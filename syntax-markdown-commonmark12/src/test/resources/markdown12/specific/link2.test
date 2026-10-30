@@ -1,5 +1,5 @@
 .#-----------------------------------------------------
-.inputexpect|markdown/1.2
+.input|markdown/1.2
 .# Test reference links when the reference doesn't exist
 .#-----------------------------------------------------
 [non existing ref]
@@ -31,3 +31,9 @@ onWord [ref]
 onSpecialSymbol []]
 endParagraph
 endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+\[non existing ref]
+
+\[label]\[non existing ref]

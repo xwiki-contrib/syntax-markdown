@@ -1,0 +1,21 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Verify that code spans can't be ended by their content and that backticks next to them are escaped
+.#-----------------------------------------------------
+a ##b`~{~{info}}c~{~{/info}}`## d
+
+a ##`b## {{code}}c`{{info}}d{{/info}}`{{/code}} e
+
+a ##b\\~<span>c~</span>## d
+
+a`{{code}}b{{/code}}` c
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+a `` b`{{info}}c{{/info}}` `` d
+
+a `` `b `` `` c`{{info}}d{{/info}}` `` e
+
+a `b   <span>c</span>` d
+
+a\``b`\` c
