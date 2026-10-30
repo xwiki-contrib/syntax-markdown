@@ -104,6 +104,12 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      */
     private static final int TABLE_MIN_CELL_SIZE = 3;
 
+    /**
+     * The maximum size up to which the table cells are padded so that the columns are aligned, which bounds the size
+     * of the padding.
+     */
+    private static final int TABLE_MAX_ALIGNED_CELL_SIZE = 50;
+
     private static final String TABLE_COLSPAN_PARAMETER = "colspan";
 
     /**
@@ -1028,8 +1034,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         this.isAtContainerStart = this.tableAtContainerStart.pop();
 
         fillTableRowSpannedColumns(rows);
-        // Find the max number of columns, taking into account the cells spanning several columns. Shorter rows are
-        // padded with empty cells to get a valid table.
+        // Find the max number of columns, taking into account the cells spanning several columns.
         int maxColumns = removeTableSpannedOnlyColumns(rows);
         // A table without any cell cannot be represented in Markdown.
         if (maxColumns == 0) {
@@ -1038,11 +1043,6 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         // The table rows must be indented to stay inside the container (e.g. list item) in which the table is located.
         String linePrefix = getContainerLinePrefix();
         printBlockSeparator(linePrefix);
-        for (List<TableCellState> rowCells : rows) {
-            for (int i = getTableRowColumnCount(rowCells); i < maxColumns; i++) {
-                rowCells.add(new TableCellState("", null, 1));
-            }
-        }
 
         // A Markdown table must start with a single header row, followed by the delimiter row. Only the first row can
         // be the header row, and only if it's made of head cells only. Otherwise an empty header row is printed (which
@@ -1054,8 +1054,21 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             headerRow = rows.get(0);
             bodyRows = rows.subList(1, rows.size());
         } else {
-            headerRow = Collections.nCopies(maxColumns, new TableCellState("", null, 1));
+            headerRow = new ArrayList<>();
             bodyRows = rows;
+        }
+        // The header row defines the number of columns of the table (the extra cells of the other rows are dropped by
+        // the parser), thus it's padded with empty cells. The body rows having less cells are not padded since the
+        // parser accepts them as they are: padding them would make the output size quadratic (e.g. a row of many
+        // cells followed by many rows of a single cell). A body row without any cell gets a single empty cell though,
+        // since it couldn't be written otherwise.
+        for (int i = getTableRowColumnCount(headerRow); i < maxColumns; i++) {
+            headerRow.add(new TableCellState("", null, 1));
+        }
+        for (List<TableCellState> rowCells : bodyRows) {
+            if (rowCells.isEmpty()) {
+                rowCells.add(new TableCellState("", null, 1));
+            }
         }
 
         List<Integer> columnSizes = getTableColumnSizes(rows, maxColumns);
@@ -1259,7 +1272,10 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         print("|");
         int column = 0;
         for (TableCellState cell : rowCells) {
-            int paddingSize = getTableCellSize(columnSizes, column, cell.colspan) - cell.text.length();
+            // The cells are aligned only up to a maximum size, otherwise a single large cell would make all the cells
+            // of its column (or of the columns it spans) padded to its size, making the output size quadratic.
+            int cellSize = getTableCellSize(columnSizes, column, cell.colspan);
+            int paddingSize = cellSize <= TABLE_MAX_ALIGNED_CELL_SIZE ? cellSize - cell.text.length() : 0;
             // Pad the cell text according to the alignment of its (first) column, centering it by default.
             int leftPaddingSize;
             String alignment = columnAlignments.get(column);
@@ -1287,8 +1303,10 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         print("|");
         for (int j = 0; j < columnAlignments.size(); j++) {
             String alignment = columnAlignments.get(j);
-            // The column size is at least 3, which leaves room for at least one dash between colons.
-            int dashCount = columnSizes.get(j);
+            // The column size is at least 3, which leaves room for at least one dash between colons. A column larger
+            // than the maximum aligned cell size isn't aligned (see printTableRow).
+            int columnSize = columnSizes.get(j);
+            int dashCount = columnSize <= TABLE_MAX_ALIGNED_CELL_SIZE ? columnSize : TABLE_MIN_CELL_SIZE;
             boolean colonOnLeft = TABLE_ALIGN_LEFT.equals(alignment) || TABLE_ALIGN_CENTER.equals(alignment);
             boolean colonOnRight = TABLE_ALIGN_RIGHT.equals(alignment) || TABLE_ALIGN_CENTER.equals(alignment);
             print(" ");

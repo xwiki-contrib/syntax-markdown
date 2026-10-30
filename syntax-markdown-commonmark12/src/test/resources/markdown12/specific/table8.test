@@ -1,8 +1,8 @@
 .#-----------------------------------------------------
 .input|xwiki/2.1
 .# Test that only the first row can be the header row (Markdown supports a single header row), that rows having
-.# less cells than the others are padded, and that pipes and new lines in cells are rendered so that they don't
-.# break the table
+.# less cells than the others are not padded (they are valid), and that pipes and new lines in cells are rendered so
+.# that they don't break the table
 .#-----------------------------------------------------
 |=a|=b|=c
 |=d|=e|=f
@@ -15,4 +15,4 @@
 | ---- | ------- | --- |
 |  d   |    e    |  f  |
 | x\|y | z<br/>w |  v  |
-|  u   |         |     |
+|  u   |

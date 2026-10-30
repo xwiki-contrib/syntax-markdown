@@ -1,6 +1,6 @@
 .#-----------------------------------------------------
 .input|xhtml/1.0
-.# Test that HTML column spans are rendered, the row being padded according to the number of columns it spans
+.# Test that HTML column spans are rendered
 .#-----------------------------------------------------
 <html><table><tr><th>a</th><th>b</th><th>c</th></tr><tr><td colspan="2">d</td><td>e</td></tr><tr><td>f</td><td colspan="2">g</td></tr><tr><td colspan="3">h</td></tr><tr><td>i</td></tr></table></html>
 .#-----------------------------------------------------
@@ -11,4 +11,4 @@
 |    d     ||  e  |
 |  f  |    g     ||
 |       h       |||
-|  i  |     |     |
+|  i  |

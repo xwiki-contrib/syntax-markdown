@@ -1,0 +1,40 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Test that the body rows having less cells than the header row are kept as they are (they are not padded), their
+.# cells getting the alignment of their column
+.#-----------------------------------------------------
+| a   |  b  |   c |
+| :-- | :-: | --: |
+| x   |
+| y   |  z  |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableHeadCell [[align]=[left]]
+onWord [a]
+endTableHeadCell [[align]=[left]]
+beginTableHeadCell [[align]=[center]]
+onWord [b]
+endTableHeadCell [[align]=[center]]
+beginTableHeadCell [[align]=[right]]
+onWord [c]
+endTableHeadCell [[align]=[right]]
+endTableRow
+beginTableRow
+beginTableCell [[align]=[left]]
+onWord [x]
+endTableCell [[align]=[left]]
+endTableRow
+beginTableRow
+beginTableCell [[align]=[left]]
+onWord [y]
+endTableCell [[align]=[left]]
+beginTableCell [[align]=[center]]
+onWord [z]
+endTableCell [[align]=[center]]
+endTableRow
+endTable
+endDocument
