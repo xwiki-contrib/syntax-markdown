@@ -1,0 +1,24 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that the columns in which no cell starts (i.e. that exist only because cells span over them) are not
+.# rendered, the column spans being reduced accordingly. This avoids generating a huge table for large column spans.
+.#-----------------------------------------------------
+|(% colspan="5" %)h
+|a|(% colspan="1000" %)b
+|c|d|e
+
+|(% colspan="2" %)a|b
+|(% colspan="2" %)c|d
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|     |     |     |
+| --- | --- | --- |
+|       h       |||
+|  a  |    b     ||
+|  c  |  d  |  e  |
+
+|     |     |
+| --- | --- |
+|  a  |  b  |
+|  c  |  d  |

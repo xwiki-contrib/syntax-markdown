@@ -1,0 +1,20 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that column spans are rendered, including in the header row, that the alignment of a cell spanning several
+.# columns is set on its first column (which is the alignment it gets when parsed back), that invalid column spans
+.# are ignored, and that row spans (which Markdown cannot express) are ignored
+.#-----------------------------------------------------
+|=(% colspan="2" %)Name|=Age
+|(% colspan="2" align="center" %)Peter Fox|(% align="right" %)42
+|(% colspan="invalid" %)a|(% colspan="-1" %)b|(% colspan="0" %)c
+|(% rowspan="2" %)d|e|f
+|g|h
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|   Name    || Age |
+| :--: | --- | --: |
+| Peter Fox ||  42 |
+|  a   |  b  |   c |
+|  d   |  e  |   f |
+|  g   |  h  |     |
