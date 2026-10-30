@@ -64,6 +64,8 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     private static final String CODE_MACRO_ID = "code";
 
+    private static final String NEW_LINE_ENTITY = "&#10;";
+
     private static final Pattern NEW_LINES = Pattern.compile("\\r\\n|\\r|\\n");
 
     /**
@@ -89,6 +91,11 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
      * The number of emphasis open outside the tables being rendered.
      */
     private Deque<Integer> tableEmphasisDepths = new ArrayDeque<>();
+
+    /**
+     * Whether the current events are located in the label of a link that is rendered using the wiki link syntax.
+     */
+    private boolean isInWikiLink;
 
     /**
      * @param listenerChain the chain of listener filters used to compute various states
@@ -192,6 +199,25 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     }
 
     @Override
+    public void beginLink(ResourceReference reference, boolean isFreeStandingURI, Map<String, String> parameters)
+    {
+        this.isInWikiLink = !isMarkdownLink(reference);
+        super.beginLink(reference, isFreeStandingURI, parameters);
+    }
+
+    @Override
+    public void onNewLine()
+    {
+        if (this.isInWikiLink) {
+            // The wiki link label is plain text, in which HTML entities are supported (and a blank line would end the
+            // wiki link).
+            print(NEW_LINE_ENTITY);
+        } else {
+            super.onNewLine();
+        }
+    }
+
+    @Override
     public void endLink(ResourceReference reference, boolean isFreeStandingURI, Map<String, String> parameters)
     {
         // Overridden from Markdown11ChainingRenderer since in markdown/1.2 we've changed the link syntax to use
@@ -199,12 +225,13 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         // - [...](...) and <...> for URL and mailto
         // - [[...]] for Document, UNC, DataURI and all other types or references
 
+        this.isInWikiLink = false;
         MarkdownEscapeWikiPrinter linkBlocksPrinter = getMarkdownPrinter();
         linkBlocksPrinter.flush();
         String label = linkBlocksPrinter.toString();
         popPrinter();
 
-        if (ResourceType.URL.equals(reference.getType()) || ResourceType.MAILTO.equals(reference.getType())) {
+        if (isMarkdownLink(reference)) {
             String rawReference = reference.getReference();
             // Now decide if we should use an autolink or not
             if (StringUtils.isNotEmpty(label)) {
@@ -223,6 +250,15 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
             printWikiLink(label, escapeWikiLinkReference(this.linkReferenceSerializer.serialize(reference)),
                 reference.getParameters());
         }
+    }
+
+    /**
+     * @return {@code true} if the link is rendered using the Markdown link syntax, {@code false} if it's rendered using
+     *     the wiki link syntax
+     */
+    private boolean isMarkdownLink(ResourceReference reference)
+    {
+        return ResourceType.URL.equals(reference.getType()) || ResourceType.MAILTO.equals(reference.getType());
     }
 
     private boolean isAutoLink(ResourceReference reference)

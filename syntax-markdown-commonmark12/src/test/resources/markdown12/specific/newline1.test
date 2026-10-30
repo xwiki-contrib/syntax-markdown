@@ -1,0 +1,62 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Verify that new lines are rendered so that they don't end the heading, the paragraph or the list item in which they
+.# are located:
+.# - a heading must fit on a single line, so a line break HTML tag is used
+.# - consecutive new lines (or a new line at the beginning of a paragraph) would generate a line containing only the
+.#   2 trailing spaces of a hard line break, i.e. a blank line, so a backslash hard line break is used
+.#-----------------------------------------------------
+# a<br/>b
+
+## c<br/><br/>d
+
+a  
+\
+\
+b
+
+\
+c
+
+* e  
+\
+f
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginSection
+beginHeader [1, Hab]
+onWord [a]
+onNewLine
+onWord [b]
+endHeader [1, Hab]
+beginSection
+beginHeader [2, Hcd]
+onWord [c]
+onNewLine
+onNewLine
+onWord [d]
+endHeader [2, Hcd]
+beginParagraph
+onWord [a]
+onNewLine
+onNewLine
+onNewLine
+onWord [b]
+endParagraph
+beginParagraph
+onNewLine
+onWord [c]
+endParagraph
+beginList [BULLETED]
+beginListItem
+onWord [e]
+onNewLine
+onNewLine
+onWord [f]
+endListItem
+endList [BULLETED]
+endSection
+endSection
+endDocument

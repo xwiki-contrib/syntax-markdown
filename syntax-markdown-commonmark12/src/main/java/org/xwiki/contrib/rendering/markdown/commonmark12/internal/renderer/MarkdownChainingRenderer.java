@@ -77,6 +77,11 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private static final Pattern HEADING_CLOSING_SEQUENCE = Pattern.compile("(^|\\p{Blank})(#+\\p{Blank}*)$");
 
+    /**
+     * A line break HTML tag, which is parsed back as a new line, used where a Markdown hard line break can't be used.
+     */
+    private static final String LINE_BREAK_TAG = "<br/>";
+
     private static final Pattern HTML_ATTRIBUTE_NAME = Pattern.compile("[^\\s\"'>/=\\p{Cntrl}]+");
 
     /**
@@ -329,6 +334,11 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      * Whether nothing has been printed yet in the current container (list item, definition description).
      */
     private boolean isAtContainerStart;
+
+    /**
+     * Whether the current events are located in a definition term (which must fit on a single line).
+     */
+    private boolean isInDefinitionTerm;
 
     /**
      * Line prefix of the container of the last rendered Group, set until something is printed after it, so that
@@ -837,6 +847,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         printEmptyLine();
         print(StringUtils.repeat(' ', 4 * (getDefinitionListDepth() - 1)));
         markBlockContentStart();
+        this.isInDefinitionTerm = true;
     }
 
     @Override
@@ -852,6 +863,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     public void endDefinitionTerm()
     {
         getMarkdownPrinter().flush();
+        this.isInDefinitionTerm = false;
     }
 
     @Override
@@ -1007,8 +1019,23 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void onNewLine()
     {
-        print("  ");
-        print("\n");
+        MarkdownEscapeWikiPrinter printer = getMarkdownPrinter();
+        if (getBlockState().isInHeader() || this.isInDefinitionTerm || getBlockState().isInLink()) {
+            // Headings and definition terms must fit on a single line, and a blank line would end the link label.
+            print(LINE_BREAK_TAG);
+        } else if (!isInTableCell() && printer.isOnNewLine()
+            && StringUtils.isBlank(printer.getBuffer()))
+        {
+            // The line is empty or contains only spaces (e.g. consecutive new lines or new line at the beginning of a
+            // paragraph): a line containing only spaces and the 2 spaces of a hard line break would be a blank line,
+            // which would end the paragraph.
+            // Use the backslash hard line break instead. Note that the new lines of a table cell are converted to line
+            // break tags when the table cell ends.
+            print("\\\n");
+        } else {
+            print("  ");
+            print(NEW_LINE);
+        }
     }
 
     @Override
