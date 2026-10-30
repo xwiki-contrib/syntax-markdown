@@ -27,6 +27,7 @@ import java.util.List;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.GroupExtension;
+import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.MacroBlockExtension;
 
 import com.vladsch.flexmark.ext.abbreviation.AbbreviationExtension;
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
@@ -60,6 +61,7 @@ public abstract class AbstractMarkdownConfiguration
         SuperscriptExtension.class,
         AbbreviationExtension.class,
         MacroExtension.class,
+        MacroBlockExtension.class,
         GroupExtension.class
     );
 

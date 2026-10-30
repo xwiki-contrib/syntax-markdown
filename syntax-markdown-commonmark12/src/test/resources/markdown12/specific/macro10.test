@@ -1,0 +1,61 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Verify that standalone macros located in quotations are parsed correctly: the quotation line prefixes are not part
+.# of the macro name, parameters and content, and the macro closing tag is found after the quotation line prefix.
+.#-----------------------------------------------------
+> {{info}}
+> x
+> {{/info}}
+
+> a
+>
+> {{info title="t"}}
+> x
+>
+>   y
+> {{/info}}
+>
+> b
+
+> > {{info/}}
+> >
+> > {{info}}
+> > z
+> > {{/info}}
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginQuotation
+beginQuotationLine
+beginGroup
+onMacroStandalone [info] [] [x]
+endGroup
+endQuotationLine
+endQuotation
+beginQuotation
+beginQuotationLine
+onWord [a]
+endQuotationLine
+beginQuotationLine
+beginGroup
+onMacroStandalone [info] [title=t] [x
+
+  y]
+endGroup
+endQuotationLine
+beginQuotationLine
+onWord [b]
+endQuotationLine
+endQuotation
+beginQuotation
+beginQuotation
+beginQuotationLine
+beginGroup
+onMacroStandalone [info] []
+onMacroStandalone [info] [] [z]
+endGroup
+endQuotationLine
+endQuotation
+endQuotation
+endDocument

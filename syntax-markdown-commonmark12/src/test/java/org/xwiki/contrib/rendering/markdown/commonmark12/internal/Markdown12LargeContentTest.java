@@ -87,11 +87,30 @@ public class Markdown12LargeContentTest
         assertEquals("c " + html, renderToMarkdown("c {{html}}" + html + "{{/html}}"));
     }
 
+    @Test
+    public void macroBlockWithManyParameters() throws Exception
+    {
+        String markdown = "{{info" + StringUtils.repeat(" a=\"b\"", COUNT) + "}}\nc\n{{/info}}";
+
+        assertEquals("beginDocument [[syntax]=[CommonMark Markdown 1.2]]\n"
+            + "onMacroStandalone [info] [a=b] [c]\n"
+            + "endDocument [[syntax]=[CommonMark Markdown 1.2]]", render(parse(markdown, "markdown/1.2"), "event/1.0"));
+    }
+
     private String renderToMarkdown(String input) throws Exception
     {
-        XDOM xdom = this.mocker.<Parser>getInstance(Parser.class, "xwiki/2.1").parse(new StringReader(input));
+        return render(parse(input, "xwiki/2.1"), "markdown/1.2");
+    }
+
+    private XDOM parse(String content, String syntax) throws Exception
+    {
+        return this.mocker.<Parser>getInstance(Parser.class, syntax).parse(new StringReader(content));
+    }
+
+    private String render(XDOM xdom, String syntax) throws Exception
+    {
         DefaultWikiPrinter printer = new DefaultWikiPrinter();
-        this.mocker.<BlockRenderer>getInstance(BlockRenderer.class, "markdown/1.2").render(xdom, printer);
+        this.mocker.<BlockRenderer>getInstance(BlockRenderer.class, syntax).render(xdom, printer);
         return printer.toString();
     }
 }

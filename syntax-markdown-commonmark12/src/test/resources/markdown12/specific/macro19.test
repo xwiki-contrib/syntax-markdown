@@ -1,0 +1,36 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that a line starting with a macro and ending with a closing tag having the same name is read as a macro
+.# written on a single line only when this closing tag closes the macro (the tags having the same name located between
+.# them being balanced, and the closing tag not being escaped), and as a paragraph otherwise.
+.#-----------------------------------------------------
+{{info}}a{{/info}} {{info}}b{{/info}}
+
+* {{info}}c{{/info}} d \{{/info}}
+
+{{info}}e {{info}}f{{/info}} g{{/info}}
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onMacroInline [info] [] [a]
+onSpace
+onMacroInline [info] [] [b]
+endParagraph
+beginList [BULLETED]
+beginListItem
+onMacroInline [info] [] [c]
+onSpace
+onWord [d]
+onSpace
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onSpecialSymbol [/]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+endListItem
+endList [BULLETED]
+onMacroStandalone [info] [] [e {{info}}f{{/info}} g]
+endDocument
