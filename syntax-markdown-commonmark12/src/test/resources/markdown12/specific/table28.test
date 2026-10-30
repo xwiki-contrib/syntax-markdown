@@ -1,0 +1,54 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that the block content located in table cells that can't be rendered as Markdown inside a table row is
+.# rendered on a single line: standalone macros are rendered as inline macros (the line endings of their content
+.# being rendered as line breaks), HTML is rendered as inline HTML (its line endings being replaced by spaces) and
+.# tables are rendered as inline HTML tables (keeping the Markdown syntax of their cell contents), unless they contain
+.# wiki syntax (e.g. macros) which isn't parsed inside inline HTML, in which case their rows are rendered as text
+.#-----------------------------------------------------
+|=a|=b
+|x|(((
+{{info}}
+hello
+{{/info}}
+)))
+|y|(((
+para
+
+{{mymacro param="value"}}
+line1
+line2
+{{/mymacro}}
+)))
+|z|(((
+{{html}}
+<p>
+html
+</p>
+{{/html}}
+
+after
+)))
+|w|(((
+before
+
+(% class="nested" hidden %)
+|=(% rowspan="2" %)n1|n2
+|(% colspan="2" %)n3 ~| **n4**
+
+after
+)))
+|v|(((
+|{{info}}m{{/info}}|[[Space.Page]]
+|n3|n4
+)))
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|  a  | b |
+| --- | --- |
+|  x  | {{info}}hello{{/info}} |
+|  y  | para<br/><br/>{{mymacro param="value"}}line1<br/>line2{{/mymacro}} |
+|  z  | <p> html </p><br/><br/>after |
+|  w  | before<br/><br/><table class="nested" hidden=""><tr><th rowspan="2">n1</th><td>n2</td></tr><tr><td colspan="2">n3 \| **n4**</td></tr></table><br/><br/>after |
+|  v  | {{info}}m{{/info}} \| [[Space.Page]]<br/>n3 \| n4 |

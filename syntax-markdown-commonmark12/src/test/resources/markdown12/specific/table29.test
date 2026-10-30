@@ -1,0 +1,69 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that the block content located in table cells rendered on a single line (see table28) is read back
+.#-----------------------------------------------------
+|  a  | b |
+| --- | --- |
+|  x  | {{info}}hello{{/info}} |
+|  y  | para<br/><br/>{{mymacro param="value"}}line1<br/>line2{{/mymacro}} |
+|  z  | <p> html </p><br/><br/>after |
+|  w  | before<br/><br/><table class="nested"><tr><th rowspan="2">n1</th><td>n2</td></tr><tr><td colspan="2">n3 \| **n4**</td></tr></table><br/><br/>after |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [a]
+endTableHeadCell
+beginTableHeadCell
+onWord [b]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [x]
+endTableCell
+beginTableCell
+onMacroInline [info] [] [hello]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [y]
+endTableCell
+beginTableCell
+onWord [para]
+onNewLine
+onNewLine
+onMacroInline [mymacro] [param=value] [line1<br/>line2]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [z]
+endTableCell
+beginTableCell
+onMacroInline [html] [clean=false] [<p> html </p>]
+onNewLine
+onNewLine
+onWord [after]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [w]
+endTableCell
+beginTableCell
+onWord [before]
+onNewLine
+onNewLine
+onMacroInline [html] [clean=false] [<table class="nested"><tr><th rowspan="2">n1</th><td>n2</td></tr><tr><td colspan="2">n3 | <strong>n4</strong></td></tr></table>]
+onNewLine
+onNewLine
+onWord [after]
+endTableCell
+endTableRow
+endTable
+endDocument

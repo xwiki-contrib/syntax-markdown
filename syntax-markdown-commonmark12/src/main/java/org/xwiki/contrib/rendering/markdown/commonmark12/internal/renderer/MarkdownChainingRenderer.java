@@ -33,6 +33,7 @@ import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -79,15 +80,16 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private static final Pattern HTML_ATTRIBUTE_NAME = Pattern.compile("[^\\s\"'>/=\\p{Cntrl}]+");
 
     /**
-     * Line breaks (and the spaces around them) in a table cell, which would otherwise end the table row. The repetition
-     * is possessive to avoid a stack overflow on large content.
+     * Line breaks (and the spaces around them) in a table cell, which would otherwise end the table row. Only character
+     * classes are repeated, to avoid a stack overflow on large content.
      */
-    private static final Pattern TABLE_CELL_LINE_BREAKS = Pattern.compile("[ \\t]*\\r?\\n(?:[ \\t\\n]|\\r(?=\\n))*+");
+    private static final Pattern TABLE_CELL_LINE_BREAKS = Pattern.compile("[ \\t]*[\\r\\n][ \\t\\r\\n]*");
 
     /**
      * Several line breaks, i.e. at least one empty line (e.g. between two paragraphs).
      */
-    private static final Pattern TABLE_CELL_EMPTY_LINE = Pattern.compile("\\n[ \\t\\r]*\\n");
+    private static final Pattern TABLE_CELL_EMPTY_LINE =
+        Pattern.compile("(\\r\\n|\\r(?!\\n)|\\n)[ \\t]*(\\r\\n|\\r(?!\\n)|\\n)");
 
     private static final String TABLE_CELL_LINE_BREAK = "<br/>";
 
@@ -143,17 +145,30 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
          */
         private final int rowspan;
 
+        /**
+         * Whether the cell is a head cell.
+         */
+        private final boolean isHead;
+
+        /**
+         * The parameters of the cell.
+         */
+        private final Map<String, String> parameters;
+
         TableCellState(String text, String alignment, int colspan)
         {
-            this(text, alignment, colspan, 1);
+            this(text, alignment, colspan, 1, false, Collections.emptyMap());
         }
 
-        TableCellState(String text, String alignment, int colspan, int rowspan)
+        TableCellState(String text, String alignment, int colspan, int rowspan, boolean isHead,
+            Map<String, String> parameters)
         {
             this.text = text;
             this.alignment = alignment;
             this.colspan = colspan;
             this.rowspan = rowspan;
+            this.isHead = isHead;
+            this.parameters = parameters;
         }
     }
 
@@ -271,6 +286,17 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      * For each row of each table, whether the row is made only of head cells.
      */
     private Stack<List<Boolean>> tableHeadRows = new Stack<>();
+
+    /**
+     * For each table, whether one of its cells is being rendered.
+     */
+    private Stack<Boolean> tableCellStarted = new Stack<>();
+
+    /**
+     * For each table, whether it contains content that can only be written using the wiki syntax (e.g. macros, wiki
+     * links and images), which isn't supported inside inline HTML.
+     */
+    private Stack<Boolean> tableWikiSyntax = new Stack<>();
 
     /**
      * For each table, whether an element was rendered before it (and thus whether an empty line must separate them).
@@ -454,7 +480,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         this.groupStates.push(state);
 
         // Markdown tables can't contain blocks, thus only the Group content is rendered.
-        if (getBlockState().isInTableCell()) {
+        if (isInTableCell()) {
             state.isFlattened = true;
             return;
         }
@@ -657,9 +683,10 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private static String escapeHTMLAttributeValue(String value)
     {
-        // New lines are escaped too since an empty line would end the HTML block of the div opening tag.
-        return value.replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;").replace(">", "&gt;")
-            .replace(NEW_LINE, "&#10;").replace("\r", "&#13;");
+        // New lines are escaped too since an empty line would end the HTML block of the div opening tag. A parameter
+        // without value (e.g. "(% name %)" in XWiki Syntax) has a null value.
+        return StringUtils.defaultString(value).replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace(NEW_LINE, "&#10;").replace("\r", "&#13;");
     }
 
     @Override
@@ -695,7 +722,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
         // Any inline content following the heading in the same container (e.g. a list item) must be separated from
         // it by an empty line, otherwise it would be part of the heading.
-        if (!getBlockState().isInTableCell()) {
+        if (!isInTableCell()) {
             this.pendingSeparator = getContainerLinePrefix();
         }
     }
@@ -830,7 +857,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         QuotationState state = new QuotationState();
         // Markdown tables can't contain blocks, thus only the quotation content is rendered.
-        if (getBlockState().isInTableCell()) {
+        if (isInTableCell()) {
             state.isFlattened = true;
         } else {
             // The quotation content is rendered separately so that all its lines can be prefixed once it's ended.
@@ -1022,6 +1049,8 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         this.tableAtContainerStart.push(this.isAtContainerStart);
         this.tableCells.push(new ArrayList<>());
         this.tableHeadRows.push(new ArrayList<>());
+        this.tableCellStarted.push(false);
+        this.tableWikiSyntax.push(false);
     }
 
     @Override
@@ -1029,9 +1058,23 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         List<List<TableCellState>> rows = this.tableCells.pop();
         List<Boolean> headRows = this.tableHeadRows.pop();
+        this.tableCellStarted.pop();
+        boolean hasWikiSyntax = this.tableWikiSyntax.pop();
         this.isFirstElementRendered = this.tableAfterRenderedElement.pop();
         this.pendingSeparator = this.tablePendingSeparators.pop();
         this.isAtContainerStart = this.tableAtContainerStart.pop();
+
+        if (isInTableCell()) {
+            // Markdown tables can't be nested since a table row must be on a single line. The table is written as
+            // inline HTML, unless it contains wiki syntax: it wouldn't be parsed inside inline HTML (the table being
+            // read back as an HTML macro), thus its rows are written as text instead.
+            if (hasWikiSyntax) {
+                printTextTable(rows);
+            } else {
+                printHTMLTable(rows, parameters);
+            }
+            return;
+        }
 
         fillTableRowSpannedColumns(rows);
         // Find the max number of columns, taking into account the cells spanning several columns.
@@ -1081,6 +1124,79 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             print(NEW_LINE + linePrefix);
             printTableRow(rowCells, columnAlignments, columnSizes);
         }
+    }
+
+    /**
+     * Print a table located in a table cell as inline HTML on a single line, since Markdown tables can't be nested.
+     * The cell contents are kept as Markdown since inline HTML can contain Markdown inline content, and HTML supports
+     * the cell parameters (e.g. row spans).
+     *
+     * @param rows the cells of each row of the table
+     * @param parameters the table parameters
+     */
+    private void printHTMLTable(List<List<TableCellState>> rows, Map<String, String> parameters)
+    {
+        // A table without any cell is not rendered, as in Markdown.
+        if (rows.stream().allMatch(List::isEmpty)) {
+            return;
+        }
+
+        printBlockSeparator(getContainerLinePrefix());
+        StringBuilder builder = new StringBuilder();
+        appendHTMLStartTag(builder, "table", parameters);
+        for (List<TableCellState> rowCells : rows) {
+            builder.append("<tr>");
+            for (TableCellState cell : rowCells) {
+                String tagName = cell.isHead ? "th" : "td";
+                appendHTMLStartTag(builder, tagName, cell.parameters);
+                builder.append(cell.text).append("</").append(tagName).append('>');
+            }
+            builder.append("</tr>");
+        }
+        builder.append("</table>");
+        print(builder.toString());
+    }
+
+    /**
+     * Print a table located in a table cell as text, each row on its own line (which is rendered as a line break) and
+     * its cells separated by pipes.
+     *
+     * @param rows the cells of each row of the table
+     */
+    private void printTextTable(List<List<TableCellState>> rows)
+    {
+        List<String> rowTexts = new ArrayList<>(rows.size());
+        for (List<TableCellState> rowCells : rows) {
+            if (!rowCells.isEmpty()) {
+                rowTexts.add(rowCells.stream().map(cell -> cell.text).collect(Collectors.joining(" \\| ")));
+            }
+        }
+        // A table without any cell is not rendered, as in Markdown.
+        if (!rowTexts.isEmpty()) {
+            printBlockSeparator(getContainerLinePrefix());
+            print(String.join(NEW_LINE, rowTexts));
+        }
+    }
+
+    /**
+     * Indicate that content that can only be written using the wiki syntax (e.g. macros, wiki links and images) is
+     * being rendered, so that the tables containing it are not written as inline HTML when located in a table cell.
+     */
+    protected void onWikiSyntax()
+    {
+        Collections.fill(this.tableWikiSyntax, true);
+    }
+
+    private static void appendHTMLStartTag(StringBuilder builder, String tagName, Map<String, String> parameters)
+    {
+        builder.append('<').append(tagName);
+        for (Map.Entry<String, String> parameter : parameters.entrySet()) {
+            if (isValidGroupParameterName(parameter.getKey())) {
+                builder.append(' ').append(parameter.getKey()).append("=\"")
+                    .append(escapeHTMLAttributeValue(parameter.getValue())).append('"');
+            }
+        }
+        builder.append('>');
     }
 
     /**
@@ -1337,6 +1453,12 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void endTableCell(Map<String, String> parameters)
     {
+        endTableCellContent(parameters, false);
+    }
+
+    private void endTableCellContent(Map<String, String> parameters, boolean isHead)
+    {
+        this.tableCellStarted.set(this.tableCellStarted.size() - 1, false);
         MarkdownEscapeWikiPrinter cellPrinter = getMarkdownPrinter();
         cellPrinter.flush();
         String cellText = cellPrinter.toString();
@@ -1352,7 +1474,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
         List<TableCellState> cellsInLastRow = this.tableCells.peek().get(this.tableCells.peek().size() - 1);
         cellsInLastRow.add(new TableCellState(cellText, getTableCellAlignment(parameters),
-            getTableCellColspan(parameters), getTableCellRowspan(parameters)));
+            getTableCellColspan(parameters), getTableCellRowspan(parameters), isHead, parameters));
     }
 
     private int getTableCellRowspan(Map<String, String> parameters)
@@ -1451,11 +1573,12 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void endTableHeadCell(Map<String, String> parameters)
     {
-        endTableCell(parameters);
+        endTableCellContent(parameters, true);
     }
 
     private void beginTableCellContent()
     {
+        this.tableCellStarted.set(this.tableCellStarted.size() - 1, true);
         pushPrinter(createInlineMarkdownPrinter());
     }
 
@@ -1588,7 +1711,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             if (isInline) {
                 // Inline should generate back ticks
                 printCodeSpan(StringUtils.defaultString(content));
-            } else if (getBlockState().isInTableCell()) {
+            } else if (isInTableCell()) {
                 // Markdown table cells can only contain inline content, thus, as for verbatim, we generate a code span
                 // (the language is lost since Markdown has no syntax to specify the language of a code span).
                 printTableCellCodeSpan(StringUtils.defaultString(content));
@@ -1649,7 +1772,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             // The content of a standalone verbatim written on its own lines starts and ends with a line ending (e.g.
             // "{{{\ncontent\n}}}" in XWiki Syntax 2.1), which isn't part of the content to display.
             String text = StringUtils.chomp(content.replaceFirst("^(\r\n|\r|\n)", ""));
-            if (getBlockState().isInTableCell()) {
+            if (isInTableCell()) {
                 // Markdown table cells can only contain inline content.
                 printTableCellCodeSpan(text);
             } else {
@@ -1925,7 +2048,9 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      */
     protected boolean isInTableCell()
     {
-        return getBlockState().isInTableCell();
+        // The block state can't be used since it doesn't support nested tables: it considers that we're not in a
+        // table cell anymore after the end of a table located in a table cell.
+        return !this.tableCellStarted.isEmpty() && this.tableCellStarted.peek();
     }
 
     private BlockStateChainingListener getBlockState()
