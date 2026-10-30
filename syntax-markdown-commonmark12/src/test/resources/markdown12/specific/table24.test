@@ -1,0 +1,29 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that the separator needed after a Group or a heading is printed before the table and not in its first cell
+.#-----------------------------------------------------
+(((
+group
+)))
+|~- a|b
+
+= heading =
+|~- c|d
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+<div>
+
+group
+
+</div>
+
+|     |     |
+| --- | --- |
+| - a |  b  |
+
+# heading
+
+|     |     |
+| --- | --- |
+| - c |  d  |

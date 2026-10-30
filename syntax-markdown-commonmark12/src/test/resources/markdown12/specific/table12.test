@@ -1,0 +1,32 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that an empty header row is kept when the table has no other row, so that the table doesn't disappear
+.#-----------------------------------------------------
+|     |     |
+| --- | --- |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableHeadCell
+onSpace
+endTableHeadCell
+beginTableHeadCell
+onSpace
+endTableHeadCell
+endTableRow
+endTable
+endDocument
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that the table is rendered back as it was
+.#-----------------------------------------------------
+|     |     |
+| --- | --- |
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|     |     |
+| --- | --- |

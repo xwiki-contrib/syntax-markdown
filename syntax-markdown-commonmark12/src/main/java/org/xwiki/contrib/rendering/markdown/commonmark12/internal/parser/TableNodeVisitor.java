@@ -29,11 +29,13 @@ import org.xwiki.rendering.listener.Listener;
 import org.xwiki.rendering.renderer.PrintRendererFactory;
 
 import com.vladsch.flexmark.ext.tables.TableBlock;
+import com.vladsch.flexmark.ext.tables.TableBody;
 import com.vladsch.flexmark.ext.tables.TableCaption;
 import com.vladsch.flexmark.ext.tables.TableCell;
 import com.vladsch.flexmark.ext.tables.TableHead;
 import com.vladsch.flexmark.ext.tables.TableRow;
 import com.vladsch.flexmark.ext.tables.TableSeparator;
+import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
 
@@ -88,9 +90,34 @@ public class TableNodeVisitor extends AbstractNodeVisitor
 
     public void visit(TableHead node)
     {
-//        this.isInTableHeaderStack.push(true);
-        getVisitor().visitChildren(node);
-//        this.isInTableHeaderStack.pop();
+        // A Markdown table must have a header row. Thus a table without header is written with an empty header row,
+        // which is ignored so that the table is read back as it was. It's kept when the table has no other row though,
+        // so that the table doesn't disappear.
+        if (!isEmpty(node) || !hasBodyRows(node)) {
+            getVisitor().visitChildren(node);
+        }
+    }
+
+    private boolean hasBodyRows(TableHead node)
+    {
+        for (Node sibling : node.getParent().getChildren()) {
+            if (sibling instanceof TableBody && sibling.hasChildren()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isEmpty(TableHead node)
+    {
+        for (Node row : node.getChildren()) {
+            for (Node cell : row.getChildren()) {
+                if (cell instanceof TableCell && !((TableCell) cell).getText().isBlank()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public void visit(TableRow node)

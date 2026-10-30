@@ -1,0 +1,13 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# Test that blocks separated by an empty line in a cell (e.g. paragraphs) are kept separated, with 2 line breaks
+.#-----------------------------------------------------
+<html><p>before</p><table><tr><th>a</th><th>b</th></tr><tr><td><p>x</p><p>y</p></td><td>z</td></tr></table></html>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+before
+
+|      a       |  b  |
+| ------------ | --- |
+| x<br/><br/>y |  z  |

@@ -1,0 +1,22 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that an empty header row is ignored, so that a table without header row is read back without header row
+.#-----------------------------------------------------
+|     |     |
+| --- | --- |
+|  a  |  b  |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableCell
+onWord [a]
+endTableCell
+beginTableCell
+onWord [b]
+endTableCell
+endTableRow
+endTable
+endDocument

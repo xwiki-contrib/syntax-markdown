@@ -1,0 +1,40 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that 2 line breaks separating blocks in a cell, as rendered by the Markdown renderer, are read back as part
+.# of the cell content and rendered back as they were
+.#-----------------------------------------------------
+|      a       |  b  |
+| ------------ | --- |
+| x<br/><br/>y |  z  |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [a]
+endTableHeadCell
+beginTableHeadCell
+onWord [b]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [x]
+onMacroInline [html] [clean=false] [<br/>]
+onMacroInline [html] [clean=false] [<br/>]
+onWord [y]
+endTableCell
+beginTableCell
+onWord [z]
+endTableCell
+endTableRow
+endTable
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|      a       |  b  |
+| ------------ | --- |
+| x<br/><br/>y |  z  |
