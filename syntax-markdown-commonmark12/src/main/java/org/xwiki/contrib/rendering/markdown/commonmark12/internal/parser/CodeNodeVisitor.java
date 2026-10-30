@@ -23,12 +23,14 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.rendering.listener.Listener;
 
 import com.vladsch.flexmark.ast.Code;
 import com.vladsch.flexmark.ast.FencedCodeBlock;
 import com.vladsch.flexmark.ast.IndentedCodeBlock;
 import com.vladsch.flexmark.ast.ListItem;
+import com.vladsch.flexmark.util.ast.Block;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
 
@@ -67,17 +69,12 @@ public class CodeNodeVisitor extends AbstractNodeVisitor
 
     public void visit(FencedCodeBlock node)
     {
-        // Since XWiki doesn't have a Code Block we generate a Code Macro Block
-        Map<String, String> parameters;
-        if (node.getInfo() != null) {
-            parameters = getCodeMacroParameters(node.getInfo().toString());
-        } else {
-            parameters = getCodeMacroParameters(null);
-        }
+        // Since XWiki doesn't have a Code Block we generate a Code Macro Block.
+        // According to CommonMark, the first word of the info string is the language.
+        String[] infoWords = StringUtils.split(node.getInfo().toString());
+        String language = infoWords.length > 0 ? infoWords[0] : null;
 
-        // Flexmark puts trailing newline in the HTML block so we need to remove it.
-        String content = node.getContentChars().toString().trim();
-        getListener().onMacro(CODE_MACRO_ID, parameters, content, false);
+        getListener().onMacro(CODE_MACRO_ID, getCodeMacroParameters(language), getCodeContent(node), false);
     }
 
     public void visit(IndentedCodeBlock node)
@@ -89,10 +86,17 @@ public class CodeNodeVisitor extends AbstractNodeVisitor
         if (node.getParent() instanceof ListItem) {
             getListener().beginGroup(Collections.emptyMap());
         }
-        getListener().onMacro(CODE_MACRO_ID, getCodeMacroParameters(null), node.getContentChars().toString(), false);
+        getListener().onMacro(CODE_MACRO_ID, getCodeMacroParameters(null), getCodeContent(node), false);
         if (node.getParent() instanceof ListItem) {
             getListener().endGroup(Collections.emptyMap());
         }
+    }
+
+    private String getCodeContent(Block node)
+    {
+        // Flexmark puts the line ending of the last line in the content so we need to remove it. Note that we keep
+        // any other whitespace (e.g. the indentation of the first line).
+        return StringUtils.removeEnd(StringUtils.removeEnd(node.getContentChars().toString(), "\n"), "\r");
     }
 
     private Map<String, String> getCodeMacroParameters(String language)

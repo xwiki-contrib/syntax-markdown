@@ -40,8 +40,7 @@ onWord [after]
 endListItem
 beginListItem
 beginGroup [[class]=[d]]
-onMacroStandalone [code] [language=none] [code
-]
+onMacroStandalone [code] [language=none] [code]
 endGroup [[class]=[d]]
 beginList [BULLETED]
 beginListItem

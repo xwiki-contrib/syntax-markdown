@@ -1,0 +1,30 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that fenced code blocks keep the leading indentation, that a missing info string means no language
+.# and that only the first word of the info string is used as the language.
+.#-----------------------------------------------------
+```
+    indented
+x
+```
+
+```java title="Test.java"
+  int i;
+```
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+onMacroStandalone [code] [language=none] [    indented
+x]
+onMacroStandalone [code] [language=java] [  int i;]
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+        indented
+    x
+
+```java
+  int i;
+```
