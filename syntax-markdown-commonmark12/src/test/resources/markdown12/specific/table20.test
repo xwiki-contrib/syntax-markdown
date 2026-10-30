@@ -1,0 +1,77 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that cells spanning several columns are rendered back as they were written: in the header row, at the end of
+.# a row, empty, and larger than the columns they span (the missing size being distributed over these columns, so
+.# that columns are aligned)
+.#-----------------------------------------------------
+|        Names        || Age |
+| -------- | --------- | --: |
+|   Fox    |   Peter   |  42 |
+| A long spanned cell ||  60 |
+|    x     |       y        ||
+|                     ||   z |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableHeadCell [[colspan]=[2]]
+onWord [Names]
+endTableHeadCell [[colspan]=[2]]
+beginTableHeadCell [[align]=[right]]
+onWord [Age]
+endTableHeadCell [[align]=[right]]
+endTableRow
+beginTableRow
+beginTableCell
+onWord [Fox]
+endTableCell
+beginTableCell
+onWord [Peter]
+endTableCell
+beginTableCell [[align]=[right]]
+onWord [42]
+endTableCell [[align]=[right]]
+endTableRow
+beginTableRow
+beginTableCell [[colspan]=[2]]
+onWord [A]
+onSpace
+onWord [long]
+onSpace
+onWord [spanned]
+onSpace
+onWord [cell]
+endTableCell [[colspan]=[2]]
+beginTableCell [[align]=[right]]
+onWord [60]
+endTableCell [[align]=[right]]
+endTableRow
+beginTableRow
+beginTableCell
+onWord [x]
+endTableCell
+beginTableCell [[colspan]=[2]]
+onWord [y]
+endTableCell [[colspan]=[2]]
+endTableRow
+beginTableRow
+beginTableCell [[colspan]=[2]]
+onSpace
+endTableCell [[colspan]=[2]]
+beginTableCell [[align]=[right]]
+onWord [z]
+endTableCell [[align]=[right]]
+endTableRow
+endTable
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|        Names        || Age |
+| -------- | --------- | --: |
+|   Fox    |   Peter   |  42 |
+| A long spanned cell ||  60 |
+|    x     |       y        ||
+|                     ||   z |

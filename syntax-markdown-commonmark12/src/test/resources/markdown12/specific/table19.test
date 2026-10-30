@@ -1,0 +1,39 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that a cell spanning several columns (consecutive pipes) is rendered back as spanning these columns
+.#-----------------------------------------------------
+| a | b | c |
+|---|---|---|
+| d || e |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [a]
+endTableHeadCell
+beginTableHeadCell
+onWord [b]
+endTableHeadCell
+beginTableHeadCell
+onWord [c]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell [[colspan]=[2]]
+onWord [d]
+endTableCell [[colspan]=[2]]
+beginTableCell
+onWord [e]
+endTableCell
+endTableRow
+endTable
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|  a  |  b  |  c  |
+| --- | --- | --- |
+|    d     ||  e  |

@@ -28,10 +28,13 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
 import java.util.Stack;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
@@ -103,6 +106,40 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      * The minimum cell size, to account for the header separator "---".
      */
     private static final int TABLE_MIN_CELL_SIZE = 3;
+
+    private static final String TABLE_COLSPAN_PARAMETER = "colspan";
+
+    /**
+     * The maximum column span of a cell, as defined by the HTML specification. It avoids generating a huge table for
+     * an invalid column span.
+     */
+    private static final int TABLE_MAX_COLSPAN = 1000;
+
+    /**
+     * A table cell to render, collected until the end of the table since the size of the columns must be known before
+     * printing the table.
+     */
+    private static final class TableCellState
+    {
+        private final String text;
+
+        /**
+         * The cell alignment, {@code null} when the cell has no alignment.
+         */
+        private final String alignment;
+
+        /**
+         * The number of columns the cell spans.
+         */
+        private final int colspan;
+
+        TableCellState(String text, String alignment, int colspan)
+        {
+            this.text = text;
+            this.alignment = alignment;
+            this.colspan = colspan;
+        }
+    }
 
     /**
      * State of a block container (Group, Quotation) being rendered, whose content is rendered separately so that it
@@ -181,7 +218,10 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private Stack<String> listStyle = new Stack<>();
 
-    private Stack<List<List<String>>> tableCells = new Stack<>();
+    /**
+     * For each row of each table, its cells.
+     */
+    private Stack<List<List<TableCellState>>> tableCells = new Stack<>();
 
     /**
      * For each row of each table, whether the row is made only of head cells.
@@ -203,11 +243,6 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      * For each table, whether it's the first content of its container (e.g. list item).
      */
     private Stack<Boolean> tableAtContainerStart = new Stack<>();
-
-    /**
-     * For each cell of each row of each table, its alignment ({@code null} when the cell has no alignment).
-     */
-    private Stack<List<List<String>>> tableCellAlignments = new Stack<>();
 
     private Stack<Map<String, String>> abbreviations = new Stack<>();
 
@@ -906,24 +941,20 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         this.tableAtContainerStart.push(this.isAtContainerStart);
         this.tableCells.push(new ArrayList<>());
         this.tableHeadRows.push(new ArrayList<>());
-        this.tableCellAlignments.push(new ArrayList<>());
     }
 
     @Override
     public void endTable(Map<String, String> parameters)
     {
-        List<List<String>> rows = this.tableCells.pop();
+        List<List<TableCellState>> rows = this.tableCells.pop();
         List<Boolean> headRows = this.tableHeadRows.pop();
-        List<List<String>> alignments = this.tableCellAlignments.pop();
         this.isFirstElementRendered = this.tableAfterRenderedElement.pop();
         this.pendingSeparator = this.tablePendingSeparators.pop();
         this.isAtContainerStart = this.tableAtContainerStart.pop();
 
-        // Find the max number of columns. Shorter rows are padded with empty cells to get a valid table.
-        int maxColumns = 0;
-        for (List<String> columnCells : rows) {
-            maxColumns = Math.max(maxColumns, columnCells.size());
-        }
+        // Find the max number of columns, taking into account the cells spanning several columns. Shorter rows are
+        // padded with empty cells to get a valid table.
+        int maxColumns = removeTableSpannedOnlyColumns(rows);
         // A table without any cell cannot be represented in Markdown.
         if (maxColumns == 0) {
             return;
@@ -931,9 +962,9 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         // The table rows must be indented to stay inside the container (e.g. list item) in which the table is located.
         String linePrefix = getContainerLinePrefix();
         printBlockSeparator(linePrefix);
-        for (List<String> columnCells : rows) {
-            while (columnCells.size() < maxColumns) {
-                columnCells.add("");
+        for (List<TableCellState> rowCells : rows) {
+            for (int i = getTableRowColumnCount(rowCells); i < maxColumns; i++) {
+                rowCells.add(new TableCellState("", null, 1));
             }
         }
 
@@ -941,60 +972,160 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         // be the header row, and only if it's made of head cells only. Otherwise an empty header row is printed (which
         // the parser ignores). Head cells located in the other rows are printed as normal cells since Markdown cannot
         // express them.
-        List<String> headerRow;
-        List<List<String>> bodyRows;
+        List<TableCellState> headerRow;
+        List<List<TableCellState>> bodyRows;
         if (headRows.get(0)) {
             headerRow = rows.get(0);
             bodyRows = rows.subList(1, rows.size());
         } else {
-            headerRow = new ArrayList<>(Collections.nCopies(maxColumns, ""));
+            headerRow = Collections.nCopies(maxColumns, new TableCellState("", null, 1));
             bodyRows = rows;
         }
 
-        // Find the max cell size per column
-        List<Integer> maxColumnSizes = new ArrayList<>(Collections.nCopies(maxColumns, TABLE_MIN_CELL_SIZE));
-        for (List<String> columnCells : rows) {
-            for (int i = 0; i < maxColumns; i++) {
-                maxColumnSizes.set(i, Math.max(maxColumnSizes.get(i), columnCells.get(i).length()));
+        List<Integer> columnSizes = getTableColumnSizes(rows, maxColumns);
+        List<String> columnAlignments = getTableColumnAlignments(rows, maxColumns);
+
+        printTableRow(headerRow, columnAlignments, columnSizes);
+        print(NEW_LINE + linePrefix);
+        printTableDelimiterRow(columnAlignments, columnSizes);
+        for (List<TableCellState> rowCells : bodyRows) {
+            print(NEW_LINE + linePrefix);
+            printTableRow(rowCells, columnAlignments, columnSizes);
+        }
+    }
+
+    /**
+     * Remove the columns in which no cell starts, i.e. the columns that exist only because some cells span over them
+     * (e.g. a cell spanning more columns than the other rows have). Such columns hold no content, and keeping them
+     * would allow a few cells with a large column span to generate a huge table (every row being padded up to the
+     * number of columns). The column spans are reduced accordingly. This way the table never has more columns than
+     * cells.
+     *
+     * @param rows the cells of each row of the table, modified to remove the columns in which no cell starts
+     * @return the number of columns of the table
+     */
+    private int removeTableSpannedOnlyColumns(List<List<TableCellState>> rows)
+    {
+        SortedSet<Integer> startColumnSet = new TreeSet<>();
+        for (List<TableCellState> rowCells : rows) {
+            int column = 0;
+            for (TableCellState cell : rowCells) {
+                startColumnSet.add(column);
+                column += cell.colspan;
             }
         }
-
-        List<String> columnAlignments = getTableColumnAlignments(alignments, maxColumns);
-
-        printTableRow(headerRow, columnAlignments, maxColumnSizes);
-        print(NEW_LINE + linePrefix);
-        printTableDelimiterRow(columnAlignments, maxColumnSizes);
-        for (List<String> columnCells : bodyRows) {
-            print(NEW_LINE + linePrefix);
-            printTableRow(columnCells, columnAlignments, maxColumnSizes);
+        List<Integer> startColumns = new ArrayList<>(startColumnSet);
+        for (List<TableCellState> rowCells : rows) {
+            int column = 0;
+            for (int i = 0; i < rowCells.size(); i++) {
+                TableCellState cell = rowCells.get(i);
+                int nextColumn = column + cell.colspan;
+                // The cell now spans from the index of its start column to the index of the first start column after
+                // it.
+                int newColumn = Collections.binarySearch(startColumns, column);
+                int newNextColumn = Collections.binarySearch(startColumns, nextColumn);
+                if (newNextColumn < 0) {
+                    newNextColumn = -newNextColumn - 1;
+                }
+                int newColspan = newNextColumn - newColumn;
+                if (newColspan != cell.colspan) {
+                    rowCells.set(i, new TableCellState(cell.text, cell.alignment, newColspan));
+                }
+                column = nextColumn;
+            }
         }
+        return startColumns.size();
+    }
+
+    private int getTableRowColumnCount(List<TableCellState> rowCells)
+    {
+        int columnCount = 0;
+        for (TableCellState cell : rowCells) {
+            columnCount += cell.colspan;
+        }
+        return columnCount;
+    }
+
+    /**
+     * The size of a column is the size of its largest cell. A cell spanning several columns is printed over the space
+     * of these columns (including the space of the pipes separating them), and thus doesn't make a single column
+     * larger: when it's larger than this space, the missing size is distributed over the columns it spans.
+     *
+     * @param rows the cells of each row of the table
+     * @param maxColumns the number of columns of the table
+     * @return the size of each column
+     */
+    private List<Integer> getTableColumnSizes(List<List<TableCellState>> rows, int maxColumns)
+    {
+        List<Integer> columnSizes = new ArrayList<>(Collections.nCopies(maxColumns, TABLE_MIN_CELL_SIZE));
+        for (List<TableCellState> rowCells : rows) {
+            int column = 0;
+            for (TableCellState cell : rowCells) {
+                if (cell.colspan == 1) {
+                    columnSizes.set(column, Math.max(columnSizes.get(column), cell.text.length()));
+                }
+                column += cell.colspan;
+            }
+        }
+        for (List<TableCellState> rowCells : rows) {
+            int column = 0;
+            for (TableCellState cell : rowCells) {
+                int missingSize = cell.text.length() - getTableCellSize(columnSizes, column, cell.colspan);
+                for (int i = 0; i < cell.colspan && missingSize > 0; i++) {
+                    int remainingColumns = cell.colspan - i;
+                    int extraSize = (missingSize + remainingColumns - 1) / remainingColumns;
+                    columnSizes.set(column + i, columnSizes.get(column + i) + extraSize);
+                    missingSize -= extraSize;
+                }
+                column += cell.colspan;
+            }
+        }
+        return columnSizes;
+    }
+
+    /**
+     * @param columnSizes the size of each column
+     * @param column the first column of the cell
+     * @param colspan the number of columns spanned by the cell
+     * @return the size available to the cell content, i.e. the size of the columns it spans, plus the space taken by
+     *     the separators of these columns in a row without span (" | ") minus the extra pipes closing the cell
+     */
+    private int getTableCellSize(List<Integer> columnSizes, int column, int colspan)
+    {
+        int size = 2 * (colspan - 1);
+        for (int i = column; i < column + colspan; i++) {
+            size += columnSizes.get(i);
+        }
+        return size;
     }
 
     /**
      * Markdown only supports an alignment per column (set in the delimiter row), while the XWiki model has an
      * alignment per cell. A column gets the alignment specified by its cells, ignoring the cells without alignment
      * (e.g. it's common to align only the body cells, or only the header cell). When some cells specify different
-     * alignments, there's no right choice and thus the column gets no alignment.
+     * alignments, there's no right choice and thus the column gets no alignment. A cell spanning several columns
+     * specifies the alignment of its first column only, since that's the alignment it gets when parsed back.
      *
-     * @param alignments the alignment of each cell of each row ({@code null} when the cell has no alignment)
+     * @param rows the cells of each row of the table
      * @param maxColumns the number of columns of the table
      * @return the alignment of each column ({@code null} when the column has no alignment)
      */
-    private List<String> getTableColumnAlignments(List<List<String>> alignments, int maxColumns)
+    private List<String> getTableColumnAlignments(List<List<TableCellState>> rows, int maxColumns)
     {
         List<String> columnAlignments = new ArrayList<>(Collections.nCopies(maxColumns, null));
         List<Boolean> conflicts = new ArrayList<>(Collections.nCopies(maxColumns, false));
-        for (List<String> rowAlignments : alignments) {
-            for (int i = 0; i < rowAlignments.size(); i++) {
-                String alignment = rowAlignments.get(i);
-                if (alignment != null) {
-                    String columnAlignment = columnAlignments.get(i);
+        for (List<TableCellState> rowCells : rows) {
+            int column = 0;
+            for (TableCellState cell : rowCells) {
+                if (cell.alignment != null) {
+                    String columnAlignment = columnAlignments.get(column);
                     if (columnAlignment == null) {
-                        columnAlignments.set(i, alignment);
-                    } else if (!columnAlignment.equals(alignment)) {
-                        conflicts.set(i, true);
+                        columnAlignments.set(column, cell.alignment);
+                    } else if (!columnAlignment.equals(cell.alignment)) {
+                        conflicts.set(column, true);
                     }
                 }
+                column += cell.colspan;
             }
         }
         for (int i = 0; i < maxColumns; i++) {
@@ -1005,15 +1136,16 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         return columnAlignments;
     }
 
-    private void printTableRow(List<String> columnCells, List<String> columnAlignments, List<Integer> maxColumnSizes)
+    private void printTableRow(List<TableCellState> rowCells, List<String> columnAlignments,
+        List<Integer> columnSizes)
     {
         print("|");
-        for (int j = 0; j < columnCells.size(); j++) {
-            String cell = columnCells.get(j);
-            int paddingSize = maxColumnSizes.get(j) - cell.length();
-            // Pad the cell text according to the column alignment, centering it by default.
+        int column = 0;
+        for (TableCellState cell : rowCells) {
+            int paddingSize = getTableCellSize(columnSizes, column, cell.colspan) - cell.text.length();
+            // Pad the cell text according to the alignment of its (first) column, centering it by default.
             int leftPaddingSize;
-            String alignment = columnAlignments.get(j);
+            String alignment = columnAlignments.get(column);
             if (TABLE_ALIGN_LEFT.equals(alignment)) {
                 leftPaddingSize = 0;
             } else if (TABLE_ALIGN_RIGHT.equals(alignment)) {
@@ -1023,19 +1155,23 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             }
             print(" ");
             print(StringUtils.repeat(' ', leftPaddingSize));
-            print(cell);
+            print(cell.text);
             print(StringUtils.repeat(' ', paddingSize - leftPaddingSize));
-            print(" |");
+            print(" ");
+            // A cell spanning several columns is closed by as many adjacent pipes (whitespace between them would
+            // create empty cells instead).
+            print(StringUtils.repeat('|', cell.colspan));
+            column += cell.colspan;
         }
     }
 
-    private void printTableDelimiterRow(List<String> columnAlignments, List<Integer> maxColumnSizes)
+    private void printTableDelimiterRow(List<String> columnAlignments, List<Integer> columnSizes)
     {
         print("|");
         for (int j = 0; j < columnAlignments.size(); j++) {
             String alignment = columnAlignments.get(j);
             // The column size is at least 3, which leaves room for at least one dash between colons.
-            int dashCount = maxColumnSizes.get(j);
+            int dashCount = columnSizes.get(j);
             boolean colonOnLeft = TABLE_ALIGN_LEFT.equals(alignment) || TABLE_ALIGN_CENTER.equals(alignment);
             boolean colonOnRight = TABLE_ALIGN_RIGHT.equals(alignment) || TABLE_ALIGN_CENTER.equals(alignment);
             print(" ");
@@ -1079,11 +1215,9 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                 ? TABLE_CELL_LINE_BREAK + TABLE_CELL_LINE_BREAK : TABLE_CELL_LINE_BREAK);
         cellText = TABLE_CELL_PIPE.matcher(cellText).replaceAll("$1\\\\|");
 
-        List<String> cellsInLastRow = this.tableCells.peek().get(this.tableCells.peek().size() - 1);
-        cellsInLastRow.add(cellText);
-        List<String> alignmentsInLastRow =
-            this.tableCellAlignments.peek().get(this.tableCellAlignments.peek().size() - 1);
-        alignmentsInLastRow.add(getTableCellAlignment(parameters));
+        List<TableCellState> cellsInLastRow = this.tableCells.peek().get(this.tableCells.peek().size() - 1);
+        cellsInLastRow.add(
+            new TableCellState(cellText, getTableCellAlignment(parameters), getTableCellColspan(parameters)));
     }
 
     private String getTableCellAlignment(Map<String, String> parameters)
@@ -1096,6 +1230,14 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         }
         // Other alignments (e.g. "justify") cannot be expressed in Markdown.
         return null;
+    }
+
+    private int getTableCellColspan(Map<String, String> parameters)
+    {
+        // Invalid column spans (not a number, lower than 1) are ignored. Note that row spans cannot be expressed in
+        // Markdown and are thus ignored.
+        int colspan = NumberUtils.toInt(StringUtils.trim(parameters.get(TABLE_COLSPAN_PARAMETER)), 1);
+        return Math.min(Math.max(colspan, 1), TABLE_MAX_COLSPAN);
     }
 
     @Override
@@ -1120,14 +1262,13 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         this.tableCells.peek().add(new ArrayList<>());
         this.tableHeadRows.peek().add(true);
-        this.tableCellAlignments.peek().add(new ArrayList<>());
     }
 
     @Override
     public void endTableRow(Map<String, String> parameters)
     {
         // A row without any cell cannot be the header row.
-        List<List<String>> rows = this.tableCells.peek();
+        List<List<TableCellState>> rows = this.tableCells.peek();
         if (rows.get(rows.size() - 1).isEmpty()) {
             List<Boolean> headRows = this.tableHeadRows.peek();
             headRows.set(headRows.size() - 1, false);
