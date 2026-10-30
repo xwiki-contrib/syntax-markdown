@@ -1,0 +1,47 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that escaped backticks and code spans containing backticks or new lines are parsed back as is
+.#-----------------------------------------------------
+a `` b`{{info}}c{{/info}}` `` d
+
+a `` `b `` `` c`{{info}}d{{/info}}` `` e
+
+a `b   <span>c</span>` d
+
+a\``b`\` c
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onSpace
+onMacroInline [code] [language=none] [ b`{{info}}c{{/info}}` ]
+onSpace
+onWord [d]
+endParagraph
+beginParagraph
+onWord [a]
+onSpace
+onMacroInline [code] [language=none] [ `b ]
+onSpace
+onMacroInline [code] [language=none] [ c`{{info}}d{{/info}}` ]
+onSpace
+onWord [e]
+endParagraph
+beginParagraph
+onWord [a]
+onSpace
+onMacroInline [code] [language=none] [b   <span>c</span>]
+onSpace
+onWord [d]
+endParagraph
+beginParagraph
+onWord [a]
+onSpecialSymbol [`]
+onMacroInline [code] [language=none] [b]
+onSpecialSymbol [`]
+onSpace
+onWord [c]
+endParagraph
+endDocument

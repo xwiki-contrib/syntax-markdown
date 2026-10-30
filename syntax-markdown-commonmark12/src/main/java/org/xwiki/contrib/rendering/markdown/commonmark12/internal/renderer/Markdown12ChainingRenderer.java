@@ -21,7 +21,6 @@ package org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -53,18 +52,21 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     private static final String FORMAT_THREE_PARAMS = "[[%s|%s|%s]]";
 
-    private static final String HTML_ATTRIBUTE =
-        "\\s+[a-zA-Z_:][a-zA-Z0-9_.:-]*(?:\\s*=\\s*(?:[^\\s\"'=<>`]+|'[^']*'|\"[^\"]*\"))?";
+    private static final String PERCENT_ENCODING = "%%%02X";
 
-    private static final String HTML_OPEN_TAG = "<[a-zA-Z][a-zA-Z0-9-]*(?:" + HTML_ATTRIBUTE + ")*\\s*/?>";
+    private static final char DEL = 127;
 
-    private static final String HTML_CLOSING_TAG = "</[a-zA-Z][a-zA-Z0-9-]*\\s*>";
+    private static final Pattern NEW_LINES = Pattern.compile("\\r\\n|\\r|\\n");
 
     /**
-     * HTML tags, comments, processing instructions, declarations and CDATA sections, which are kept verbatim.
+     * See https://spec.commonmark.org/0.29/#autolinks.
      */
-    private static final Pattern HTML_TAG_PATTERN = Pattern.compile(HTML_OPEN_TAG + '|' + HTML_CLOSING_TAG
-        + "|<!--[\\s\\S]*?-->|<\\?[\\s\\S]*?\\?>|<![a-zA-Z][^>]*>|<!\\[CDATA\\[[\\s\\S]*?\\]\\]>");
+    private static final Pattern URI_AUTOLINK = Pattern.compile("[a-zA-Z][a-zA-Z0-9+.-]{1,31}:[^\\s<>\\p{Cntrl}]*");
+
+    // The repetition of the domain labels is possessive to avoid a stack overflow on large content (it doesn't change
+    // the matched strings since backtracking into it can't lead to a match).
+    private static final Pattern EMAIL_AUTOLINK = Pattern.compile("[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]"
+        + "(?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*+");
 
     private MarkdownConfiguration configuration;
 
@@ -140,29 +142,99 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         popPrinter();
 
         if (ResourceType.URL.equals(reference.getType()) || ResourceType.MAILTO.equals(reference.getType())) {
+            String rawReference = reference.getReference();
             // Now decide if we should use an autolink or not
-            if (StringUtils.isEmpty(label)) {
+            if (StringUtils.isNotEmpty(label)) {
+                printLink(label, escapeLinkReference(rawReference));
+            } else if (isAutoLink(reference)) {
                 // Don't output the type prefix.
-                printAutoLink(reference.getReference());
+                printAutoLink(rawReference);
             } else {
-                printLink(label, escapeLinkReference(reference.getReference()));
+                // The reference can't be written using the autolink syntax.
+                String linkReference = ResourceType.MAILTO.equals(reference.getType())
+                    ? ResourceType.MAILTO.getScheme() + ':' + rawReference : rawReference;
+                printLink(escapeText(rawReference), escapeLinkReference(linkReference));
             }
         } else {
-            printWikiLink(label, this.linkReferenceSerializer.serialize(reference), reference.getParameters());
+            printWikiLink(label, escapeWikiLinkReference(this.linkReferenceSerializer.serialize(reference)),
+                reference.getParameters());
         }
+    }
+
+    private boolean isAutoLink(ResourceReference reference)
+    {
+        Pattern pattern = ResourceType.MAILTO.equals(reference.getType()) ? EMAIL_AUTOLINK : URI_AUTOLINK;
+        return pattern.matcher(reference.getReference()).matches();
+    }
+
+    private String escapeText(String text)
+    {
+        MarkdownEscapeHandler escapeHandler = new MarkdownEscapeHandler();
+        escapeHandler.setOnNewLine(false);
+        escapeHandler.setInLinkLabel(true);
+        StringBuffer buffer = new StringBuffer(removeNewLines(text));
+        escapeHandler.escape(buffer, null);
+        return buffer.toString();
     }
 
     private String escapeLinkReference(String rawReference)
     {
-        String escapedReference;
-
-        // Escape any ( or ) to avoid issue with the link syntax.
+        // Escape the characters that would end the link destination or that would make it invalid.
         // e.g. [label](https://en.wikipedia.org/Some_Subject_\(With_Title\))
-        // See http://spec.commonmark.org/0.27/#links
-        escapedReference = rawReference.replaceAll("\\(", "\\\\(");
-        escapedReference = escapedReference.replaceAll("\\)", "\\\\)");
+        // See https://spec.commonmark.org/0.29/#link-destination
+        StringBuilder builder = new StringBuilder(rawReference.length());
+        for (int i = 0; i < rawReference.length(); i++) {
+            char c = rawReference.charAt(i);
+            // Note that a link destination starting with '<' ends with the first '>'.
+            if (c == '(' || c == ')' || (i == 0 && c == '<')) {
+                builder.append(MarkdownEscapeHandler.ESCAPE_CHAR).append(c);
+            } else {
+                appendURICharacter(builder, c);
+            }
+        }
+        return builder.toString();
+    }
 
-        return escapedReference;
+    private String encodeImageReference(String rawReference)
+    {
+        // The image destination is not unescaped by the parser so we use percent-encoding instead.
+        StringBuilder builder = new StringBuilder(rawReference.length());
+        for (int i = 0; i < rawReference.length(); i++) {
+            char c = rawReference.charAt(i);
+            if (c == '(' || c == ')' || (i == 0 && c == '<')) {
+                builder.append(String.format(PERCENT_ENCODING, (int) c));
+            } else {
+                appendURICharacter(builder, c);
+            }
+        }
+        return builder.toString();
+    }
+
+    private void appendURICharacter(StringBuilder builder, char c)
+    {
+        // Spaces and control characters are not allowed in link destinations.
+        if (c <= ' ' || c == DEL) {
+            builder.append(String.format(PERCENT_ENCODING, (int) c));
+        } else {
+            builder.append(c);
+        }
+    }
+
+    /**
+     * Escape the closing brackets that could end the wiki link (the content of wiki links is not unescaped by the
+     * parser but backslash escapes are taken into account when looking for the end of the wiki link).
+     */
+    private String escapeWikiLinkReference(String reference)
+    {
+        return StringUtils.replace(removeNewLines(reference), "]", MarkdownEscapeHandler.ESCAPE_CHAR + ']');
+    }
+
+    /**
+     * Replace the new lines since a blank line would end the paragraph and thus the link or image syntax.
+     */
+    private String removeNewLines(String text)
+    {
+        return NEW_LINES.matcher(text).replaceAll(" ");
     }
 
     @Override
@@ -179,9 +251,10 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         }
 
         if (ResourceType.URL.equals(reference.getType())) {
-            print(String.format("![%s](%s)", alt, reference.getReference()));
+            print(String.format("![%s](%s)", escapeText(alt), encodeImageReference(reference.getReference())));
         } else {
-            print(String.format("![[%s|%s]]", alt, reference.getReference()));
+            print(String.format("![[%s|%s]]", escapeWikiLinkReference(alt),
+                escapeWikiLinkReference(reference.getReference())));
         }
     }
 
@@ -194,12 +267,21 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
                 print(String.format(FORMAT_TWO_PARAMS, serializedReference, serializeParameters(parameters)));
             }
         } else {
+            String wikiLinkLabel = escapeWikiLinkLabel(label);
             if (parameters.isEmpty()) {
-                print(String.format(FORMAT_TWO_PARAMS, label, serializedReference));
+                print(String.format(FORMAT_TWO_PARAMS, wikiLinkLabel, serializedReference));
             } else {
-                print(String.format(FORMAT_THREE_PARAMS, label, serializedReference, serializeParameters(parameters)));
+                print(String.format(FORMAT_THREE_PARAMS, wikiLinkLabel, serializedReference,
+                    serializeParameters(parameters)));
             }
         }
+    }
+
+    private String escapeWikiLinkLabel(String label)
+    {
+        // The wiki link label ends at the first pipe character (which can't be escaped with a backslash), but HTML
+        // entities are supported.
+        return label.replace("|", "&#124;");
     }
 
     private String serializeParameters(Map<String, String> parameters)
@@ -208,7 +290,8 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         Iterator<Map.Entry<String, String>> iterator = parameters.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, String> entry = iterator.next();
-            builder.append(entry.getKey()).append('=').append(QUOTE).append(entry.getValue()).append(QUOTE);
+            builder.append(entry.getKey()).append('=').append(QUOTE)
+                .append(escapeWikiLinkReference(entry.getValue())).append(QUOTE);
             if (iterator.hasNext()) {
                 builder.append(' ');
             }
@@ -237,23 +320,23 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         boolean isHandled = false;
 
         if (id.equals("html")) {
-            if (!isInline) {
-                printEmptyLine();
-            }
-
-            // Keep the HTML tags (and thus their attributes) verbatim and only escape the text located between them.
-            String html =
-                StringUtils.defaultString(createMacroPrinter().renderMacro(id, parameters, content, isInline));
+            String html = StringUtils.defaultString(createMacroPrinter().renderMacro(id, parameters, content,
+                isInline));
             MarkdownEscapeWikiPrinter printer = getMarkdownPrinter();
-            Matcher matcher = HTML_TAG_PATTERN.matcher(html);
-            int position = 0;
-            while (matcher.find()) {
-                printer.printDelayed(html.substring(position, matcher.start()));
-                print(matcher.group());
-                position = matcher.end();
+
+            // Keep the HTML tags verbatim and only escape the text that would be parsed as Markdown.
+            if (isInline) {
+                // Print what comes before so that the escaping knows if the HTML is located at the beginning of a
+                // line.
+                if (!html.isEmpty()) {
+                    printPendingSeparator(html);
+                }
+                printer.flush(html);
+                print(printer.escapeInlineHTML(html));
+            } else {
+                printEmptyLine();
+                print(printer.escapeBlockHTML(html));
             }
-            printer.printDelayed(html.substring(position));
-            printer.flush();
             isHandled = true;
         }
 

@@ -33,19 +33,17 @@ import org.xwiki.rendering.renderer.printer.WikiPrinter;
  */
 public class MarkdownEscapeWikiPrinter extends LookaheadWikiPrinter
 {
-    private XWikiSyntaxListenerChain listenerChain;
-
     private MarkdownEscapeHandler escapeHandler;
 
     private String lastPrinted;
+
+    private String nextText;
 
     public MarkdownEscapeWikiPrinter(WikiPrinter printer, XWikiSyntaxListenerChain listenerChain)
     {
         super(printer);
 
         this.escapeHandler = new MarkdownEscapeHandler();
-
-        this.listenerChain = listenerChain;
     }
 
     @Override
@@ -73,17 +71,85 @@ public class MarkdownEscapeWikiPrinter extends LookaheadWikiPrinter
     }
 
     @Override
+    public void print(String text)
+    {
+        // Remember what is printed right after the delayed text, since the escaping can depend on it.
+        this.nextText = text;
+        try {
+            super.print(text);
+        } finally {
+            this.nextText = null;
+        }
+    }
+
+    @Override
+    public void println(String text)
+    {
+        this.nextText = text + '\n';
+        try {
+            super.println(text);
+        } finally {
+            this.nextText = null;
+        }
+    }
+
+    @Override
     public void flush()
     {
         if (getBuffer().length() > 0) {
-            this.escapeHandler.escape(getBuffer(), this.listenerChain);
+            this.escapeHandler.escape(getBuffer(), this.nextText);
             super.flush();
         }
+    }
+
+    /**
+     * Print the delayed text.
+     *
+     * @param nextText the content that will be printed right after the delayed text
+     * @since 8.10.0
+     */
+    public void flush(String nextText)
+    {
+        this.nextText = nextText;
+        try {
+            flush();
+        } finally {
+            this.nextText = null;
+        }
+    }
+
+    /**
+     * @param html some inline HTML content to print
+     * @return the HTML content where the text located between the HTML tags is escaped
+     * @since 8.10.0
+     */
+    public String escapeInlineHTML(String html)
+    {
+        return this.escapeHandler.escapeInlineHTML(html);
+    }
+
+    /**
+     * @param html some HTML content to print at the beginning of a block
+     * @return the HTML content where the parts that are parsed as Markdown are escaped
+     * @since 8.10.0
+     */
+    public String escapeBlockHTML(String html)
+    {
+        return this.escapeHandler.escapeBlockHTML(html);
     }
 
     public void setOnNewLine(boolean onNewLine)
     {
         this.escapeHandler.setOnNewLine(onNewLine);
+    }
+
+    /**
+     * @param inLinkLabel true if the printed text is located inside a link label
+     * @since 8.10.0
+     */
+    public void setInLinkLabel(boolean inLinkLabel)
+    {
+        this.escapeHandler.setInLinkLabel(inLinkLabel);
     }
 
     public boolean isOnNewLine()

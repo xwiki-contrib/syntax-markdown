@@ -1,0 +1,81 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that the escaped references and alternative texts of links and images are parsed back as is
+.#-----------------------------------------------------
+[[url:{{info}}a{{/info}}]] [\{{info}}a\{{/info}}](mailto:{{info}}a{{/info}}) <https://xwiki.org> <a@b.org>
+
+[label](http://xwiki.org/a%20b\(c\)<d) [http://xwiki.org/a b](http://xwiki.org/a%20b)
+
+[[label|doc:a\]\]{{info}}b{{/info}}]] [[doc:Page|anchor="c\]\]{{info}}d{{/info}}"]]
+
+![d\]\]\{{info}}e\{{/info}}](https://xwiki.org/a%20b%28c%29.png) ![f  \[g\]: https://xwiki.org](https://xwiki.org/a.png)
+
+![[b\]\]{{info}}c{{/info}}|a.png]]
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [false] Type = [doc] Reference = [url:{{info}}a{{/info}}]] [false]
+endLink [Typed = [false] Type = [doc] Reference = [url:{{info}}a{{/info}}]] [false]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [mailto:{{info}}a{{/info}}]] [false]
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onWord [a]
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onSpecialSymbol [/]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+endLink [Typed = [false] Type = [url] Reference = [mailto:{{info}}a{{/info}}]] [false]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [https://xwiki.org]] [true]
+endLink [Typed = [false] Type = [url] Reference = [https://xwiki.org]] [true]
+onSpace
+beginLink [Typed = [true] Type = [mailto] Reference = [a@b.org]] [true]
+endLink [Typed = [true] Type = [mailto] Reference = [a@b.org]] [true]
+endParagraph
+beginParagraph
+beginLink [Typed = [false] Type = [url] Reference = [http://xwiki.org/a%20b(c)<d]] [false]
+onWord [label]
+endLink [Typed = [false] Type = [url] Reference = [http://xwiki.org/a%20b(c)<d]] [false]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [http://xwiki.org/a%20b]] [false]
+onWord [http]
+onSpecialSymbol [:]
+onSpecialSymbol [/]
+onSpecialSymbol [/]
+onWord [xwiki]
+onSpecialSymbol [.]
+onWord [org]
+onSpecialSymbol [/]
+onWord [a]
+onSpace
+onWord [b]
+endLink [Typed = [false] Type = [url] Reference = [http://xwiki.org/a%20b]] [false]
+endParagraph
+beginParagraph
+beginLink [Typed = [true] Type = [doc] Reference = [a\]\]{{info}}b{{/info}}]] [false]
+onWord [label]
+endLink [Typed = [true] Type = [doc] Reference = [a\]\]{{info}}b{{/info}}]] [false]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [anchor="c\]\]{{info}}d{{/info}}"]] [false]
+onWord [doc]
+onSpecialSymbol [:]
+onWord [Page]
+endLink [Typed = [false] Type = [doc] Reference = [anchor="c\]\]{{info}}d{{/info}}"]] [false]
+endParagraph
+beginParagraph
+onImage [Typed = [false] Type = [url] Reference = [https://xwiki.org/a%20b%28c%29.png]] [false] [[alt]=[d]]{{info}}e{{/info}}]]
+onSpace
+onImage [Typed = [false] Type = [url] Reference = [https://xwiki.org/a.png]] [false] [[alt]=[f  [g]: https://xwiki.org]]
+endParagraph
+beginParagraph
+onImage [Typed = [false] Type = [attach] Reference = [a.png]] [false] [[alt]=[b\]\]{{info}}c{{/info}}]]
+endParagraph
+endDocument
