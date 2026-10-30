@@ -1,0 +1,63 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Macro blocks located in list items and definition descriptions: the macro name, parameters and content are read
+.# after the container indentation, and the macro stays in its container when rendered
+.#-----------------------------------------------------
+* a
+
+  {{info title="b"/}}
+* {{info title="c"/}}
+* d
+    * e
+
+      {{info title="f"}}
+      x
+        y
+      {{/info}}
+
+  {{info}}
+  {{info}}
+  z
+  {{/info}}
+  {{/info}}
+
+term
+:   g
+
+    {{info title="h"/}}
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [a]
+onMacroStandalone [info] [title=b]
+endListItem
+beginListItem
+onMacroStandalone [info] [title=c]
+endListItem
+beginListItem
+onWord [d]
+beginList [BULLETED]
+beginListItem
+onWord [e]
+onMacroStandalone [info] [title=f] [x
+  y]
+endListItem
+endList [BULLETED]
+onMacroStandalone [info] [] [{{info}}
+z
+{{/info}}]
+endListItem
+endList [BULLETED]
+beginDefinitionList
+beginDefinitionTerm
+onWord [term]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [g]
+onMacroStandalone [info] [title=h]
+endDefinitionDescription
+endDefinitionList
+endDocument

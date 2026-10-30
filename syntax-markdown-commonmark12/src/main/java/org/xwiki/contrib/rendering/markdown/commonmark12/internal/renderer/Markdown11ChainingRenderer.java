@@ -117,12 +117,13 @@ public class Markdown11ChainingRenderer extends MarkdownChainingRenderer
 
         // Handle standard macros. Markdown table cells can only contain inline content, thus standalone macros located
         // in table cells must not be separated by an empty line (it would break the table).
-        if (!isInline && !isInTableCell()) {
-            printEmptyLine();
-        }
-
+        String macro = getMacroPrinter().renderMacro(id, parameters, content, isInline);
         onWikiSyntax();
-        print(getMacroPrinter().renderMacro(id, parameters, content, isInline));
+        if (!isInline && !isInTableCell()) {
+            printStandaloneBlock(macro);
+        } else {
+            print(macro);
+        }
     }
 
     private MarkdownMacroRenderer getMacroPrinter()
