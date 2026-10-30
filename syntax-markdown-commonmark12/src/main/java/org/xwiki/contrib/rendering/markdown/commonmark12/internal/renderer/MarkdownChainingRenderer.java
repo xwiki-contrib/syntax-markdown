@@ -1444,6 +1444,10 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             if (isInline) {
                 // Inline should generate back ticks
                 printCodeSpan(StringUtils.defaultString(content));
+            } else if (getBlockState().isInTableCell()) {
+                // Markdown table cells can only contain inline content, thus, as for verbatim, we generate a code span
+                // (the language is lost since Markdown has no syntax to specify the language of a code span).
+                printTableCellCodeSpan(StringUtils.defaultString(content));
             } else {
                 // Standalone should generate fenced blocks or triple backticks with language if a language was
                 // specified (and no language if language is none).
@@ -1491,12 +1495,28 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             String text = StringUtils.chomp(content.replaceFirst("^(\r\n|\r|\n)", ""));
             if (getBlockState().isInTableCell()) {
                 // Markdown table cells can only contain inline content.
-                printCodeSpan(text);
+                printTableCellCodeSpan(text);
             } else {
                 printEmptyLine();
                 printFencedCodeBlock(text, "");
             }
         }
+    }
+
+    /**
+     * Print the content of a standalone element (e.g. verbatim or code macro) located in a table cell as a code span.
+     *
+     * @param content the content to print
+     */
+    private void printTableCellCodeSpan(String content)
+    {
+        // Separate the code span from the previous content of the cell (e.g. another standalone code), otherwise
+        // two consecutive code spans would be read back as a single one.
+        MarkdownEscapeWikiPrinter printer = getMarkdownPrinter();
+        if (!content.isEmpty() && (!printer.toString().isEmpty() || printer.getBuffer().length() > 0)) {
+            print(SPACE);
+        }
+        printCodeSpan(content);
     }
 
     /**
@@ -1671,6 +1691,14 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         } else {
             this.isFirstElementRendered = true;
         }
+    }
+
+    /**
+     * @return {@code true} if the current element is located in a table cell, {@code false} otherwise
+     */
+    protected boolean isInTableCell()
+    {
+        return getBlockState().isInTableCell();
     }
 
     private BlockStateChainingListener getBlockState()
