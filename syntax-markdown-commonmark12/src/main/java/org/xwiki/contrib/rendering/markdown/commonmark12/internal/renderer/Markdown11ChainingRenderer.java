@@ -121,6 +121,7 @@ public class Markdown11ChainingRenderer extends MarkdownChainingRenderer
             printEmptyLine();
         }
 
+        onWikiSyntax();
         print(getMacroPrinter().renderMacro(id, parameters, content, isInline));
     }
 

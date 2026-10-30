@@ -35,8 +35,9 @@ import org.xwiki.test.mockito.MockitoComponentManagerRule;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Verify that the code blocks whose content contains carriage returns (which can't be expressed in the test files
- * since their line endings are normalized) stay code blocks when rendered to Markdown 1.2.
+ * Verify that the content containing carriage returns (which can't be expressed in the test files since their line
+ * endings are normalized) is rendered properly to Markdown 1.2: code blocks stay code blocks and table rows stay on a
+ * single line.
  *
  * @version $Id$
  */
@@ -69,6 +70,32 @@ public class Markdown12CodeLineEndingsTest
             + "endGroup\n"
             + "endListItem\n"
             + "endList [BULLETED]\n"
+            + "endDocument [[syntax]=[CommonMark Markdown 1.2]]",
+            render(parse(markdown, "markdown/1.2"), "event/1.0"));
+    }
+
+    @Test
+    public void macroWithCarriageReturnsInTableCell() throws Exception
+    {
+        String markdown = render(parse("|=a\n|{{info}}b\rc\r\rd{{/info}}", "xwiki/2.1"), "markdown/1.2");
+
+        assertEquals("|                  a                  |\n"
+            + "| ----------------------------------- |\n"
+            + "| {{info}}b<br/>c<br/><br/>d{{/info}} |", markdown);
+
+        assertEquals("beginDocument [[syntax]=[CommonMark Markdown 1.2]]\n"
+            + "beginTable\n"
+            + "beginTableRow\n"
+            + "beginTableHeadCell\n"
+            + "onWord [a]\n"
+            + "endTableHeadCell\n"
+            + "endTableRow\n"
+            + "beginTableRow\n"
+            + "beginTableCell\n"
+            + "onMacroInline [info] [] [b<br/>c<br/><br/>d]\n"
+            + "endTableCell\n"
+            + "endTableRow\n"
+            + "endTable\n"
             + "endDocument [[syntax]=[CommonMark Markdown 1.2]]",
             render(parse(markdown, "markdown/1.2"), "event/1.0"));
     }

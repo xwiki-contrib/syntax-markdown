@@ -56,6 +56,8 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     private static final char DEL = 127;
 
+    private static final String CODE_MACRO_ID = "code";
+
     private static final Pattern NEW_LINES = Pattern.compile("\\r\\n|\\r|\\n");
 
     /**
@@ -156,6 +158,7 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
                 printLink(escapeText(rawReference), escapeLinkReference(linkReference));
             }
         } else {
+            onWikiSyntax();
             printWikiLink(label, escapeWikiLinkReference(this.linkReferenceSerializer.serialize(reference)),
                 reference.getParameters());
         }
@@ -253,6 +256,7 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         if (ResourceType.URL.equals(reference.getType())) {
             print(String.format("![%s](%s)", escapeText(alt), encodeImageReference(reference.getReference())));
         } else {
+            onWikiSyntax();
             print(String.format("![[%s|%s]]", escapeWikiLinkReference(alt),
                 escapeWikiLinkReference(reference.getReference())));
         }
@@ -324,8 +328,20 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
                 isInline));
             MarkdownEscapeWikiPrinter printer = getMarkdownPrinter();
 
+            boolean isInTableCell = isInTableCell();
+            if (isInTableCell) {
+                // Markdown table cells can only contain inline content on a single line, thus the HTML is rendered
+                // as inline HTML, with its line endings replaced by spaces (which is equivalent in HTML, except in
+                // preformatted elements) since they would be rendered as line breaks otherwise. Standalone HTML is
+                // separated from the previous blocks of the cell by an empty line, as other blocks.
+                html = NEW_LINES.matcher(html).replaceAll(" ");
+                if (!isInline) {
+                    printEmptyLine();
+                }
+            }
+
             // Keep the HTML tags verbatim and only escape the text that would be parsed as Markdown.
-            if (isInline) {
+            if (isInline || isInTableCell) {
                 // Print what comes before so that the escaping knows if the HTML is located at the beginning of a
                 // line.
                 if (!html.isEmpty()) {
@@ -347,6 +363,16 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     public void onMacro(String id, Map<String, String> parameters, String content, boolean isInline)
     {
         if (handleHtmlMacro(id, parameters, content, isInline)) {
+            return;
+        }
+
+        if (!isInline && isInTableCell() && !CODE_MACRO_ID.equals(id)) {
+            // Markdown table cells can only contain inline content on a single line, thus a standalone macro located
+            // in a table cell is rendered as an inline macro (the line endings around its content would be rendered
+            // as line breaks, and thus added to its content, otherwise). It's separated from the previous blocks of
+            // the cell by an empty line, as other blocks.
+            printEmptyLine();
+            super.onMacro(id, parameters, content, true);
             return;
         }
 
