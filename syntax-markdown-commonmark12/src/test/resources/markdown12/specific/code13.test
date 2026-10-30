@@ -1,0 +1,49 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# The code blocks generated for consecutive standalone code macros (see code12.test) are read back as distinct code
+.# macros, and rendered back the same way.
+.#-----------------------------------------------------
+    a
+
+```
+b
+```
+
+    c
+
+```java
+d
+```
+
+    e
+
+* item
+
+  <div>
+
+      f
+
+  ```
+  g
+  ```
+
+  </div>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+onMacroStandalone [code] [language=none] [a]
+onMacroStandalone [code] [language=none] [b]
+onMacroStandalone [code] [language=none] [c]
+onMacroStandalone [code] [language=java] [d]
+onMacroStandalone [code] [language=none] [e]
+beginList [BULLETED]
+beginListItem
+onWord [item]
+beginGroup
+onMacroStandalone [code] [language=none] [f]
+onMacroStandalone [code] [language=none] [g]
+endGroup
+endListItem
+endList [BULLETED]
+endDocument

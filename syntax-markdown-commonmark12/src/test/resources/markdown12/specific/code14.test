@@ -1,0 +1,39 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Code blocks located directly in list items (i.e. not wrapped in a Group): a code block without language directly
+.# following an indented code block is rendered as a fenced code block (otherwise both would be merged), and fenced
+.# code blocks are indented so that they stay in the list item.
+.#-----------------------------------------------------
+* a
+
+      x
+
+  ```
+  y
+  ```
+
+1. b
+
+   ```java
+   z
+   ```
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [a]
+beginGroup
+onMacroStandalone [code] [language=none] [x]
+endGroup
+onMacroStandalone [code] [language=none] [y]
+endListItem
+endList [BULLETED]
+beginList [NUMBERED]
+beginListItem
+onWord [b]
+onMacroStandalone [code] [language=java] [z]
+endListItem
+endList [NUMBERED]
+endDocument

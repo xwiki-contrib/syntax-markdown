@@ -110,15 +110,15 @@ public class Markdown11ChainingRenderer extends MarkdownChainingRenderer
     @Override
     public void onMacro(String id, Map<String, String> parameters, String content, boolean isInline)
     {
+        // Handle Code macro in a specific way (it's separated from the previous block by itself)
+        if (handleCodeMacro(id, parameters, content, isInline)) {
+            return;
+        }
+
         // Handle standard macros. Markdown table cells can only contain inline content, thus standalone macros located
         // in table cells must not be separated by an empty line (it would break the table).
         if (!isInline && !isInTableCell()) {
             printEmptyLine();
-        }
-
-        // Handle Code macro in a specific way
-        if (handleCodeMacro(id, parameters, content, isInline)) {
-            return;
         }
 
         print(getMacroPrinter().renderMacro(id, parameters, content, isInline));

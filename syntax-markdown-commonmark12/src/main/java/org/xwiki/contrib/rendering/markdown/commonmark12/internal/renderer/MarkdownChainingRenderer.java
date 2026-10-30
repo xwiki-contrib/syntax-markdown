@@ -185,6 +185,12 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
          * standalone code macro rendered as an indented code block, -1 otherwise.
          */
         private int indentedCodeEndIndex = -1;
+
+        /**
+         * Whether the Group directly follows an indented code block or a list (in which case an indented code block
+         * can't be used).
+         */
+        private boolean isAfterIndentedCodeBlock;
     }
 
     /**
@@ -262,6 +268,26 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private String pendingSeparator;
 
     private int monospaceDepth;
+
+    /**
+     * The printer in which the last indented code block was printed.
+     */
+    private MarkdownEscapeWikiPrinter indentedCodeBlockPrinter;
+
+    /**
+     * Length of the content of {@link #indentedCodeBlockPrinter} just after the last indented code block.
+     */
+    private int indentedCodeBlockEndIndex;
+
+    /**
+     * The printer in which the last list (or definition list) was printed.
+     */
+    private MarkdownEscapeWikiPrinter listEndPrinter;
+
+    /**
+     * Length of the content of {@link #listEndPrinter} just after the last list (or definition list).
+     */
+    private int listEndIndex;
 
     /**
      * @param listenerChain the chain of listener filters used to compute various states
@@ -393,6 +419,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
         state.isInListItem = isInList();
         state.isTransparent = parameters.isEmpty() && isDirectlyInQuotation();
+        state.isAfterIndentedCodeBlock = isAfterIndentedCodeBlock() || isAfterList();
 
         // The Group content is an independent document which is rendered separately so that it can be wrapped.
         beginBufferedContainer(state);
@@ -414,12 +441,21 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         this.quotationStates = state.previousQuotationStates;
         String content = endBufferedContainer(state);
 
-        if (parameters.isEmpty() && state.isInListItem && state.indentedCodeEndIndex == content.length()) {
+        if (parameters.isEmpty() && state.isInListItem && state.indentedCodeEndIndex == content.length()
+            && !state.isAfterIndentedCodeBlock) {
             // A parameterless Group whose only content is an indented code block, located in a list item, is the
             // Group that the Markdown parser creates around indented code blocks in list items (since a code macro
-            // is standalone), and thus doesn't need to be rendered.
-            printEmptyLine();
-            print(prefixLines(content, state.linePrefix, false));
+            // is standalone), and thus doesn't need to be rendered. It's rendered when it directly follows another
+            // indented code block or a list though, since the code block would be merged with them otherwise. When
+            // it's the first content of the list item, the code block directly follows the list item marker (a list
+            // item starting with an empty line would be empty).
+            if (state.wasAtContainerStart) {
+                this.isFirstElementRendered = true;
+            } else {
+                printEmptyLine();
+            }
+            print(prefixLines(content, state.linePrefix, state.wasAtContainerStart));
+            markIndentedCodeBlockEnd();
             return;
         }
 
@@ -645,7 +681,14 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         this.listStyle.pop();
         // Ensure that any not printed characters are flushed.
         // TODO: Fix this better by introducing a state listener to handle escapes
-        getMarkdownPrinter().flush();
+        markListEnd();
+    }
+
+    @Override
+    public void endDefinitionList(Map<String, String> parameters)
+    {
+        super.endDefinitionList(parameters);
+        markListEnd();
     }
 
     @Override
@@ -1449,28 +1492,40 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                 // (the language is lost since Markdown has no syntax to specify the language of a code span).
                 printTableCellCodeSpan(StringUtils.defaultString(content));
             } else {
+                printCodeBlockSeparator();
                 // Standalone should generate fenced blocks or triple backticks with language if a language was
                 // specified (and no language if language is none).
                 String language = parameters.get("language");
                 if (language != null && !"none".equals(language)) {
                     printFencedCodeBlock(content, language);
+                } else if (this.isAtContainerStart || isAfterIndentedCodeBlock() || isAfterList()) {
+                    // An indented code block can't be used when:
+                    // - it's the first content of a container (e.g. list item), since it would start after the
+                    //   container marker
+                    // - it directly follows another indented code block, since both would be merged when parsed back
+                    //   (the empty line between them being part of the code)
+                    // - it directly follows a list or a definition list, since it would be considered as part of the
+                    //   last list item (and thus not as code)
+                    // Thus we generate a fenced code block without info string instead (which is read back as a code
+                    // macro without language).
+                    printFencedCodeBlock(content, "");
                 } else {
                     GroupState groupState = this.groupStates.peek();
                     boolean isFirstGroupElement = groupState != null && !groupState.isFlattened
                         && getMarkdownPrinter().toString().isEmpty() && getMarkdownPrinter().getBuffer().length() == 0;
-                    String lines[] = content.split("\\r?\\n");
-                    int spaces = isInList() ? (getListDepth() - 1) * 4 + 2 : 0;
+                    String lines[] = content.split(LINE_ENDINGS);
+                    // The code must be indented relatively to the container (e.g. list item, definition description)
+                    // in which it's located.
+                    String linePrefix = getContainerLinePrefix() + "    ";
                     for (int i = 0; i < lines.length; i++) {
-                        // If we're in a list, for each list item level, we add 4 + 2 more spaces, see spec at
-                        // https://spec.commonmark.org/0.28/#list-items
-                        print(String.format("    %s%s", StringUtils.repeat(' ', spaces), lines[i]));
+                        print(linePrefix + lines[i]);
                         if (i < lines.length - 1) {
                             print("\n");
                         }
                     }
+                    markIndentedCodeBlockEnd();
                     if (isFirstGroupElement) {
-                        getMarkdownPrinter().flush();
-                        groupState.indentedCodeEndIndex = getMarkdownPrinter().toString().length();
+                        groupState.indentedCodeEndIndex = this.indentedCodeBlockEndIndex;
                     }
                 }
             }
@@ -1497,7 +1552,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                 // Markdown table cells can only contain inline content.
                 printTableCellCodeSpan(text);
             } else {
-                printEmptyLine();
+                printCodeBlockSeparator();
                 printFencedCodeBlock(text, "");
             }
         }
@@ -1517,6 +1572,27 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             print(SPACE);
         }
         printCodeSpan(content);
+    }
+
+    /**
+     * Remember where the indented code block that has just been printed ends, so that we can detect that another
+     * indented code block directly follows it.
+     */
+    private void markIndentedCodeBlockEnd()
+    {
+        MarkdownEscapeWikiPrinter printer = getMarkdownPrinter();
+        printer.flush();
+        this.indentedCodeBlockPrinter = printer;
+        this.indentedCodeBlockEndIndex = printer.toString().length();
+    }
+
+    /**
+     * @return {@code true} if only white spaces have been printed since the last indented code block, i.e. if an
+     *         indented code block printed now would be merged with it
+     */
+    private boolean isAfterIndentedCodeBlock()
+    {
+        return isOnlyWhitespacePrintedSince(this.indentedCodeBlockPrinter, this.indentedCodeBlockEndIndex);
     }
 
     /**
@@ -1569,9 +1645,59 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         String info = language.replaceAll(LINE_ENDINGS, SPACE);
         String fence = info.indexOf('`') < 0 ? getBacktickFence(content, TRIPLE_BACKTICK.length())
             : getFence(content, '~', TRIPLE_BACKTICK.length());
-        println(fence + info);
-        print(content);
-        print(NEW_LINE + fence);
+        // All the line endings are normalized so that all the code block lines can be indented to stay inside the
+        // container (e.g. list item) in which it's located, except the first line when the code block directly
+        // follows the container marker.
+        String code = content.replaceAll(LINE_ENDINGS, NEW_LINE);
+        print(prefixLines(fence + info + NEW_LINE + code + NEW_LINE + fence, getContainerLinePrefix(),
+            this.isAtContainerStart));
+    }
+
+    /**
+     * Separate a code block from the previous block. A code block that is the first content of a container (e.g. a
+     * list item) directly follows the container marker, since a container starting with an empty line ends there.
+     */
+    private void printCodeBlockSeparator()
+    {
+        if (this.isAtContainerStart) {
+            this.isFirstElementRendered = true;
+        } else {
+            printEmptyLine();
+        }
+    }
+
+    /**
+     * Remember where the list (or definition list) that has just been printed ends, so that we can detect that an
+     * indented code block directly follows it.
+     */
+    private void markListEnd()
+    {
+        MarkdownEscapeWikiPrinter printer = getMarkdownPrinter();
+        printer.flush();
+        this.listEndPrinter = printer;
+        this.listEndIndex = printer.toString().length();
+    }
+
+    /**
+     * @return {@code true} if only white spaces have been printed since the end of the last list (or definition list),
+     *     i.e. if an indented code block printed now would be considered as part of its last item
+     */
+    private boolean isAfterList()
+    {
+        return isOnlyWhitespacePrintedSince(this.listEndPrinter, this.listEndIndex);
+    }
+
+    private boolean isOnlyWhitespacePrintedSince(MarkdownEscapeWikiPrinter markPrinter, int markIndex)
+    {
+        MarkdownEscapeWikiPrinter printer = getMarkdownPrinter();
+        boolean result = false;
+        if (printer == markPrinter) {
+            // The delayed text is not flushed since its escaping depends on what follows it.
+            String text = printer.toString();
+            result = text.length() >= markIndex && StringUtils.isBlank(text.substring(markIndex))
+                && StringUtils.isBlank(printer.getBuffer());
+        }
+        return result;
     }
 
     private static String getBacktickFence(String content, int minLength)
