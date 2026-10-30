@@ -1,0 +1,55 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that the backslash of backslash escapes is not part of the text
+.#-----------------------------------------------------
+Escaped \*not bold\*, \_not italic\_, \[not a link\], 1\. \# \\ and \{{not a macro}}
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [Escaped]
+onSpace
+onSpecialSymbol [*]
+onWord [not]
+onSpace
+onWord [bold]
+onSpecialSymbol [*]
+onSpecialSymbol [,]
+onSpace
+onSpecialSymbol [_]
+onWord [not]
+onSpace
+onWord [italic]
+onSpecialSymbol [_]
+onSpecialSymbol [,]
+onSpace
+onSpecialSymbol [[]
+onWord [not]
+onSpace
+onWord [a]
+onSpace
+onWord [link]
+onSpecialSymbol []]
+onSpecialSymbol [,]
+onSpace
+onWord [1]
+onSpecialSymbol [.]
+onSpace
+onSpecialSymbol [#]
+onSpace
+onWord [\]
+onSpace
+onWord [and]
+onSpace
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onWord [not]
+onSpace
+onWord [a]
+onSpace
+onWord [macro]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+endParagraph
+endDocument
