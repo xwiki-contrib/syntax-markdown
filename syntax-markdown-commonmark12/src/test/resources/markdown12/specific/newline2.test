@@ -1,0 +1,48 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Verify that new lines located in link labels and definition terms are rendered so that they don't end the link or
+.# the definition term:
+.# - the label of a wiki link is plain text, in which HTML entities are supported
+.# - a definition term must fit on a single line, so a line break HTML tag is used
+.#-----------------------------------------------------
+a [[x&#10;&#10;y|Page]] [x<br/>y](https://xwiki.org)
+
+c<br/><br/>d
+:   e  
+\
+f
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Page]] [false]
+onWord [x]
+onNewLine
+onNewLine
+onWord [y]
+endLink [Typed = [false] Type = [doc] Reference = [Page]] [false]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [https://xwiki.org]] [false]
+onWord [x]
+onNewLine
+onWord [y]
+endLink [Typed = [false] Type = [url] Reference = [https://xwiki.org]] [false]
+endParagraph
+beginDefinitionList
+beginDefinitionTerm
+onWord [c]
+onNewLine
+onNewLine
+onWord [d]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [e]
+onNewLine
+onNewLine
+onWord [f]
+endDefinitionDescription
+endDefinitionList
+endDocument

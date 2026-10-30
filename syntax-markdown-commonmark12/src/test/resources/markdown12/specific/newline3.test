@@ -1,0 +1,44 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Verify the rendering of a new line located in a heading, of consecutive new lines, of new lines separated by a
+.# space and of new lines located in a quotation or in a table cell (after a nested table)
+.#-----------------------------------------------------
+= a\\b =
+
+a\\\\b
+
+a\\ \\b
+
+>c\\\\d
+
+> \\\\e
+
+|(((
+|a|b
+
+\\x\\\\y
+)))|c
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+# a<br/>b
+
+a  
+\
+b
+
+a  
+ \
+b
+
+> c  
+> \
+> d
+
+>  \
+> \
+> e
+
+|  |     |
+| --- | --- |
+| <table><tr><td>a</td><td>b</td></tr></table><br/><br/>x<br/><br/>y |  c  |
