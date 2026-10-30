@@ -1,0 +1,25 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Verify that an escaped exclamation mark located just before a wiki link is parsed as text followed by a link, and
+.# not as an image
+.#-----------------------------------------------------
+a\![[Page]] \![[label|Page]] !![[b.png|c.png]]
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onSpecialSymbol [!]
+beginLink [Typed = [false] Type = [doc] Reference = [Page]] [false]
+endLink [Typed = [false] Type = [doc] Reference = [Page]] [false]
+onSpace
+onSpecialSymbol [!]
+beginLink [Typed = [false] Type = [doc] Reference = [Page]] [false]
+onWord [label]
+endLink [Typed = [false] Type = [doc] Reference = [Page]] [false]
+onSpace
+onSpecialSymbol [!]
+onImage [Typed = [false] Type = [attach] Reference = [c.png]] [false] [[alt]=[b.png]]
+endParagraph
+endDocument

@@ -37,9 +37,14 @@ import org.xwiki.rendering.renderer.reference.link.URILabelGenerator;
 import com.vladsch.flexmark.ast.Image;
 import com.vladsch.flexmark.ast.ImageRef;
 import com.vladsch.flexmark.ast.Reference;
+import com.vladsch.flexmark.ast.Text;
 import com.vladsch.flexmark.ext.wikilink.WikiImage;
+import com.vladsch.flexmark.ext.wikilink.WikiLink;
+import com.vladsch.flexmark.ext.wikilink.WikiLinkExtension;
+import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
+import com.vladsch.flexmark.util.data.DataHolder;
 
 /**
  * Handle image events.
@@ -118,6 +123,19 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
 
     public void visit(WikiImage node)
     {
+        // The wiki link extension recognizes the image syntax even when the exclamation mark is escaped (e.g.
+        // "a\![[Page]]"), in which case the exclamation mark is also part of the previous text node. The exclamation
+        // mark being then generated as text, we generate a link for the rest.
+        Node previous = node.getPrevious();
+        if (previous instanceof Text && previous.getEndOffset() > node.getStartOffset()) {
+            DataHolder options = node.getDocument();
+            WikiLink link = new WikiLink(node.getChars().subSequence(1),
+                WikiLinkExtension.LINK_FIRST_SYNTAX.get(options), WikiLinkExtension.ALLOW_ANCHORS.get(options),
+                WikiLinkExtension.ALLOW_PIPE_ESCAPE.get(options), WikiLinkExtension.ALLOW_ANCHOR_ESCAPE.get(options));
+            getVisitor().visit(link);
+            return;
+        }
+
         ResourceReference reference = this.imageResourceReferenceParser.parse(node.getLink().toString());
         Map<String, String> parameters = new HashMap<>();
 
