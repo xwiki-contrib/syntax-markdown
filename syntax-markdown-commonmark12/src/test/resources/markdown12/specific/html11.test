@@ -1,0 +1,27 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that nested inline HTML tags with the same name are matched with the right closing tag, and that an
+.# unclosed tag doesn't prevent a following nested tag with the same name from being matched.
+.#-----------------------------------------------------
+<span>a <span>b</span> **c**</span> **d** <b>e <b>f</b> **g**
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onMacroInline [html] [clean=false] [<span>a <span>b</span> <strong>c</strong></span>]
+onSpace
+beginFormat [BOLD]
+onWord [d]
+endFormat [BOLD]
+onSpace
+onMacroInline [html] [clean=false] [<b>]
+onWord [e]
+onSpace
+onMacroInline [html] [clean=false] [<b>f</b>]
+onSpace
+beginFormat [BOLD]
+onWord [g]
+endFormat [BOLD]
+endParagraph
+endDocument
