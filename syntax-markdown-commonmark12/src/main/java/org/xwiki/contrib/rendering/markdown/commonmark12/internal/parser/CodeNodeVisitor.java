@@ -64,7 +64,19 @@ public class CodeNodeVisitor extends AbstractNodeVisitor
     public void visit(Code node)
     {
         // Since XWiki doesn't have a Code Block we generate a Code Macro Block
-        getListener().onMacro(CODE_MACRO_ID, getCodeMacroParameters(null), node.getText().toString(), true);
+        getListener().onMacro(CODE_MACRO_ID, getCodeMacroParameters(null), getCodeSpanContent(node), true);
+    }
+
+    private String getCodeSpanContent(Code node)
+    {
+        // As per the CommonMark specification, when the content both begins and ends with a space, but doesn't
+        // consist entirely of spaces, a single space is removed from the front and back, which allows including
+        // code that begins or ends with backticks. See https://spec.commonmark.org/0.29/#code-spans
+        String content = node.getText().toString();
+        if (content.startsWith(" ") && content.endsWith(" ") && !StringUtils.containsOnly(content, ' ')) {
+            content = content.substring(1, content.length() - 1);
+        }
+        return content;
     }
 
     public void visit(FencedCodeBlock node)

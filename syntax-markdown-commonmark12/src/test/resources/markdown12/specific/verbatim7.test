@@ -1,0 +1,22 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# A reference image whose reference isn't defined is parsed as inline verbatim, which is rendered back as a code
+.# span (and thus read back as an inline code macro) so that its content isn't lost.
+.#-----------------------------------------------------
+before ![image.png][undefined] after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [before]
+onSpace
+onVerbatim [![image.png][undefined]] [true]
+onSpace
+onWord [after]
+endParagraph
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+before `![image.png][undefined]` after

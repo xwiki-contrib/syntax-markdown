@@ -1,0 +1,15 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Fenced code block whose info string contains a backtick
+.#-----------------------------------------------------
+~~~~a`b
+<p>a</p>
+~~~
+~~~~
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+onMacroStandalone [code] [language=a`b] [<p>a</p>
+~~~]
+endDocument

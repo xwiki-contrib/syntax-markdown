@@ -67,19 +67,15 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private static final String NEW_LINE = "\n";
 
+    private static final String SPACE = " ";
+
     private static final String EMPTY_LINE = NEW_LINE + NEW_LINE;
+
+    private static final String LINE_ENDINGS = "\r\n|\r|\n";
 
     private static final Pattern HEADING_CLOSING_SEQUENCE = Pattern.compile("(^|\\p{Blank})(#+\\p{Blank}*)$");
 
     private static final Pattern HTML_ATTRIBUTE_NAME = Pattern.compile("[^\\s\"'>/=\\p{Cntrl}]+");
-
-    /**
-     * A pipe not already escaped, which would otherwise be considered as a table cell separator. A pipe is escaped
-     * only when it's preceded by an odd number of backslashes: with an even number (e.g. {@code \\|}) the backslashes
-     * escape each other and the pipe is still a cell separator. The (possibly empty) even backslash sequence is
-     * captured so that it can be kept.
-     */
-    private static final Pattern TABLE_CELL_PIPE = Pattern.compile("(?<!\\\\)((?:\\\\\\\\)*)\\|");
 
     /**
      * Line breaks (and the spaces around them) in a table cell, which would otherwise end the table row. The repetition
@@ -374,7 +370,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                     monospacePrinter.flush();
                     String code = monospacePrinter.toString();
                     popPrinter();
-                    print(formatCodeSpan(code));
+                    printCodeSpan(code);
                 }
                 break;
             case NONE:
@@ -1213,11 +1209,73 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         cellText = TABLE_CELL_LINE_BREAKS.matcher(cellText.trim()).replaceAll(
             result -> TABLE_CELL_EMPTY_LINE.matcher(result.group()).find()
                 ? TABLE_CELL_LINE_BREAK + TABLE_CELL_LINE_BREAK : TABLE_CELL_LINE_BREAK);
-        cellText = TABLE_CELL_PIPE.matcher(cellText).replaceAll("$1\\\\|");
+        cellText = escapeTableCellPipes(cellText);
 
         List<TableCellState> cellsInLastRow = this.tableCells.peek().get(this.tableCells.peek().size() - 1);
         cellsInLastRow.add(
             new TableCellState(cellText, getTableCellAlignment(parameters), getTableCellColspan(parameters)));
+    }
+
+    /**
+     * Escape the pipes of a table cell content that would otherwise be considered as cell separators. Pipes already
+     * escaped are kept as is, as well as the pipes located in code spans: the table parser doesn't split cells inside
+     * code spans and their content is verbatim (a backslash would be kept).
+     *
+     * @param cellText the table cell content
+     * @return the table cell content with the pipes escaped
+     */
+    private static String escapeTableCellPipes(String cellText)
+    {
+        StringBuilder builder = new StringBuilder(cellText.length());
+        int i = 0;
+        while (i < cellText.length()) {
+            char c = cellText.charAt(i);
+            if (c == '\\' && i + 1 < cellText.length()) {
+                // Escaped character.
+                builder.append(cellText, i, i + 2);
+                i += 2;
+            } else if (c == '`') {
+                // A code span ends with a backtick string of the same length as the one starting it.
+                int fenceEnd = i;
+                while (fenceEnd < cellText.length() && cellText.charAt(fenceEnd) == '`') {
+                    fenceEnd++;
+                }
+                String fence = cellText.substring(i, fenceEnd);
+                int closingFence = indexOfBacktickString(cellText, fence, fenceEnd);
+                int end = closingFence < 0 ? fenceEnd : closingFence + fence.length();
+                builder.append(cellText, i, end);
+                i = end;
+            } else {
+                if (c == '|') {
+                    builder.append('\\');
+                }
+                builder.append(c);
+                i++;
+            }
+        }
+        return builder.toString();
+    }
+
+    /**
+     * @param text the text in which to look for the backtick string
+     * @param backtickString the backtick string to look for
+     * @param fromIndex the index from which to start looking
+     * @return the index of the first backtick string of the exact same length (i.e. not part of a longer backtick
+     *     string), -1 if not found
+     */
+    private static int indexOfBacktickString(String text, String backtickString, int fromIndex)
+    {
+        int index = text.indexOf(backtickString, fromIndex);
+        int end = index + backtickString.length();
+        while (index >= 0 && end < text.length() && text.charAt(end) == '`') {
+            // Part of a longer backtick string: skip it entirely.
+            while (end < text.length() && text.charAt(end) == '`') {
+                end++;
+            }
+            index = text.indexOf(backtickString, end);
+            end = index + backtickString.length();
+        }
+        return index;
     }
 
     private String getTableCellAlignment(Map<String, String> parameters)
@@ -1385,15 +1443,13 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         if (id.equals("code")) {
             if (isInline) {
                 // Inline should generate back ticks
-                print(formatCodeSpan(StringUtils.defaultString(content)));
+                printCodeSpan(StringUtils.defaultString(content));
             } else {
                 // Standalone should generate fenced blocks or triple backticks with language if a language was
                 // specified (and no language if language is none).
                 String language = parameters.get("language");
                 if (language != null && !"none".equals(language)) {
-                    println(TRIPLE_BACKTICK + language);
-                    print(content);
-                    print("\n" + TRIPLE_BACKTICK);
+                    printFencedCodeBlock(content, language);
                 } else {
                     GroupState groupState = this.groupStates.peek();
                     boolean isFirstGroupElement = groupState != null && !groupState.isFlattened
@@ -1421,26 +1477,107 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         return isHandled;
     }
 
-    /**
-     * @param code the content of the code span
-     * @return the code span syntax for the passed content, using backtick strings that can't be found in the content
-     *     (so that the content can't end the code span) and keeping it on a single line (so that block syntaxes are
-     *     not recognized inside it)
-     */
-    private String formatCodeSpan(String code)
+    @Override
+    public void onVerbatim(String content, boolean isInline, Map<String, String> parameters)
     {
-        String singleLineCode = code.replaceAll("\\r?\\n", " ");
-        int longestBacktickString = 0;
-        int backtickString = 0;
-        for (int i = 0; i < singleLineCode.length(); i++) {
-            backtickString = singleLineCode.charAt(i) == '`' ? backtickString + 1 : 0;
-            longestBacktickString = Math.max(longestBacktickString, backtickString);
+        // Markdown has no verbatim syntax: the closest constructs are code spans and code blocks, whose content is
+        // displayed as is (in monospace, like XWiki verbatim). Note that the parameters are dropped since Markdown
+        // has no syntax to specify attributes on code spans or code blocks.
+        if (isInline) {
+            printCodeSpan(content);
+        } else {
+            // The content of a standalone verbatim written on its own lines starts and ends with a line ending (e.g.
+            // "{{{\ncontent\n}}}" in XWiki Syntax 2.1), which isn't part of the content to display.
+            String text = StringUtils.chomp(content.replaceFirst("^(\r\n|\r|\n)", ""));
+            if (getBlockState().isInTableCell()) {
+                // Markdown table cells can only contain inline content.
+                printCodeSpan(text);
+            } else {
+                printEmptyLine();
+                printFencedCodeBlock(text, "");
+            }
         }
-        String delimiter = StringUtils.repeat(BACKTICK, longestBacktickString + 1);
-        // A space is needed between the delimiter and a backtick located at the beginning or end of the content.
-        String padding =
-            singleLineCode.startsWith(BACKTICK) || singleLineCode.endsWith(BACKTICK) ? " " : StringUtils.EMPTY;
-        return delimiter + padding + singleLineCode + padding + delimiter;
+    }
+
+    /**
+     * Print some content as a code span, see {@link #formatCodeSpan(String)}. The content is printed verbatim (not
+     * escaped).
+     *
+     * @param content the content to print
+     */
+    private void printCodeSpan(String content)
+    {
+        print(formatCodeSpan(content));
+    }
+
+    /**
+     * @param content the content of the code span
+     * @return the code span syntax for the passed content, using a backtick string that doesn't appear in the content
+     *     (so that the content can't end the code span) and keeping it on a single line, or an empty string when the
+     *     content is empty (code spans can't be empty), see
+     *     <a href="https://spec.commonmark.org/0.29/#code-spans">code spans</a>
+     */
+    private String formatCodeSpan(String content)
+    {
+        if (content.isEmpty()) {
+            return StringUtils.EMPTY;
+        }
+
+        // Line endings are converted to spaces in code spans, and they would break the enclosing block (e.g. a
+        // table cell or a heading) or start a new block (e.g. a list item), so we replace them.
+        String text = content.replaceAll(LINE_ENDINGS, SPACE);
+        String fence = getBacktickFence(text, 1);
+        // A single space is stripped from both sides of the content when it both begins and ends with a space, and
+        // a space is needed to separate the content from the fence when it begins or ends with a backtick.
+        boolean isPadded = text.startsWith(BACKTICK) || text.endsWith(BACKTICK)
+            || (text.startsWith(SPACE) && text.endsWith(SPACE) && !StringUtils.containsOnly(text, ' '));
+        String padding = isPadded ? SPACE : StringUtils.EMPTY;
+        return fence + padding + text + padding + fence;
+    }
+
+    /**
+     * Print some content as a fenced code block, using a fence longer than any backtick string located in the
+     * content, see <a href="https://spec.commonmark.org/0.29/#fenced-code-blocks">fenced code blocks</a>.
+     *
+     * @param content the content to print
+     * @param language the language of the content (the info string), empty if not specified
+     */
+    private void printFencedCodeBlock(String content, String language)
+    {
+        // The info string must stay on the opening fence line, and it can't contain backticks when the fence is made
+        // of backticks (the line wouldn't be an opening fence otherwise), in which case a tilde fence is used.
+        String info = language.replaceAll(LINE_ENDINGS, SPACE);
+        String fence = info.indexOf('`') < 0 ? getBacktickFence(content, TRIPLE_BACKTICK.length())
+            : getFence(content, '~', TRIPLE_BACKTICK.length());
+        println(fence + info);
+        print(content);
+        print(NEW_LINE + fence);
+    }
+
+    private static String getBacktickFence(String content, int minLength)
+    {
+        return getFence(content, '`', minLength);
+    }
+
+    /**
+     * @param content the content to put between the fences
+     * @param fenceCharacter the character the fence is made of
+     * @param minLength the minimum length of the fence
+     * @return a fence longer than any sequence of the fence character located in the content
+     */
+    private static String getFence(String content, char fenceCharacter, int minLength)
+    {
+        int longestRun = 0;
+        int currentRun = 0;
+        for (int i = 0; i < content.length(); i++) {
+            if (content.charAt(i) == fenceCharacter) {
+                currentRun++;
+                longestRun = Math.max(longestRun, currentRun);
+            } else {
+                currentRun = 0;
+            }
+        }
+        return StringUtils.repeat(fenceCharacter, Math.max(minLength, longestRun + 1));
     }
 
     protected void print(String text)

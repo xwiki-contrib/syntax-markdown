@@ -1,0 +1,46 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Verbatim located in headings, list items, quotations and table cells.
+.#-----------------------------------------------------
+= Heading {{{a`b}}} =
+
+* item {{{x*y}}}
+** nested {{{multi
+line}}}
+
+> quote {{{[[not a link]]}}}
+
+|=head {{{a|b}}}|=head2
+|cell {{{c|d}}}|(((
+{{{
+block in
+table cell
+}}}
+)))
+
+* (((
+{{{
+block in list
+}}}
+)))
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+# Heading ``a`b``
+
+* item `x*y`
+    * nested `multi line`
+
+>  quote `[[not a link]]`
+
+| head `a|b` |         head2         |
+| ---------- | --------------------- |
+| cell `c|d` | `block in table cell` |
+
+* <div>
+
+  ```
+  block in list
+  ```
+
+  </div>
