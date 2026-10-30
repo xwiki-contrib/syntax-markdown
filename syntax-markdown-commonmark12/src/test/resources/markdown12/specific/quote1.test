@@ -1,0 +1,50 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# A list located in a quotation, just after a paragraph: since a quotation line can only contain inline content,
+.# the list is wrapped in a Group located in its own quotation line, which is rendered back without div
+.#-----------------------------------------------------
+> quotes format example
+> next string
+> * letter
+> * letter
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginQuotation
+beginQuotationLine
+onWord [quotes]
+onSpace
+onWord [format]
+onSpace
+onWord [example]
+onSpace
+onWord [next]
+onSpace
+onWord [string]
+endQuotationLine
+beginQuotationLine
+beginGroup
+beginList [BULLETED]
+beginListItem
+onWord [letter]
+endListItem
+beginListItem
+onWord [letter]
+endListItem
+endList [BULLETED]
+endGroup
+endQuotationLine
+endQuotation
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+> quotes format example next string
+>
+> * letter
+> * letter
+.#-----------------------------------------------------
+.expect|xhtml/1.0
+.#-----------------------------------------------------
+<blockquote><p>quotes format example next string<br/><div><ul><li>letter</li><li>letter</li></ul></div></p></blockquote>

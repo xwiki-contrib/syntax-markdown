@@ -1,0 +1,66 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Quotations located in list items: all the lines of the quotation are indented to stay in the list item
+.#-----------------------------------------------------
+* > quote1
+  >
+  > > nested
+  >
+  > * a
+  > * b
+* item
+  * > quote2
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+beginQuotation
+beginQuotationLine
+onWord [quote1]
+beginQuotation
+beginQuotationLine
+onWord [nested]
+endQuotationLine
+endQuotation
+endQuotationLine
+beginQuotationLine
+beginGroup
+beginList [BULLETED]
+beginListItem
+onWord [a]
+endListItem
+beginListItem
+onWord [b]
+endListItem
+endList [BULLETED]
+endGroup
+endQuotationLine
+endQuotation
+endListItem
+beginListItem
+onWord [item]
+beginList [BULLETED]
+beginListItem
+beginQuotation
+beginQuotationLine
+onWord [quote2]
+endQuotationLine
+endQuotation
+endListItem
+endList [BULLETED]
+endListItem
+endList [BULLETED]
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* > quote1
+  >
+  > > nested
+  >
+  > * a
+  > * b
+* item
+    * > quote2

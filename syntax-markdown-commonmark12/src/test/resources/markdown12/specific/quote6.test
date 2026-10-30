@@ -1,0 +1,17 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# Quotations located after an empty list item or definition description: they must not be rendered inside it
+.#-----------------------------------------------------
+<html><body><ul><li>a</li><li></li></ul><blockquote><p>quote1</p></blockquote><dl><dt>term</dt><dd></dd></dl><blockquote><p>quote2</p></blockquote></body></html>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* a
+* 
+
+> quote1
+
+term
+:   
+
+> quote2
