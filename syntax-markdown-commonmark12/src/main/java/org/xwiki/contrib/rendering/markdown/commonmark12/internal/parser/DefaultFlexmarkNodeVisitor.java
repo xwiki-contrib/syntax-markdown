@@ -198,8 +198,12 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
 
     public void visit(SoftLineBreak node)
     {
-        // XWiki doesn't have a softlinkebreak block. Thus we consider a softlinebreak as a space.
-        getListener().onSpace();
+        // XWiki doesn't have a softlinkebreak block. Thus we consider a softlinebreak as a space, except when it
+        // follows a line break HTML tag (e.g. "a<br>\nb"), since the line has already been broken and browsers ignore
+        // the white space found at the start of a line.
+        if (!HTMLNodeVisitor.isLineBreak(node.getPrevious())) {
+            getListener().onSpace();
+        }
     }
 
     public void visit(HardLineBreak node)

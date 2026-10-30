@@ -1,0 +1,29 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that the soft line break following an inline line break HTML tag is not parsed as a space.
+.#-----------------------------------------------------
+a<br>
+b<br/> 
+c
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onNewLine
+onWord [b]
+onNewLine
+onWord [c]
+endParagraph
+endDocument
+.#-----------------------------------------------------
+.expect|xhtml/1.0
+.#-----------------------------------------------------
+<p>a<br/>b<br/>c</p>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+a  
+b  
+c

@@ -22,8 +22,8 @@ endTableRow
 beginTableRow
 beginTableCell
 onWord [x]
-onMacroInline [html] [clean=false] [<br/>]
-onMacroInline [html] [clean=false] [<br/>]
+onNewLine
+onNewLine
 onWord [y]
 endTableCell
 beginTableCell

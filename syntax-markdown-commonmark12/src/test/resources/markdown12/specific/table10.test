@@ -24,7 +24,7 @@ onWord [x]
 endTableCell
 beginTableCell
 onWord [z]
-onMacroInline [html] [clean=false] [<br/>]
+onNewLine
 onWord [w]
 endTableCell
 endTableRow
