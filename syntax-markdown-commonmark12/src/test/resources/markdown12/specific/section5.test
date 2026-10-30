@@ -1,0 +1,39 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Headings inside list items open sections that are closed when the list items end
+.#-----------------------------------------------------
+# Before
+
+- # One
+- # Two
+
+after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginSection
+beginHeader [1, HBefore]
+onWord [Before]
+endHeader [1, HBefore]
+beginList [BULLETED]
+beginListItem
+beginSection
+beginHeader [1, HOne]
+onWord [One]
+endHeader [1, HOne]
+endSection
+endListItem
+beginListItem
+beginSection
+beginHeader [1, HTwo]
+onWord [Two]
+endHeader [1, HTwo]
+endSection
+endListItem
+endList [BULLETED]
+beginParagraph
+onWord [after]
+endParagraph
+endSection
+endDocument

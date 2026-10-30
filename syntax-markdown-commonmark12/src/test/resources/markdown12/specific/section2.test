@@ -1,0 +1,32 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# A heading located after some text inside a quotation
+.#-----------------------------------------------------
+> before
+>
+> # Title
+>
+> text
+
+after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginQuotation
+beginQuotationLine
+onWord [before]
+endQuotationLine
+beginSection
+beginHeader [1, HTitle]
+onWord [Title]
+endHeader [1, HTitle]
+beginQuotationLine
+onWord [text]
+endQuotationLine
+endSection
+endQuotation
+beginParagraph
+onWord [after]
+endParagraph
+endDocument

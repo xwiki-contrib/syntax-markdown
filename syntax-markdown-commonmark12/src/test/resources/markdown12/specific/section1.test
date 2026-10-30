@@ -1,0 +1,34 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# A heading inside a quotation opens a section that is closed when the quotation ends and that doesn't close the
+.# section opened before the quotation
+.#-----------------------------------------------------
+# Before
+
+> # Title
+> text
+
+after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginSection
+beginHeader [1, HBefore]
+onWord [Before]
+endHeader [1, HBefore]
+beginQuotation
+beginSection
+beginHeader [1, HTitle]
+onWord [Title]
+endHeader [1, HTitle]
+beginQuotationLine
+onWord [text]
+endQuotationLine
+endSection
+endQuotation
+beginParagraph
+onWord [after]
+endParagraph
+endSection
+endDocument
