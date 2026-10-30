@@ -1,0 +1,35 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that tag matching is case-insensitive, that Markdown extensions (e.g. strikethrough) are supported inside
+.# inline HTML, and that processing instructions and unclosed tags don't swallow the rest of the paragraph.
+.#-----------------------------------------------------
+<SPAN>~~a~~</span> **b** <?php x ?> *c* <span>d **e**
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onMacroInline [html] [clean=false] [<SPAN><del>a</del></span>]
+onSpace
+beginFormat [BOLD]
+onWord [b]
+endFormat [BOLD]
+onSpace
+onMacroInline [html] [clean=false] [<?php x ?>]
+onSpace
+beginFormat [ITALIC]
+onWord [c]
+endFormat [ITALIC]
+onSpace
+onMacroInline [html] [clean=false] [<span>]
+onWord [d]
+onSpace
+beginFormat [BOLD]
+onWord [e]
+endFormat [BOLD]
+endParagraph
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+<SPAN><del>a</del></span> **b** <?php x ?> _c_ <span>d **e**

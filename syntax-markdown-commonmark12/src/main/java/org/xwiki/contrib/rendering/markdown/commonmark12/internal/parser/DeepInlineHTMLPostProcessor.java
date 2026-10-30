@@ -19,6 +19,17 @@
  */
 package org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser;
 
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.NotNull;
@@ -33,18 +44,41 @@ import com.vladsch.flexmark.util.data.DataHolder;
 
 /**
  * Detects and merges nodes that are content of inline HTML open and close tags.
- * In a situation where a paragraph contains an open tag without any corresponding closing tag, the rest of the
- * paragraph content will be treated as a single HtmlInline node.
+ * Opening tags without any corresponding closing tag in the same paragraph (including void elements such as
+ * {@code <br>}) are left untouched so that the rest of the paragraph content is still parsed as Markdown.
  *
  * @version $Id$
  * @since 8.9
  */
 public class DeepInlineHTMLPostProcessor extends NodePostProcessor
 {
-    private static final String HTML_OPEN_PREFIX = "<";
-    private static final String HTML_CLOSE_PREFIX = "</";
     private static final String HTML_SELF_SUFFIX = "/>";
-    private static final Pattern HTML_TAG_SUFFIX_REGEX = Pattern.compile("\\s+|>");
+
+    private static final String TAG_NAME = "([a-zA-Z][a-zA-Z0-9-]*)";
+
+    private static final Pattern OPENING_TAG_REGEX = Pattern.compile("<" + TAG_NAME + "[\\s/>]");
+
+    private static final Pattern CLOSING_TAG_REGEX = Pattern.compile("</" + TAG_NAME + "[\\s>]");
+
+    /**
+     * HTML elements that cannot have any content and thus never have a closing tag. Includes obsolete void elements.
+     *
+     * @see <a href="https://html.spec.whatwg.org/multipage/syntax.html#void-elements">Void elements</a>
+     */
+    private static final Set<String> VOID_ELEMENTS = new HashSet<>(Arrays.asList("area", "base", "basefont",
+        "bgsound", "br", "col", "command", "embed", "frame", "hr", "image", "img", "input", "keygen", "link", "meta",
+        "param", "source", "track", "wbr"));
+
+    /**
+     * The matching closing tag node of each opening tag node, for the parents of the already processed nodes. A post
+     * processor instance is created for each parsed document.
+     */
+    private final Map<Node, Node> closingNodes = new IdentityHashMap<>();
+
+    /**
+     * The parents of the already processed nodes, for which the opening and closing tags have been matched.
+     */
+    private final Set<Node> matchedParents = Collections.newSetFromMap(new IdentityHashMap<>());
 
     /**
      * Factory class for DeepInlineHTMLPostProcessor.
@@ -73,42 +107,105 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
     @Override
     public void process(@NotNull NodeTracker nodeTracker, @NotNull Node node)
     {
-        // We store the number of nested open tags found during the processing and match it to the number of closing
-        // tags.
-        int toFind = 1;
-        int nFound = 0;
-
-        Node nextNode = node.getNext();
         String inlineStartText = node.getChars().toString();
 
-        // We return early if we found a single closing tag, or a self-closing one.
-        if (inlineStartText.startsWith(HTML_CLOSE_PREFIX) || inlineStartText.endsWith(HTML_SELF_SUFFIX)) {
+        // We only merge the content of opening tags that have a matching closing tag (in the same paragraph). Thus we
+        // return early for closing tags, self-closing tags, void elements (which never have a closing tag), and for
+        // comments, processing instructions, declarations and CDATA sections.
+        String inlineStartTag = getOpeningTagName(inlineStartText);
+        if (inlineStartTag == null || VOID_ELEMENTS.contains(inlineStartTag)) {
             return;
         }
 
-        // We keep the name of the tag until the first whitespace character and remove the angle brackets.
-        String inlineStartTag = HTML_TAG_SUFFIX_REGEX.split(inlineStartText, 2)[0].substring(1);
+        // If there's no matching closing tag we don't merge anything, so that the content following the opening tag
+        // is parsed as Markdown.
+        Node closingNode = getClosingNode(node);
+        if (closingNode == null) {
+            return;
+        }
 
-        while (nextNode != null && nFound < toFind) {
-            Node currentNode = nextNode;
+        Node nextNode = node.getNext();
+        Node currentNode;
+        do {
+            currentNode = nextNode;
             nextNode = nextNode.getNext();
 
             // We store the content of the processed nodes in the first HtmlInline node.
             node.setChars(node.getChars().append(currentNode.getChars()));
 
-            if (currentNode instanceof HtmlInline) {
-                // We keep the name of the tag until the first whitespace character or closing angle bracket.
-                String currentNodeTag = HTML_TAG_SUFFIX_REGEX.split(currentNode.getChars().toString(), 2)[0];
-                if (currentNodeTag.equals(HTML_OPEN_PREFIX + inlineStartTag)) {
-                    toFind++;
-                } else if (currentNodeTag.equals(HTML_CLOSE_PREFIX + inlineStartTag)) {
-                    nFound++;
-                }
-            }
-
             // We get rid of now redundant nodes.
             currentNode.unlink();
             nodeTracker.nodeRemoved(currentNode);
+        } while (currentNode != closingNode);
+    }
+
+    /**
+     * @param node the HtmlInline node holding the opening tag
+     * @return the sibling HtmlInline node holding the matching closing tag or {@code null} if there's none
+     */
+    private Node getClosingNode(Node node)
+    {
+        // We match all the opening and closing tags of a parent at once (when processing its first opening tag) to
+        // avoid looking ahead in the siblings for each opening tag, which would be quadratic in the number of tags.
+        Node parent = node.getParent();
+        if (this.matchedParents.add(parent)) {
+            matchTags(parent);
         }
+        return this.closingNodes.get(node);
+    }
+
+    /**
+     * Match the opening and closing tags found in the children of the passed node. An opening tag is matched with the
+     * first following closing tag with the same name that is not matching a nested opening tag with the same name.
+     *
+     * @param parent the node whose children to match
+     */
+    private void matchTags(Node parent)
+    {
+        // The opening tags waiting for their closing tag, by tag name.
+        Map<String, Deque<Node>> openingNodes = new HashMap<>();
+        for (Node child = parent.getFirstChild(); child != null; child = child.getNext()) {
+            if (child instanceof HtmlInline) {
+                String text = child.getChars().toString();
+                String openingTagName = getOpeningTagName(text);
+                if (openingTagName != null) {
+                    openingNodes.computeIfAbsent(openingTagName, key -> new ArrayDeque<>()).push(child);
+                } else {
+                    Deque<Node> candidates = openingNodes.get(getClosingTagName(text));
+                    if (candidates != null && !candidates.isEmpty()) {
+                        this.closingNodes.put(candidates.pop(), child);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param text the inline HTML
+     * @return the lower case name of the tag if the passed inline HTML is an opening tag that is not self-closing,
+     *     {@code null} otherwise
+     */
+    private static String getOpeningTagName(String text)
+    {
+        if (text.endsWith(HTML_SELF_SUFFIX)) {
+            return null;
+        }
+        return getTagName(OPENING_TAG_REGEX, text);
+    }
+
+    /**
+     * @param text the inline HTML
+     * @return the lower case name of the tag if the passed inline HTML is a closing tag, {@code null} otherwise
+     */
+    private static String getClosingTagName(String text)
+    {
+        return getTagName(CLOSING_TAG_REGEX, text);
+    }
+
+    private static String getTagName(Pattern pattern, String text)
+    {
+        Matcher matcher = pattern.matcher(text);
+        // HTML tag names are case-insensitive.
+        return matcher.lookingAt() ? matcher.group(1).toLowerCase(Locale.ROOT) : null;
     }
 }
