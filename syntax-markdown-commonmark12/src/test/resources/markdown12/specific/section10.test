@@ -1,0 +1,81 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Headings located in quotations (incl. nested ones and quotations in list items) keep their quotation prefix
+.#-----------------------------------------------------
+# Before
+
+> # Title
+> text
+>
+> > ## Nested
+> > text2
+
+* > # Quoted
+  > text3
+
+after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginSection
+beginHeader [1, HBefore]
+onWord [Before]
+endHeader [1, HBefore]
+beginQuotation
+beginSection
+beginHeader [1, HTitle]
+onWord [Title]
+endHeader [1, HTitle]
+beginQuotationLine
+onWord [text]
+beginQuotation
+beginSection
+beginHeader [2, HNested]
+onWord [Nested]
+endHeader [2, HNested]
+beginQuotationLine
+onWord [text2]
+endQuotationLine
+endSection
+endQuotation
+endQuotationLine
+endSection
+endQuotation
+beginList [BULLETED]
+beginListItem
+beginQuotation
+beginSection
+beginHeader [1, HQuoted]
+onWord [Quoted]
+endHeader [1, HQuoted]
+beginQuotationLine
+onWord [text3]
+endQuotationLine
+endSection
+endQuotation
+endListItem
+endList [BULLETED]
+beginParagraph
+onWord [after]
+endParagraph
+endSection
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+# Before
+
+> # Title
+>
+> text
+>
+> > ## Nested
+> >
+> > text2
+
+* > # Quoted
+  >
+  > text3
+
+after

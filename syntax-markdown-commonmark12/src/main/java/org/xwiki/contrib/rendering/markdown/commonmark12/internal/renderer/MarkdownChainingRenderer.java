@@ -424,12 +424,15 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             // List item content must be aligned with the first character following the list item marker.
             int markerLength = StringUtils.contains(this.listStyle.peek(), '1') ? 3 : 2;
             prefix = StringUtils.repeat(' ', (getListDepth() - 1) * 4 + markerLength);
-        } else if (getDefinitionListDepth() > 0) {
-            prefix = StringUtils.repeat(' ', 4 * getDefinitionListDepth());
         } else {
-            prefix = "";
+            prefix = getDefinitionListLinePrefix();
         }
         return prefix;
+    }
+
+    private String getDefinitionListLinePrefix()
+    {
+        return StringUtils.repeat(' ', 4 * getDefinitionListDepth());
     }
 
     /**
@@ -499,20 +502,20 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void onHorizontalLine(Map<String, String> parameters)
     {
-        printEmptyLine();
+        printBlockSeparator(getContainerLinePrefix());
         print("---");
     }
 
     @Override
     public void beginParagraph(Map<String, String> parameters)
     {
-        printEmptyLine();
+        printBlockSeparator(getContainerLinePrefix());
     }
 
     @Override
     public void beginHeader(HeaderLevel level, String id, Map<String, String> parameters)
     {
-        printEmptyLine();
+        printBlockSeparator(getContainerLinePrefix());
         print(StringUtils.repeat("#", level.getAsInt()) + " ");
         pushPrinter(createInlineMarkdownPrinter());
     }
@@ -526,13 +529,20 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         popPrinter();
         // Make sure that the heading content doesn't end with what would be considered a closing sequence.
         print(HEADING_CLOSING_SEQUENCE.matcher(heading).replaceFirst("$1\\\\$2"));
+
+        // Any inline content following the heading in the same container (e.g. a list item) must be separated from
+        // it by an empty line, otherwise it would be part of the heading.
+        if (!getBlockState().isInTableCell()) {
+            this.pendingSeparator = getContainerLinePrefix();
+        }
     }
 
     @Override
     public void beginList(ListType listType, Map<String, String> parameters)
     {
         if (getListDepth() == 1) {
-            printEmptyLine();
+            // The list is not located in a list item (its container line prefix is not the one of its items).
+            printBlockSeparator(getDefinitionListLinePrefix());
         } else {
             print("\n");
         }
@@ -1200,6 +1210,26 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         if (this.isFirstElementRendered) {
             print("\n\n");
+        } else {
+            this.isFirstElementRendered = true;
+        }
+    }
+
+    /**
+     * Separate a block from the previous one, keeping it inside the container (e.g. list item, definition
+     * description) in which it's located.
+     *
+     * @param linePrefix the line prefix of the container in which the block is located
+     */
+    private void printBlockSeparator(String linePrefix)
+    {
+        if (this.isAtContainerStart) {
+            // The block is the first content of the container: it follows the container marker (e.g. "* # Title").
+            this.isFirstElementRendered = true;
+        } else if (this.isFirstElementRendered) {
+            print(EMPTY_LINE + linePrefix);
+            // The block content starts after the container line prefix.
+            markBlockContentStart();
         } else {
             this.isFirstElementRendered = true;
         }
