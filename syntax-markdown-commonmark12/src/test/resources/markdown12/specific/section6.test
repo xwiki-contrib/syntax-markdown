@@ -1,0 +1,28 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# A heading inside a definition description opens a section that is closed when the description ends
+.#-----------------------------------------------------
+Term
+: # Title
+
+after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginDefinitionList
+beginDefinitionTerm
+onWord [Term]
+endDefinitionTerm
+beginDefinitionDescription
+beginSection
+beginHeader [1, HTitle]
+onWord [Title]
+endHeader [1, HTitle]
+endSection
+endDefinitionDescription
+endDefinitionList
+beginParagraph
+onWord [after]
+endParagraph
+endDocument

@@ -1,0 +1,36 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# A heading inside a Group opens a section that is closed when the Group ends
+.#-----------------------------------------------------
+<div>
+
+# Title
+
+</div>
+
+after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginGroup
+beginSection
+beginHeader [1, HTitle]
+onWord [Title]
+endHeader [1, HTitle]
+endSection
+endGroup
+beginParagraph
+onWord [after]
+endParagraph
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+<div>
+
+# Title
+
+</div>
+
+after

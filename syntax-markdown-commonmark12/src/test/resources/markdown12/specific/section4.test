@@ -1,0 +1,88 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Headings inside nested Groups: each Group is an independent document whose sections don't close the sections
+.# opened outside of it, and the sections opened before the Groups are still closed by a heading located after them
+.#-----------------------------------------------------
+# A
+
+<div>
+
+## B
+
+<div class="box">
+
+# C
+
+c
+
+</div>
+
+b
+
+</div>
+
+## D
+
+d
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginSection
+beginHeader [1, HA]
+onWord [A]
+endHeader [1, HA]
+beginGroup
+beginSection
+beginHeader [2, HB]
+onWord [B]
+endHeader [2, HB]
+beginGroup [[class]=[box]]
+beginSection
+beginHeader [1, HC]
+onWord [C]
+endHeader [1, HC]
+beginParagraph
+onWord [c]
+endParagraph
+endSection
+endGroup [[class]=[box]]
+beginParagraph
+onWord [b]
+endParagraph
+endSection
+endGroup
+beginSection
+beginHeader [2, HD]
+onWord [D]
+endHeader [2, HD]
+beginParagraph
+onWord [d]
+endParagraph
+endSection
+endSection
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+# A
+
+<div>
+
+## B
+
+<div class="box">
+
+# C
+
+c
+
+</div>
+
+b
+
+</div>
+
+## D
+
+d

@@ -1,0 +1,34 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# A heading inside a nested quotation located after some text inside the parent quotation: the section is scoped
+.# to the nested quotation and the quotation line of the parent quotation isn't closed by the heading
+.#-----------------------------------------------------
+> before
+>
+> > # Title
+> > text
+
+after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginQuotation
+beginQuotationLine
+onWord [before]
+beginQuotation
+beginSection
+beginHeader [1, HTitle]
+onWord [Title]
+endHeader [1, HTitle]
+beginQuotationLine
+onWord [text]
+endQuotationLine
+endSection
+endQuotation
+endQuotationLine
+endQuotation
+beginParagraph
+onWord [after]
+endParagraph
+endDocument
