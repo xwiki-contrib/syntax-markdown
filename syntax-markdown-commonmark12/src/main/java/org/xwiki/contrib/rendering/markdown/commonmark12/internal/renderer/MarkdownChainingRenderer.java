@@ -22,6 +22,7 @@ package org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer;
 import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -68,6 +69,32 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private static final Pattern HEADING_CLOSING_SEQUENCE = Pattern.compile("(^|\\p{Blank})(#+\\p{Blank}*)$");
 
     private static final Pattern HTML_ATTRIBUTE_NAME = Pattern.compile("[^\\s\"'>/=\\p{Cntrl}]+");
+
+    /**
+     * A pipe not already escaped, which would otherwise be considered as a table cell separator. A pipe is escaped
+     * only when it's preceded by an odd number of backslashes: with an even number (e.g. {@code \\|}) the backslashes
+     * escape each other and the pipe is still a cell separator. The (possibly empty) even backslash sequence is
+     * captured so that it can be kept.
+     */
+    private static final Pattern TABLE_CELL_PIPE = Pattern.compile("(?<!\\\\)((?:\\\\\\\\)*)\\|");
+
+    /**
+     * Line breaks (and the spaces around them) in a table cell, which would otherwise end the table row. The repetition
+     * is possessive to avoid a stack overflow on large content.
+     */
+    private static final Pattern TABLE_CELL_LINE_BREAKS = Pattern.compile("[ \\t]*\\r?\\n(?:[ \\t\\n]|\\r(?=\\n))*+");
+
+    /**
+     * Several line breaks, i.e. at least one empty line (e.g. between two paragraphs).
+     */
+    private static final Pattern TABLE_CELL_EMPTY_LINE = Pattern.compile("\\n[ \\t\\r]*\\n");
+
+    private static final String TABLE_CELL_LINE_BREAK = "<br/>";
+
+    /**
+     * The minimum cell size, to account for the header separator "---".
+     */
+    private static final int TABLE_MIN_CELL_SIZE = 3;
 
     /**
      * State of a block container (Group, Quotation) being rendered, whose content is rendered separately so that it
@@ -149,11 +176,25 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private Stack<List<List<String>>> tableCells = new Stack<>();
 
     /**
-     * How many head rows each table has.
+     * For each row of each table, whether the row is made only of head cells.
      */
-    private Stack<Integer> tableHeadRowsCount = new Stack<>();
+    private Stack<List<Boolean>> tableHeadRows = new Stack<>();
 
-    private Stack<Boolean> isOnFirstHeadCellInTableRow = new Stack<>();
+    /**
+     * For each table, whether an element was rendered before it (and thus whether an empty line must separate them).
+     */
+    private Stack<Boolean> tableAfterRenderedElement = new Stack<>();
+
+    /**
+     * For each table, the separator that was pending before it (e.g. after a Group or a heading), which must be
+     * printed before the table and not inside its first cell.
+     */
+    private Stack<String> tablePendingSeparators = new Stack<>();
+
+    /**
+     * For each table, whether it's the first content of its container (e.g. list item).
+     */
+    private Stack<Boolean> tableAtContainerStart = new Stack<>();
 
     private Stack<Map<String, String>> abbreviations = new Stack<>();
 
@@ -843,67 +884,73 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginTable(Map<String, String> parameters)
     {
-        printEmptyLine();
+        // The separating empty line is printed when the table ends, only if the table is not empty. Remember whether
+        // it's needed, before the cell contents modify the state.
+        this.tableAfterRenderedElement.push(this.isFirstElementRendered);
+        this.isFirstElementRendered = true;
+        this.tablePendingSeparators.push(this.pendingSeparator);
+        this.pendingSeparator = null;
+        this.tableAtContainerStart.push(this.isAtContainerStart);
         this.tableCells.push(new ArrayList<>());
-        this.tableHeadRowsCount.push(0);
+        this.tableHeadRows.push(new ArrayList<>());
     }
 
     @Override
     public void endTable(Map<String, String> parameters)
     {
-        // Display the full table
+        List<List<String>> rows = this.tableCells.pop();
+        List<Boolean> headRows = this.tableHeadRows.pop();
+        this.isFirstElementRendered = this.tableAfterRenderedElement.pop();
+        this.pendingSeparator = this.tablePendingSeparators.pop();
+        this.isAtContainerStart = this.tableAtContainerStart.pop();
 
-        // First, find the max cell size per row
-
-        List<Integer> maxColumnSizes = new ArrayList<>();
-        // Find the max number of columns
-        int maxColumns = -1;
-        for (List<String> columnCells : this.tableCells.peek()) {
-            if (columnCells.size() > maxColumns) {
-                maxColumns = columnCells.size();
-            }
+        // Find the max number of columns. Shorter rows are padded with empty cells to get a valid table.
+        int maxColumns = 0;
+        for (List<String> columnCells : rows) {
+            maxColumns = Math.max(maxColumns, columnCells.size());
         }
-        // Initialize max column sizes
-        for (int i = 0; i < maxColumns; i++) {
-            maxColumnSizes.add(-1);
+        // A table without any cell cannot be represented in Markdown.
+        if (maxColumns == 0) {
+            return;
         }
-        // Set the max column sizes
-        for (int rows = 0; rows < this.tableCells.peek().size(); rows++) {
-            List<String> columnCells = this.tableCells.peek().get(rows);
-            for (int i = 0; i < columnCells.size(); i++) {
-                int currentCellSize = columnCells.get(i).length();
-                // The minimum cell size is 3 to account for the header separator "---"
-                if (currentCellSize < 3) {
-                    currentCellSize = 3;
-                }
-                if (currentCellSize > maxColumnSizes.get(i)) {
-                    maxColumnSizes.set(i, currentCellSize);
-                }
+        // The table rows must be indented to stay inside the container (e.g. list item) in which the table is located.
+        String linePrefix = getContainerLinePrefix();
+        printBlockSeparator(linePrefix);
+        for (List<String> columnCells : rows) {
+            while (columnCells.size() < maxColumns) {
+                columnCells.add("");
             }
         }
 
-        // First, print header rows
-        if (this.tableHeadRowsCount.peek() > 0) {
-            for (int i = 0; i < this.tableHeadRowsCount.peek(); i++) {
-                List<String> columnCells = this.tableCells.peek().get(i);
-                printTableRow(columnCells, ' ', true, maxColumnSizes);
-            }
-            print("\n");
+        // A Markdown table must start with a single header row, followed by the delimiter row. Only the first row can
+        // be the header row, and only if it's made of head cells only. Otherwise an empty header row is printed (which
+        // the parser ignores). Head cells located in the other rows are printed as normal cells since Markdown cannot
+        // express them.
+        List<String> headerRow;
+        List<List<String>> bodyRows;
+        if (headRows.get(0)) {
+            headerRow = rows.get(0);
+            bodyRows = rows.subList(1, rows.size());
+        } else {
+            headerRow = new ArrayList<>(Collections.nCopies(maxColumns, ""));
+            bodyRows = rows;
         }
-        printTableRow(this.tableCells.peek().get(0), '-', false, maxColumnSizes);
-        print("\n");
 
-        // Now print the body rows
-        for (int i = this.tableHeadRowsCount.peek(); i < this.tableCells.peek().size(); i++) {
-            List<String> columnCells = this.tableCells.peek().get(i);
+        // Find the max cell size per column
+        List<Integer> maxColumnSizes = new ArrayList<>(Collections.nCopies(maxColumns, TABLE_MIN_CELL_SIZE));
+        for (List<String> columnCells : rows) {
+            for (int i = 0; i < maxColumns; i++) {
+                maxColumnSizes.set(i, Math.max(maxColumnSizes.get(i), columnCells.get(i).length()));
+            }
+        }
+
+        printTableRow(headerRow, ' ', true, maxColumnSizes);
+        print(NEW_LINE + linePrefix);
+        printTableRow(headerRow, '-', false, maxColumnSizes);
+        for (List<String> columnCells : bodyRows) {
+            print(NEW_LINE + linePrefix);
             printTableRow(columnCells, ' ', true, maxColumnSizes);
-            if (i < this.tableCells.peek().size() - 1) {
-                print("\n");
-            }
         }
-
-        this.tableCells.pop();
-        this.tableHeadRowsCount.pop();
     }
 
     private void printTableRow(List<String> columnCells, char separator, boolean printCellText,
@@ -930,16 +977,28 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginTableCell(Map<String, String> parameters)
     {
-        pushPrinter(createInlineMarkdownPrinter());
+        // The current row contains a normal cell and thus cannot be the header row.
+        List<Boolean> headRows = this.tableHeadRows.peek();
+        headRows.set(headRows.size() - 1, false);
+        beginTableCellContent();
     }
 
     @Override
     public void endTableCell(Map<String, String> parameters)
     {
-        MarkdownEscapeWikiPrinter headingPrinter = getMarkdownPrinter();
-        headingPrinter.flush();
-        String cellText = headingPrinter.toString();
+        MarkdownEscapeWikiPrinter cellPrinter = getMarkdownPrinter();
+        cellPrinter.flush();
+        String cellText = cellPrinter.toString();
         popPrinter();
+
+        // A table row must be on a single line, and a non escaped pipe would be considered as a cell separator.
+        // Blocks separated by an empty line (e.g. paragraphs) are separated by 2 line breaks to keep them visually
+        // separated.
+        cellText = TABLE_CELL_LINE_BREAKS.matcher(cellText.trim()).replaceAll(
+            result -> TABLE_CELL_EMPTY_LINE.matcher(result.group()).find()
+                ? TABLE_CELL_LINE_BREAK + TABLE_CELL_LINE_BREAK : TABLE_CELL_LINE_BREAK);
+        cellText = TABLE_CELL_PIPE.matcher(cellText).replaceAll("$1\\\\|");
+
         List<String> cellsInLastRow = this.tableCells.peek().get(this.tableCells.peek().size() - 1);
         cellsInLastRow.add(cellText);
     }
@@ -947,12 +1006,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginTableHeadCell(Map<String, String> parameters)
     {
-        if (this.isOnFirstHeadCellInTableRow.peek()) {
-            this.isOnFirstHeadCellInTableRow.pop();
-            this.isOnFirstHeadCellInTableRow.push(false);
-            this.tableHeadRowsCount.push(this.tableHeadRowsCount.pop() + 1);
-        }
-        beginTableCell(parameters);
+        beginTableCellContent();
     }
 
     @Override
@@ -961,17 +1015,27 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         endTableCell(parameters);
     }
 
+    private void beginTableCellContent()
+    {
+        pushPrinter(createInlineMarkdownPrinter());
+    }
+
     @Override
     public void beginTableRow(Map<String, String> parameters)
     {
         this.tableCells.peek().add(new ArrayList<>());
-        this.isOnFirstHeadCellInTableRow.push(true);
+        this.tableHeadRows.peek().add(true);
     }
 
     @Override
     public void endTableRow(Map<String, String> parameters)
     {
-        this.isOnFirstHeadCellInTableRow.pop();
+        // A row without any cell cannot be the header row.
+        List<List<String>> rows = this.tableCells.peek();
+        if (rows.get(rows.size() - 1).isEmpty()) {
+            List<Boolean> headRows = this.tableHeadRows.peek();
+            headRows.set(headRows.size() - 1, false);
+        }
     }
 
     @Override

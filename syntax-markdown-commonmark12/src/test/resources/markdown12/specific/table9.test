@@ -1,0 +1,11 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# Test that an empty table (which cannot be represented in Markdown) doesn't break the rendering
+.#-----------------------------------------------------
+<html><p>before</p><table></table><p>after</p></html>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+before
+
+after

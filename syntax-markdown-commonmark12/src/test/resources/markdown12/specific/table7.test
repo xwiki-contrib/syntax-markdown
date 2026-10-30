@@ -1,0 +1,14 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test head cells at the start of each row (row headers): they're not header rows and since Markdown doesn't
+.# support head cells in body rows, they're rendered as normal cells
+.#-----------------------------------------------------
+|=h1|a
+|=h2|b
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|     |     |
+| --- | --- |
+| h1  |  a  |
+| h2  |  b  |

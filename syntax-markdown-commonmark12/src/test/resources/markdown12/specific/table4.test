@@ -1,5 +1,5 @@
 .#----------------------------------------------------------------
-.inputexpect|markdown/1.2
+.input|markdown/1.2
 .# Test table without header rows
 .# Test that minimum cell size is 3 for "---" header row separator
 .#----------------------------------------------------------------
@@ -20,3 +20,10 @@ endTableCell
 endTableRow
 endTable
 endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.# A Markdown table requires a header row, thus an empty one is generated
+.#-----------------------------------------------------
+|     |     |
+| --- | --- |
+|  A  |  B  |

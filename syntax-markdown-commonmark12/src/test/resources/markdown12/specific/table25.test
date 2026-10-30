@@ -1,0 +1,112 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Tables located in list items and definition descriptions: their rows are indented to stay inside them
+.#-----------------------------------------------------
+* item with table:
+
+  |  a  |  b  |
+  | --- | --- |
+  |  1  |  2  |
+* |  c  |
+  | --- |
+  |  3  |
+* x
+    1. y
+
+       |  d  |
+       | --- |
+       |  4  |
+
+term
+:   def
+
+    |  e  |
+    | --- |
+    |  5  |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [item]
+onSpace
+onWord [with]
+onSpace
+onWord [table]
+onSpecialSymbol [:]
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [a]
+endTableHeadCell
+beginTableHeadCell
+onWord [b]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [1]
+endTableCell
+beginTableCell
+onWord [2]
+endTableCell
+endTableRow
+endTable
+endListItem
+beginListItem
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [c]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [3]
+endTableCell
+endTableRow
+endTable
+endListItem
+beginListItem
+onWord [x]
+beginList [NUMBERED]
+beginListItem
+onWord [y]
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [d]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [4]
+endTableCell
+endTableRow
+endTable
+endListItem
+endList [NUMBERED]
+endListItem
+endList [BULLETED]
+beginDefinitionList
+beginDefinitionTerm
+onWord [term]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [def]
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [e]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [5]
+endTableCell
+endTableRow
+endTable
+endDefinitionDescription
+endDefinitionList
+endDocument

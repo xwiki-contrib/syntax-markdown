@@ -1,0 +1,16 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# Test that an empty table located first (here in a Group) doesn't output extra empty lines and doesn't prevent the
+.# following element from being the first one
+.#-----------------------------------------------------
+<html><div class="x"><table></table><p>in</p></div><p>after</p></html>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+<div class="x">
+
+in
+
+</div>
+
+after

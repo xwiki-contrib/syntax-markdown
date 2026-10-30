@@ -1,0 +1,32 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that a line break in a cell, as rendered by the Markdown renderer, is read back as part of the cell content
+.#-----------------------------------------------------
+|  a  |  b  |
+| --- | --- |
+|  x  | z<br/>w |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [a]
+endTableHeadCell
+beginTableHeadCell
+onWord [b]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [x]
+endTableCell
+beginTableCell
+onWord [z]
+onMacroInline [html] [clean=false] [<br/>]
+onWord [w]
+endTableCell
+endTableRow
+endTable
+endDocument

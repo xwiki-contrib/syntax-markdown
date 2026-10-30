@@ -71,6 +71,14 @@ public class Markdown12LargeContentTest
         assertEquals("c " + html, renderToMarkdown("c {{html}}" + html + "{{/html}}"));
     }
 
+    @Test
+    public void tableCellWithManyLineBreaks() throws Exception
+    {
+        // The consecutive line breaks contain empty lines and are thus replaced by 2 line break tags.
+        assertEquals("|              |\n| ------------ |\n| a<br/><br/>b |",
+            renderToMarkdown("|a" + StringUtils.repeat("\\\\", COUNT) + "b"));
+    }
+
     private String renderToMarkdown(String input) throws Exception
     {
         XDOM xdom = this.mocker.<Parser>getInstance(Parser.class, "xwiki/2.1").parse(new StringReader(input));
