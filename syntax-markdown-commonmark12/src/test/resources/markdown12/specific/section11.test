@@ -1,0 +1,62 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Headings located in definition descriptions and in Groups located in list items
+.#-----------------------------------------------------
+Term
+:   # Title
+    text
+
+* <div>
+
+  # Grouped
+
+  text2
+
+  </div>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginDefinitionList
+beginDefinitionTerm
+onWord [Term]
+endDefinitionTerm
+beginDefinitionDescription
+beginSection
+beginHeader [1, HTitle]
+onWord [Title]
+endHeader [1, HTitle]
+onWord [text]
+endSection
+endDefinitionDescription
+endDefinitionList
+beginList [BULLETED]
+beginListItem
+beginGroup
+beginSection
+beginHeader [1, HGrouped]
+onWord [Grouped]
+endHeader [1, HGrouped]
+beginParagraph
+onWord [text2]
+endParagraph
+endSection
+endGroup
+endListItem
+endList [BULLETED]
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+Term
+:   # Title
+
+    text
+
+* <div>
+
+  # Grouped
+
+  text2
+
+  </div>

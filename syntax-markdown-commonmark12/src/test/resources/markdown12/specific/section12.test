@@ -1,0 +1,29 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# Blocks located after an empty list item or definition description: they must not be rendered inside it
+.#-----------------------------------------------------
+<html><body><ul><li>a</li><li></li></ul><p>paragraph</p><ul><li></li></ul><h1>heading</h1><ul><li></li></ul><hr/><ul><li></li></ul><ol><li>one</li></ol><dl><dt>term</dt><dd></dd></dl><h2>heading2</h2></body></html>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* a
+* 
+
+paragraph
+
+* 
+
+# heading
+
+* 
+
+---
+
+* 
+
+1. one
+
+term
+:   
+
+## heading2

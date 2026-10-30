@@ -1,0 +1,23 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Verify that the syntaxes recognized at the beginning of lines are escaped in the blocks located in list items and
+.# quotations
+.#-----------------------------------------------------
+- # One
+  \# two
+- three
+
+> \# quote
+>
+> \- line
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* # One
+
+  \# two
+* three
+
+> \# quote
+>
+> \- line

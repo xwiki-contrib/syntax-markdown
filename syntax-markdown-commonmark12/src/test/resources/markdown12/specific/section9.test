@@ -1,0 +1,64 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Headings located in list items: the heading stays in the list item and the content following it in the list
+.# item is separated from it
+.#-----------------------------------------------------
+- # One
+- ## Two
+  text
+  - ### Three
+- four
+
+after
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+beginSection
+beginHeader [1, HOne]
+onWord [One]
+endHeader [1, HOne]
+endSection
+endListItem
+beginListItem
+beginSection
+beginHeader [2, HTwo]
+onWord [Two]
+endHeader [2, HTwo]
+onWord [text]
+beginList [BULLETED]
+beginListItem
+beginSection
+beginHeader [3, HThree]
+onWord [Three]
+endHeader [3, HThree]
+endSection
+endListItem
+endList [BULLETED]
+endSection
+endListItem
+beginListItem
+onWord [four]
+endListItem
+endList [BULLETED]
+beginParagraph
+onWord [after]
+endParagraph
+endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* # One
+* ## Two
+
+  text
+    * ### Three
+* four
+
+after
+.#-----------------------------------------------------
+.expect|xhtml/1.0
+.#-----------------------------------------------------
+<ul><li><h1 id="HOne" class="wikigeneratedid"><span>One</span></h1></li><li><h2 id="HTwo" class="wikigeneratedid"><span>Two</span></h2>text<ul><li><h3 id="HThree" class="wikigeneratedid"><span>Three</span></h3></li></ul></li><li>four</li></ul><p>after</p>
