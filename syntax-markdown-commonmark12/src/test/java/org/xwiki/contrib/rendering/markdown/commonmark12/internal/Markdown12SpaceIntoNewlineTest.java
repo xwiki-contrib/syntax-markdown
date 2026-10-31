@@ -21,8 +21,7 @@ package org.xwiki.contrib.rendering.markdown.commonmark12.internal;
 
 import java.io.StringReader;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.DefaultFlexmarkNodeVisitor;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.Markdown12Parser;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.Markdown12StreamParser;
@@ -36,9 +35,11 @@ import org.xwiki.rendering.parser.Parser;
 import org.xwiki.rendering.parser.ResourceReferenceParser;
 import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.annotation.ComponentList;
-import org.xwiki.test.mockito.MockitoComponentManagerRule;
+import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectComponentManager;
+import org.xwiki.test.mockito.MockitoComponentManager;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Verify that 2 spaces at end of line are transformed into a new line when the newline separator is either
@@ -47,6 +48,7 @@ import static org.junit.Assert.assertEquals;
  * @version $Id$
  * @since 8.4.3
  */
+@ComponentTest
 @ComponentList({
     Markdown12Parser.class,
     Markdown12StreamParser.class,
@@ -54,24 +56,24 @@ import static org.junit.Assert.assertEquals;
     PlainTextStreamParser.class,
     PlainTextRendererFactory.class
 })
-public class Markdown12SpaceIntoNewlineTest
+class Markdown12SpaceIntoNewlineTest
 {
-    @Rule
-    public MockitoComponentManagerRule mocker = new MockitoComponentManagerRule();
+    @InjectComponentManager
+    private MockitoComponentManager componentManager;
 
     @BeforeComponent
-    public void setUpComponents() throws Exception
+    void setUpComponents() throws Exception
     {
         // Not needed for the test so we just mock them
-        this.mocker.registerMockComponent(MarkdownConfiguration.class);
-        this.mocker.registerMockComponent(ResourceReferenceParser.class, "image");
-        this.mocker.registerMockComponent(ResourceReferenceParser.class, "link");
+        this.componentManager.registerMockComponent(MarkdownConfiguration.class);
+        this.componentManager.registerMockComponent(ResourceReferenceParser.class, "image");
+        this.componentManager.registerMockComponent(ResourceReferenceParser.class, "link");
     }
 
     @Test
-    public void convertTwoSpacesIntoNewMine() throws Exception
+    void convertTwoSpacesIntoNewMine() throws Exception
     {
-        Parser parser = this.mocker.getInstance(Parser.class, "markdown/1.2");
+        Parser parser = this.componentManager.getInstance(Parser.class, "markdown/1.2");
 
         XDOM xdom = parser.parse(new StringReader("paragraph1 on  \nmultiple  \nlines\n"));
         assertEquals(2, xdom.getBlocks(new ClassBlockMatcher(NewLineBlock.class), Block.Axes.DESCENDANT).size());

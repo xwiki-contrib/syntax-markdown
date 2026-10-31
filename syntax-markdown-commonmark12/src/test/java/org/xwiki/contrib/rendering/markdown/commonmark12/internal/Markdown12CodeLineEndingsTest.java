@@ -21,8 +21,7 @@ package org.xwiki.contrib.rendering.markdown.commonmark12.internal;
 
 import java.io.StringReader;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.xwiki.rendering.block.XDOM;
 import org.xwiki.rendering.parser.Parser;
 import org.xwiki.rendering.renderer.BlockRenderer;
@@ -30,9 +29,11 @@ import org.xwiki.rendering.renderer.printer.DefaultWikiPrinter;
 import org.xwiki.rendering.wiki.WikiModel;
 import org.xwiki.test.annotation.AllComponents;
 import org.xwiki.test.annotation.BeforeComponent;
-import org.xwiki.test.mockito.MockitoComponentManagerRule;
+import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectComponentManager;
+import org.xwiki.test.mockito.MockitoComponentManager;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Verify that the content containing carriage returns (which can't be expressed in the test files since their line
@@ -41,20 +42,21 @@ import static org.junit.Assert.assertEquals;
  *
  * @version $Id$
  */
+@ComponentTest
 @AllComponents
-public class Markdown12CodeLineEndingsTest
+class Markdown12CodeLineEndingsTest
 {
-    @Rule
-    public MockitoComponentManagerRule mocker = new MockitoComponentManagerRule();
+    @InjectComponentManager
+    private MockitoComponentManager componentManager;
 
     @BeforeComponent
-    public void setUpComponents() throws Exception
+    void setUpComponents() throws Exception
     {
-        this.mocker.registerMockComponent(WikiModel.class);
+        this.componentManager.registerMockComponent(WikiModel.class);
     }
 
     @Test
-    public void codeBlocksWithCarriageReturns() throws Exception
+    void codeBlocksWithCarriageReturns() throws Exception
     {
         String markdown = render(parse("{{code}}a\r<b>b</b>{{/code}}\n\n"
             + "* (((\n{{code language=\"java\"}}c\r<b>d</b>{{/code}}\n)))", "xwiki/2.1"), "markdown/1.2");
@@ -75,7 +77,7 @@ public class Markdown12CodeLineEndingsTest
     }
 
     @Test
-    public void macroWithCarriageReturnsInTableCell() throws Exception
+    void macroWithCarriageReturnsInTableCell() throws Exception
     {
         String markdown = render(parse("|=a\n|{{info}}b\rc\r\rd{{/info}}", "xwiki/2.1"), "markdown/1.2");
 
@@ -102,13 +104,13 @@ public class Markdown12CodeLineEndingsTest
 
     private XDOM parse(String content, String syntax) throws Exception
     {
-        return this.mocker.<Parser>getInstance(Parser.class, syntax).parse(new StringReader(content));
+        return this.componentManager.<Parser>getInstance(Parser.class, syntax).parse(new StringReader(content));
     }
 
     private String render(XDOM xdom, String syntax) throws Exception
     {
         DefaultWikiPrinter printer = new DefaultWikiPrinter();
-        this.mocker.<BlockRenderer>getInstance(BlockRenderer.class, syntax).render(xdom, printer);
+        this.componentManager.<BlockRenderer>getInstance(BlockRenderer.class, syntax).render(xdom, printer);
         return printer.toString();
     }
 }

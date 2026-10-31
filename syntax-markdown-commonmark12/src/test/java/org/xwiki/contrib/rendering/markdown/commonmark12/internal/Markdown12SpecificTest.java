@@ -19,8 +19,7 @@
  */
 package org.xwiki.contrib.rendering.markdown.commonmark12.internal;
 
-import org.junit.runner.RunWith;
-import org.xwiki.rendering.test.integration.RenderingTestSuite;
+import org.xwiki.rendering.test.integration.junit5.RenderingTests;
 import org.xwiki.rendering.wiki.WikiModel;
 import org.xwiki.test.annotation.AllComponents;
 import org.xwiki.test.mockito.MockitoComponentManager;
@@ -32,13 +31,13 @@ import org.xwiki.test.mockito.MockitoComponentManager;
  * @version $Id$
  * @since 8.4
  */
-@RunWith(RenderingTestSuite.class)
-//@RenderingTestSuite.Scope(value = "markdown12.specific", pattern = ".*html.*\\.test")
-@RenderingTestSuite.Scope(value = "markdown12.specific")
+//@RenderingTests.Scope(value = "markdown12.specific", pattern = ".*html.*\\.test")
+@RenderingTests.Scope(value = "markdown12.specific")
 @AllComponents
-public class Markdown12SpecificTest
+// Public since the rendering test executor looks up and calls the @Initialized method through reflection.
+public class Markdown12SpecificTest implements RenderingTests
 {
-    @RenderingTestSuite.Initialized
+    @RenderingTests.Initialized
     public void initialize(MockitoComponentManager componentManager) throws Exception
     {
         // Make sure we're in Wiki Mode so that parsed resource reference of type "doc:" (for example) are not
