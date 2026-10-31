@@ -42,6 +42,17 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
 
     private static final Map<String, String> DECODED_CHARACTERS = new HashMap<>();
 
+    /**
+     * The id of the code macro, whose content is kept exactly (white spaces included) since it's displayed as is.
+     */
+    private static final String CODE_MACRO_ID = "code";
+
+    /**
+     * The line ending located at the end of the content of a macro written on several lines, just before the line of
+     * the closing tag.
+     */
+    private static final Pattern FINAL_LINE_ENDING = Pattern.compile("(?:\\r\\n|\\r|\\n)\\z");
+
     static {
         DECODED_CHARACTERS.put("amp", "&");
         DECODED_CHARACTERS.put("quot", "\"");
@@ -68,8 +79,9 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
     {
         if (!node.isBlockMacro()) {
             Map<String, String> parameters = decodeParameterValues(node.getAttributes());
-            String content = node.getMacroContentChars().toString();
-            getListener().onMacro(node.getName().toString(), parameters, normalizeMacroContent(content), true);
+            String name = node.getName().toString();
+            String content = node.isClosedTag() ? null : node.getMacroContentChars().toString();
+            getListener().onMacro(name, parameters, normalizeMacroContent(name, content, true), true);
         }
     }
 
@@ -84,9 +96,9 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
         Map<String, String> parameters = decodeParameterValues(node.getAttributes());
         // The content lines of the macro block (see MacroBlockParser) don't include the prefixes of the containers
         // (e.g. quotation, list item) in which the macro is located.
-        String content = node.getContentChars().toString();
-        getListener().onMacro(node.getMacroNode().getName().toString(), parameters, normalizeMacroContent(content),
-            false);
+        String name = node.getMacroNode().getName().toString();
+        String content = node.isClosedTag() ? null : node.getContentChars().toString();
+        getListener().onMacro(name, parameters, normalizeMacroContent(name, content, false), false);
     }
 
     /**
@@ -109,8 +121,18 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
         return decodedParameters;
     }
 
-    private String normalizeMacroContent(String content)
+    /**
+     * @param name the macro name
+     * @param content the content written between the macro tags, {@code null} if the macro has no content
+     * @param isInline whether the macro is inline
+     * @return the macro content
+     */
+    private String normalizeMacroContent(String name, String content, boolean isInline)
     {
+        if (CODE_MACRO_ID.equals(name)) {
+            return getExactContent(content, isInline);
+        }
+
         String normalizedContent;
         if (StringUtils.isEmpty(content)) {
             normalizedContent = null;
@@ -118,5 +140,18 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
             normalizedContent = content.trim();
         }
         return normalizedContent;
+    }
+
+    /**
+     * @return the content written between the macro tags, without the line ending that ends the content of a macro
+     *     written on several lines (the line endings that follow the opening tag and that precede the closing tag are
+     *     not part of the content, as in XWiki Syntax 2.1)
+     */
+    static String getExactContent(String content, boolean isInline)
+    {
+        if (content == null || isInline) {
+            return content;
+        }
+        return FINAL_LINE_ENDING.matcher(content).replaceFirst("");
     }
 }

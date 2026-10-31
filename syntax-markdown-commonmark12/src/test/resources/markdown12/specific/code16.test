@@ -1,15 +1,40 @@
 .#-----------------------------------------------------
 .inputexpect|markdown/1.2
-.# The Markdown generated for consecutive Groups containing only a code macro in a list item (see code15.test) is read
-.# back as two distinct code macros, and rendered back the same way.
+.# The Markdown generated for consecutive Groups containing only a code macro in list items (see code15.test) is read
+.# back as distinct code macros, and rendered back the same way.
 .#-----------------------------------------------------
 * item
 
-      a
+  <div>
+
+  {{code}}
+  a
+  {{/code}}
+
+  </div>
 
   <div>
 
-      b
+  {{code}}
+  b
+  {{/code}}
+
+  </div>
+* item
+
+  <div>
+
+  ```
+  c
+  ```
+
+  </div>
+
+  <div>
+
+  ```java
+  d
+  ```
 
   </div>
 .#-----------------------------------------------------
@@ -20,10 +45,19 @@ beginList [BULLETED]
 beginListItem
 onWord [item]
 beginGroup
-onMacroStandalone [code] [language=none] [a]
+onMacroStandalone [code] [] [a]
 endGroup
 beginGroup
-onMacroStandalone [code] [language=none] [b]
+onMacroStandalone [code] [] [b]
+endGroup
+endListItem
+beginListItem
+onWord [item]
+beginGroup
+onMacroStandalone [code] [language=none] [c]
+endGroup
+beginGroup
+onMacroStandalone [code] [language=java] [d]
 endGroup
 endListItem
 endList [BULLETED]

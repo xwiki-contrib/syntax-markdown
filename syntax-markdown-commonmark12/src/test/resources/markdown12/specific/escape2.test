@@ -13,7 +13,7 @@ a \<b>c\</b> d \&amp; e < f & g
 \- not list  
 \=== not heading  
 \~\~\~ not code  
-back\\slash \\\* `a_b` `a_b`
+back\\slash \\\* <code>a\_b</code> {{code}}a_b{{/code}}
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -162,8 +162,12 @@ onSpace
 onWord [\]
 onSpecialSymbol [*]
 onSpace
-onMacroInline [code] [language=none] [a_b]
+beginFormat [MONOSPACE]
+onWord [a]
+onSpecialSymbol [_]
+onWord [b]
+endFormat [MONOSPACE]
 onSpace
-onMacroInline [code] [language=none] [a_b]
+onMacroInline [code] [] [a_b]
 endParagraph
 endDocument
