@@ -45,8 +45,11 @@ import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.HeaderLevel;
 import org.xwiki.rendering.listener.ListType;
 import org.xwiki.rendering.listener.MetaData;
+import org.xwiki.rendering.listener.QueueListener;
 import org.xwiki.rendering.listener.chaining.BlockStateChainingListener;
+import org.xwiki.rendering.listener.chaining.EventType;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
+import org.xwiki.rendering.listener.chaining.LookaheadChainingListener;
 import org.xwiki.rendering.listener.reference.ResourceReference;
 import org.xwiki.rendering.listener.reference.ResourceType;
 import org.xwiki.rendering.renderer.AbstractChainingPrintRenderer;
@@ -882,10 +885,19 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     {
         ItemState itemState = getItemState();
         if (itemState != null && itemState.isListItem) {
-            // Nested lists are indented relatively to the marker of the list item in which they're located. A list
-            // directly following a definition list would be read back as part of its last definition description.
-            print(getBlockState().getPreviousEvent() == BlockStateChainingListener.Event.DEFINITION_LIST ? EMPTY_LINE
-                : NEW_LINE);
+            // Nested lists are indented relatively to the marker of the list item in which they're located. They are
+            // separated from the previous content of the list item by an empty line when they would be read back as
+            // part of it otherwise:
+            // - after a definition list, since they would be part of its last definition description
+            // - when their first item starts with an empty line (i.e. when it's empty or starts with a nested list),
+            //   since a list item starting with an empty line can't interrupt a paragraph
+            // A single new line is enough when the previous content ends with a new line already (e.g. a line break).
+            MarkdownEscapeWikiPrinter printer = getMarkdownPrinter();
+            boolean isSeparated =
+                getBlockState().getPreviousEvent() == BlockStateChainingListener.Event.DEFINITION_LIST
+                    || (!this.isAtContainerStart && !isInTableCell() && isNextListItemStartingWithEmptyLine()
+                        && !(printer.isOnNewLine() && StringUtils.isBlank(printer.getBuffer())));
+            print(isSeparated ? EMPTY_LINE : NEW_LINE);
             this.itemMarkerPrefixes.push(itemState.markerPrefix + "    ");
         } else {
             String linePrefix = getContainerLinePrefix();
@@ -898,6 +910,19 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         } else {
             this.listStyle.push("1");
         }
+    }
+
+    /**
+     * @return {@code true} if the next event is the start of a list item whose Markdown starts with an empty line,
+     *     i.e. a list item that is empty or whose first content is a nested list (which starts on the next line)
+     */
+    private boolean isNextListItemStartingWithEmptyLine()
+    {
+        LookaheadChainingListener lookahead = getXWikiSyntaxListenerChain().getLookaheadChainingListener();
+        QueueListener.Event itemStart = lookahead.getNextEvent(1);
+        QueueListener.Event itemContent = lookahead.getNextEvent(2);
+        return itemStart != null && itemStart.eventType == EventType.BEGIN_LIST_ITEM && itemContent != null
+            && (itemContent.eventType == EventType.END_LIST_ITEM || itemContent.eventType == EventType.BEGIN_LIST);
     }
 
     @Override

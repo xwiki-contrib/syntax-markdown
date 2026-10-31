@@ -1,0 +1,17 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# Nested lists whose first item is empty in a table cell (where the lists are rendered as text) and after a line
+.# break: they are not separated by an additional empty line, see list21.test
+.#-----------------------------------------------------
+<html><body><table><tr><td><ul><li>x<ul><li></li></ul></li></ul></td></tr></table><ul><li>y<br/><ul><li><ul><li>z</li></ul></li></ul></li></ul></body></html>
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|           |
+| --------- |
+| * x<br/>* |
+
+* y  
+
+    * 
+        * z

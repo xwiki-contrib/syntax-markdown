@@ -1,0 +1,42 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# The Markdown generated in list20.test (note that the line break ending the list item is lost)
+.#-----------------------------------------------------
+|           |
+| --------- |
+| * x<br/>* |
+
+* y  
+
+    * 
+        * z
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableCell
+onSpecialSymbol [*]
+onSpace
+onWord [x]
+onNewLine
+onSpecialSymbol [*]
+endTableCell
+endTableRow
+endTable
+beginList [BULLETED]
+beginListItem
+onWord [y]
+beginList [BULLETED]
+beginListItem
+beginList [BULLETED]
+beginListItem
+onWord [z]
+endListItem
+endList [BULLETED]
+endListItem
+endList [BULLETED]
+endListItem
+endList [BULLETED]
+endDocument

@@ -1,0 +1,86 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# Nested lists whose first item starts with an empty line (empty item, item starting with a nested list): they are
+.# separated from the text of the list item in which they're located by an empty line, since a list item starting
+.# with an empty line can't interrupt a paragraph
+.#-----------------------------------------------------
+<html><body><ul><li>a<ul><li></li></ul></li><li>c</li></ul><ol><li>d<ol><li></li><li>e</li></ol></li></ol><ul><li>f<ul><li><ul><li>g</li></ul></li></ul></li></ul><ol><li>h<ol><li><ol><li>i</li></ol></li></ol></li></ol></body></html>
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.#-----------------------------------------------------
+* a
+
+    * 
+* c
+
+1. d
+
+    1. 
+    1. e
+
+* f
+
+    * 
+        * g
+
+1. h
+
+    1. 
+        1. i
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [a]
+beginList [BULLETED]
+beginListItem
+endListItem
+endList [BULLETED]
+endListItem
+beginListItem
+onWord [c]
+endListItem
+endList [BULLETED]
+beginList [NUMBERED]
+beginListItem
+onWord [d]
+beginList [NUMBERED]
+beginListItem
+endListItem
+beginListItem
+onWord [e]
+endListItem
+endList [NUMBERED]
+endListItem
+endList [NUMBERED]
+beginList [BULLETED]
+beginListItem
+onWord [f]
+beginList [BULLETED]
+beginListItem
+beginList [BULLETED]
+beginListItem
+onWord [g]
+endListItem
+endList [BULLETED]
+endListItem
+endList [BULLETED]
+endListItem
+endList [BULLETED]
+beginList [NUMBERED]
+beginListItem
+onWord [h]
+beginList [NUMBERED]
+beginListItem
+beginList [NUMBERED]
+beginListItem
+onWord [i]
+endListItem
+endList [NUMBERED]
+endListItem
+endList [NUMBERED]
+endListItem
+endList [NUMBERED]
+endDocument
