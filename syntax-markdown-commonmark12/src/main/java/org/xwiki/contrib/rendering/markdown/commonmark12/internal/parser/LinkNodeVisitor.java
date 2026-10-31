@@ -189,7 +189,11 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         // Parse any parameters specified using the format "label|reference|a=b c=d".
         // Important: We don't unescape() the link content since we need to support escape characters in wiki link
         // references (e.g. a reference with dots, etc).
+        boolean isInTableCell = isInTableCell(node);
         String nodeRawReference = getRawLink(node);
+        if (isInTableCell) {
+            nodeRawReference = unescapeTableCellPipes(nodeRawReference);
+        }
         String nodeReference = nodeRawReference;
         List<WikiParameter> parameterList = new ArrayList<>();
         int pos = nodeRawReference.indexOf('|');
@@ -211,13 +215,23 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         }
 
         getListener().beginLink(reference, false, parameters);
-        if (node.getText().isNotNull()) {
+        BasedSequence label = node.getText();
+        if (label.isNotNull()) {
+            // In a table cell, a backslash located before the label separator escapes it (see
+            // unescapeTableCellPipes()).
+            boolean isSeparatorEscaped = isInTableCell && endsWithEscape(label);
             if (WikiLinkExtension.ALLOW_INLINES.get(node.getDocument())) {
                 // The label has been parsed as inline Markdown content.
                 convertLabelToText(node);
+                if (isSeparatorEscaped) {
+                    removeLabelEnd(node);
+                }
                 getVisitor().visitChildren(node);
             } else {
-                parseInline(node.getText().unescape());
+                if (isSeparatorEscaped) {
+                    label = label.subSequence(0, label.length() - 1);
+                }
+                parseInline(label.unescape());
             }
         }
         getListener().endLink(reference, false, parameters);
@@ -237,6 +251,20 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
                 chars.length() - node.getClosingMarker().length()).toString();
         }
         return node.getLink().toString();
+    }
+
+    /**
+     * Remove the last character of the label, from the parsed content of the label.
+     */
+    private void removeLabelEnd(WikiLink node)
+    {
+        int end = node.getText().getEndOffset();
+        for (Node descendant : node.getDescendants()) {
+            if (descendant instanceof Text && descendant.getEndOffset() == end) {
+                BasedSequence chars = descendant.getChars();
+                descendant.setChars(chars.subSequence(0, chars.length() - 1));
+            }
+        }
     }
 
     /**

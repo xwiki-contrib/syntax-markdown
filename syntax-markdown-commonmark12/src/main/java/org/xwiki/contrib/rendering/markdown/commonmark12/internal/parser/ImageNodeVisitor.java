@@ -158,6 +158,10 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
             rawReference = content.substring(separatorIndex + 1);
         }
 
+        boolean isInTableCell = isInTableCell(node);
+        if (isInTableCell) {
+            rawReference = unescapeTableCellPipes(rawReference);
+        }
         ResourceReference reference = this.imageResourceReferenceParser.parse(rawReference);
         Map<String, String> parameters = new HashMap<>();
 
@@ -166,6 +170,10 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
         String computedAltValue = computeAltAttributeValue(reference);
         if (!rawAlt.isEmpty()) {
             String extractedAltValue = rawAlt;
+            if (isInTableCell && endsWithEscape(extractedAltValue)) {
+                // The backslash escapes the separator (see unescapeTableCellPipes()).
+                extractedAltValue = extractedAltValue.substring(0, extractedAltValue.length() - 1);
+            }
             if (StringUtils.isNotEmpty(extractedAltValue) && !extractedAltValue.equals(computedAltValue)) {
                 parameters.put("alt", extractedAltValue);
             }

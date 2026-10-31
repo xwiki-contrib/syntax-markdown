@@ -72,10 +72,6 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     private static final char QUOTE = '"';
 
-    private static final String FORMAT_TWO_PARAMS = "[[%s|%s]]";
-
-    private static final String FORMAT_THREE_PARAMS = "[[%s|%s|%s]]";
-
     private static final String WIKI_LINK_LABEL_PIPE = "&#124;";
 
     private static final String ALT_PARAMETER = "alt";
@@ -480,13 +476,9 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
             print(String.format("![%s](%s)", escapeText(alt), encodeImageReference(reference.getReference())));
         } else {
             onWikiSyntax();
-            String escapedReference = escapeWikiLinkReference(reference.getReference());
-            if (isWikiSyntaxSeparatorEscaped() && StringUtils.isBlank(parameters.get(ALT_PARAMETER))) {
-                // Avoid the separator, which would be kept at the end of the alternative text.
-                print("![[" + escapedReference + "]]");
-            } else {
-                print("![[" + escapeWikiLinkReference(alt) + getWikiSyntaxSeparator() + escapedReference + "]]");
-            }
+            String escapedAlt = escapeWikiLinkReference(alt);
+            print("![[" + escapedAlt + getWikiSyntaxSeparator() + escapeWikiLinkReference(reference.getReference())
+                + "]]");
         }
     }
 
@@ -497,15 +489,12 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         } else {
             // A separator makes the first part of the wiki link syntax the label, so an empty label is written when
             // there are parameters but no label (XWiki then generates the label).
-            // Only the separator located after the label can be escaped (the backslash being kept in the label).
-            String wikiLinkLabel = escapeWikiLinkLabel(label)
-                + (isWikiSyntaxSeparatorEscaped() ? MarkdownEscapeHandler.ESCAPE_CHAR : "");
-            if (parameters.isEmpty()) {
-                print(String.format(FORMAT_TWO_PARAMS, wikiLinkLabel, serializedReference));
-            } else {
-                print(String.format(FORMAT_THREE_PARAMS, wikiLinkLabel, serializedReference,
-                    serializeParameters(parameters)));
+            StringBuilder builder = new StringBuilder("[[");
+            builder.append(escapeWikiLinkLabel(label)).append(getWikiSyntaxSeparator()).append(serializedReference);
+            if (!parameters.isEmpty()) {
+                builder.append(getWikiSyntaxSeparator()).append(serializeParameters(parameters));
             }
+            print(builder.append("]]").toString());
         }
     }
 
@@ -517,9 +506,9 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     {
         // In a table cell, the table parser ends the pending emphasis (e.g. bold) at each pipe that is not located
         // inside a code span, an HTML tag or an autolink, even if the pipe doesn't split the cell, e.g. a wiki link
-        // separator. The emphasis and the wiki link or image syntaxes are then broken, splitting the cell. An escaped
-        // separator doesn't split the cell, but the backslash is kept at the end of the wiki link label or of the
-        // image alternative text (the wiki link syntax doesn't support escaping its separator).
+        // separator. The emphasis and the wiki link or image syntaxes are then broken, splitting the cell. Same as
+        // GitHub Flavored Markdown, an escaped pipe located in a table cell stands for a pipe, including inside the
+        // wiki link and wiki image syntaxes.
         return isInTableCell() && this.emphasisDepth > 0;
     }
 
@@ -556,12 +545,13 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     private String serializeParameters(Map<String, String> parameters)
     {
+        boolean isPipeEscaped = isWikiSyntaxSeparatorEscaped();
         StringBuilder builder = new StringBuilder();
         Iterator<Map.Entry<String, String>> iterator = parameters.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, String> entry = iterator.next();
             builder.append(entry.getKey()).append('=').append(QUOTE)
-                .append(escapeWikiLinkParameterValue(entry.getValue())).append(QUOTE);
+                .append(escapeWikiLinkParameterValue(entry.getValue(), isPipeEscaped)).append(QUOTE);
             if (iterator.hasNext()) {
                 builder.append(' ');
             }
@@ -571,15 +561,17 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     /**
      * Escape the characters that would end the parameter value (the parameter values are unescaped by the parser) or
-     * the wiki link.
+     * the wiki link, and the pipes when the wiki link separators are escaped (see isWikiSyntaxSeparatorEscaped()).
      */
-    private String escapeWikiLinkParameterValue(String value)
+    private String escapeWikiLinkParameterValue(String value, boolean isPipeEscaped)
     {
         String text = removeNewLines(StringUtils.defaultString(value));
         StringBuilder builder = new StringBuilder(text.length());
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            if (c == QUOTE || c == '[' || c == ']' || c == MarkdownEscapeHandler.ESCAPE_CHAR.charAt(0)) {
+            if (c == QUOTE || c == '[' || c == ']' || c == MarkdownEscapeHandler.ESCAPE_CHAR.charAt(0)
+                || (isPipeEscaped && c == '|'))
+            {
                 builder.append(MarkdownEscapeHandler.ESCAPE_CHAR);
             }
             builder.append(c);

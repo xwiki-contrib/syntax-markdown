@@ -16,7 +16,7 @@
 |       HTML        | <span title="a|b">c\|d</span> |
 |  HTML backticks   | <span title="`">\|a</span><span title="`">b</span> |
 |   Invalid HTML    | \<!-- a -- b\|c --> \<span title={\|}>d</span> |
-|       Bold        | **a\|b ![[a.png]]** |
+|       Bold        | **a\|b [[label\|Space.Page]] ![[a.png\|a.png]] ![[c\|b.png]]** |
 |     Bold URL      | **[a\|b](https://www.xwiki.org/) ![a\|b](https://www.xwiki.org/a.png)** |
 .#-----------------------------------------------------
 .expect|event/1.0
@@ -197,7 +197,13 @@ onWord [a]
 onSpecialSymbol [|]
 onWord [b]
 onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onWord [label]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onSpace
 onImage [Typed = [false] Type = [attach] Reference = [a.png]] [false] [Ia.png-1]
+onSpace
+onImage [Typed = [false] Type = [attach] Reference = [b.png]] [false] [Ib.png] [[alt]=[c]]
 endFormat [BOLD]
 endTableCell
 endTableRow
