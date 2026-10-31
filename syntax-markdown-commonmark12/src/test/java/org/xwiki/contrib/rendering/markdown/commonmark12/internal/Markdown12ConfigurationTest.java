@@ -19,10 +19,9 @@
  */
 package org.xwiki.contrib.rendering.markdown.commonmark12.internal;
 
-import java.util.Arrays;
+import java.util.List;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.xwiki.component.internal.ContextComponentManagerProvider;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12BlockRenderer;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12ImageReferenceSerializer;
@@ -41,11 +40,13 @@ import org.xwiki.rendering.renderer.BlockRenderer;
 import org.xwiki.rendering.renderer.printer.DefaultWikiPrinter;
 import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.annotation.ComponentList;
-import org.xwiki.test.mockito.MockitoComponentManagerRule;
+import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectComponentManager;
+import org.xwiki.test.mockito.MockitoComponentManager;
 
 import com.vladsch.flexmark.util.data.MutableDataSet;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 /**
@@ -54,6 +55,7 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  * @since 8.4
  */
+@ComponentTest
 @ComponentList({
     Markdown12RendererFactory.class,
     Markdown12BlockRenderer.class,
@@ -65,25 +67,25 @@ import static org.mockito.Mockito.when;
     DefaultSyntaxRegistry.class,
     ContextComponentManagerProvider.class
 })
-public class Markdown12ConfigurationTest
+class Markdown12ConfigurationTest
 {
-    @Rule
-    public MockitoComponentManagerRule mocker = new MockitoComponentManagerRule();
+    @InjectComponentManager
+    private MockitoComponentManager componentManager;
 
     @BeforeComponent
-    public void setUpComponents() throws Exception
+    void setUpComponents() throws Exception
     {
         // Simulate an empty configuration
-        MarkdownConfiguration configuration = this.mocker.registerMockComponent(MarkdownConfiguration.class);
+        MarkdownConfiguration configuration = this.componentManager.registerMockComponent(MarkdownConfiguration.class);
         when(configuration.getOptions()).thenReturn(new MutableDataSet());
     }
 
     @Test
-    public void strikedOutRenderingWithoutStrikethroughExtension() throws Exception
+    void strikedOutRenderingWithoutStrikethroughExtension() throws Exception
     {
-        BlockRenderer renderer = this.mocker.getInstance(BlockRenderer.class, "markdown/1.2");
+        BlockRenderer renderer = this.componentManager.getInstance(BlockRenderer.class, "markdown/1.2");
 
-        XDOM xdom = new XDOM(Arrays.asList(new ParagraphBlock(Arrays.asList(new FormatBlock(Arrays.asList(
+        XDOM xdom = new XDOM(List.of(new ParagraphBlock(List.of(new FormatBlock(List.of(
             new WordBlock("hello")), Format.STRIKEDOUT)))));
         DefaultWikiPrinter printer = new DefaultWikiPrinter();
         renderer.render(xdom, printer);

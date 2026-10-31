@@ -22,8 +22,7 @@ package org.xwiki.contrib.rendering.markdown.commonmark12.internal;
 import java.io.StringReader;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.xwiki.rendering.block.XDOM;
 import org.xwiki.rendering.parser.Parser;
 import org.xwiki.rendering.renderer.BlockRenderer;
@@ -31,10 +30,12 @@ import org.xwiki.rendering.renderer.printer.DefaultWikiPrinter;
 import org.xwiki.rendering.wiki.WikiModel;
 import org.xwiki.test.annotation.AllComponents;
 import org.xwiki.test.annotation.BeforeComponent;
-import org.xwiki.test.mockito.MockitoComponentManagerRule;
+import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectComponentManager;
+import org.xwiki.test.mockito.MockitoComponentManager;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Verify that the size of the Markdown 1.2 rendering of a table stays proportional to the size of the table, i.e. that
@@ -42,8 +43,9 @@ import static org.junit.Assert.assertTrue;
  *
  * @version $Id$
  */
+@ComponentTest
 @AllComponents
-public class Markdown12TableSizeTest
+class Markdown12TableSizeTest
 {
     /**
      * The maximum ratio between the size of the rendered Markdown and the size of the XWiki Syntax input.
@@ -52,17 +54,17 @@ public class Markdown12TableSizeTest
 
     private static final int COUNT = 1000;
 
-    @Rule
-    public MockitoComponentManagerRule mocker = new MockitoComponentManagerRule();
+    @InjectComponentManager
+    private MockitoComponentManager componentManager;
 
     @BeforeComponent
-    public void setUpComponents() throws Exception
+    void setUpComponents() throws Exception
     {
-        this.mocker.registerMockComponent(WikiModel.class);
+        this.componentManager.registerMockComponent(WikiModel.class);
     }
 
     @Test
-    public void wideRowFollowedByShortRows() throws Exception
+    void wideRowFollowedByShortRows() throws Exception
     {
         // A header row of many cells, followed by many rows of a single cell.
         String input = StringUtils.repeat("|=h", COUNT) + "\n" + StringUtils.repeat("|x\n", COUNT);
@@ -73,13 +75,13 @@ public class Markdown12TableSizeTest
     }
 
     @Test
-    public void wideRowFollowedByShortRowsWithoutHeader() throws Exception
+    void wideRowFollowedByShortRowsWithoutHeader() throws Exception
     {
         assertRenderingSize(StringUtils.repeat("|a", COUNT) + "\n" + StringUtils.repeat("|x\n", COUNT));
     }
 
     @Test
-    public void largeCellFollowedByShortRows() throws Exception
+    void largeCellFollowedByShortRows() throws Exception
     {
         // A large cell followed by many small cells in the same column.
         String input = "|=" + StringUtils.repeat('a', COUNT * 10) + "\n" + StringUtils.repeat("|x\n", COUNT);
@@ -90,7 +92,7 @@ public class Markdown12TableSizeTest
     }
 
     @Test
-    public void largeColumnSpansFollowedByShortRows() throws Exception
+    void largeColumnSpansFollowedByShortRows() throws Exception
     {
         // Many cells spanning all the columns of a wide table.
         String input = StringUtils.repeat("|=h", COUNT) + "\n"
@@ -103,7 +105,7 @@ public class Markdown12TableSizeTest
     }
 
     @Test
-    public void largeRowSpansFollowedByShortRows() throws Exception
+    void largeRowSpansFollowedByShortRows() throws Exception
     {
         // Many cells spanning all the rows of a wide table.
         String input = StringUtils.repeat("|=h", COUNT) + "\n"
@@ -118,16 +120,17 @@ public class Markdown12TableSizeTest
     private String assertRenderingSize(String input) throws Exception
     {
         String markdown = renderToMarkdown(input);
-        assertTrue(String.format("The Markdown rendering is too large: [%s] characters for an input of [%s]",
-            markdown.length(), input.length()), markdown.length() <= MAX_RATIO * input.length());
+        assertTrue(markdown.length() <= MAX_RATIO * input.length(),
+            String.format("The Markdown rendering is too large: [%s] characters for an input of [%s]",
+                markdown.length(), input.length()));
         return markdown;
     }
 
     private String renderToMarkdown(String input) throws Exception
     {
-        XDOM xdom = this.mocker.<Parser>getInstance(Parser.class, "xwiki/2.1").parse(new StringReader(input));
+        XDOM xdom = this.componentManager.<Parser>getInstance(Parser.class, "xwiki/2.1").parse(new StringReader(input));
         DefaultWikiPrinter printer = new DefaultWikiPrinter();
-        this.mocker.<BlockRenderer>getInstance(BlockRenderer.class, "markdown/1.2").render(xdom, printer);
+        this.componentManager.<BlockRenderer>getInstance(BlockRenderer.class, "markdown/1.2").render(xdom, printer);
         return printer.toString();
     }
 }

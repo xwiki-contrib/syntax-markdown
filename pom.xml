@@ -65,6 +65,22 @@
     <xwiki.issueManagement.jira.id>MARKDOWN</xwiki.issueManagement.jira.id>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
   </properties>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <!-- Same as the parent POM's argLine, plus the ByteBuddy agent loaded at JVM startup. Otherwise Mockito
+                 loads it dynamically, which makes Java 21+ print a warning on the console that fails the first
+                 JUnit5 test executed (tests must not output anything to the console). -->
+            <argLine>@{argLine} -Xmx1024m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.util.concurrent=ALL-UNNAMED -javaagent:"${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${bytebuddy.version}/byte-buddy-agent-${bytebuddy.version}.jar"</argLine>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
   <modules>
     <module>syntax-markdown-commonmark12</module>
     <module>syntax-markdown-github10</module>
