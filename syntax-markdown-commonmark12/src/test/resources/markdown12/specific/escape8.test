@@ -2,7 +2,7 @@
 .input|markdown/1.2
 .# Verify that the escaped references and alternative texts of links and images are parsed back as is
 .#-----------------------------------------------------
-[[url:{{info}}a{{/info}}]] [\{{info}}a\{{/info}}](mailto:{{info}}a{{/info}}) <https://xwiki.org> <a@b.org>
+[[url:{{info}}a{{/info}}]] <mailto:{{info}}a{{/info}}> <https://xwiki.org> <a@b.org>
 
 [label](http://xwiki.org/a%20b\(c\)<d) [http://xwiki.org/a b](http://xwiki.org/a%20b)
 
@@ -19,20 +19,8 @@ beginParagraph
 beginLink [Typed = [false] Type = [doc] Reference = [url:{{info}}a{{/info}}]] [false]
 endLink [Typed = [false] Type = [doc] Reference = [url:{{info}}a{{/info}}]] [false]
 onSpace
-beginLink [Typed = [false] Type = [url] Reference = [mailto:{{info}}a{{/info}}]] [false]
-onSpecialSymbol [{]
-onSpecialSymbol [{]
-onWord [info]
-onSpecialSymbol [}]
-onSpecialSymbol [}]
-onWord [a]
-onSpecialSymbol [{]
-onSpecialSymbol [{]
-onSpecialSymbol [/]
-onWord [info]
-onSpecialSymbol [}]
-onSpecialSymbol [}]
-endLink [Typed = [false] Type = [url] Reference = [mailto:{{info}}a{{/info}}]] [false]
+beginLink [Typed = [true] Type = [mailto] Reference = [{{info}}a{{/info}}]] [true]
+endLink [Typed = [true] Type = [mailto] Reference = [{{info}}a{{/info}}]] [true]
 onSpace
 beginLink [Typed = [false] Type = [url] Reference = [https://xwiki.org]] [true]
 endLink [Typed = [false] Type = [url] Reference = [https://xwiki.org]] [true]

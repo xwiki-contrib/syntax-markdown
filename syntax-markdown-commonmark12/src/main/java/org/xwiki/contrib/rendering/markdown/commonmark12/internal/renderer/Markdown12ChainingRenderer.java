@@ -281,16 +281,21 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
         if (isMarkdownLink(reference)) {
             String rawReference = reference.getReference();
+            // The destination of the Markdown link syntax is a URL: the email addresses must be prefixed with the
+            // mailto scheme.
+            String linkReference = ResourceType.MAILTO.equals(reference.getType())
+                ? ResourceType.MAILTO.getScheme() + ':' + rawReference : rawReference;
             // Now decide if we should use an autolink or not
             if (StringUtils.isNotEmpty(label)) {
-                printLink(label, escapeLinkReference(rawReference));
+                printLink(label, escapeLinkReference(linkReference));
             } else if (isAutoLink(reference)) {
                 // Don't output the type prefix.
                 printAutoLink(rawReference);
+            } else if (URI_AUTOLINK.matcher(linkReference).matches()) {
+                // An email address that can't be written using the email autolink syntax (e.g. with a query string).
+                printAutoLink(linkReference);
             } else {
                 // The reference can't be written using the autolink syntax.
-                String linkReference = ResourceType.MAILTO.equals(reference.getType())
-                    ? ResourceType.MAILTO.getScheme() + ':' + rawReference : rawReference;
                 printLink(escapeText(rawReference), escapeLinkReference(linkReference));
             }
         } else {

@@ -1,0 +1,28 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Test that the links to an email address prefixed with the mailto scheme (see link9) are read back as mailto links,
+.# as with the XWiki Syntax
+.#-----------------------------------------------------
+[x](mailto:a@b.c) <d@e.f> [**y**](mailto:g@h.i?subject=a%20b) <mailto:j@k.l?subject=m>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [true] Type = [mailto] Reference = [a@b.c]] [false]
+onWord [x]
+endLink [Typed = [true] Type = [mailto] Reference = [a@b.c]] [false]
+onSpace
+beginLink [Typed = [true] Type = [mailto] Reference = [d@e.f]] [true]
+endLink [Typed = [true] Type = [mailto] Reference = [d@e.f]] [true]
+onSpace
+beginLink [Typed = [true] Type = [mailto] Reference = [g@h.i?subject=a%20b]] [false]
+beginFormat [BOLD]
+onWord [y]
+endFormat [BOLD]
+endLink [Typed = [true] Type = [mailto] Reference = [g@h.i?subject=a%20b]] [false]
+onSpace
+beginLink [Typed = [true] Type = [mailto] Reference = [j@k.l?subject=m]] [true]
+endLink [Typed = [true] Type = [mailto] Reference = [j@k.l?subject=m]] [true]
+endParagraph
+endDocument

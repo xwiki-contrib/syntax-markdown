@@ -64,6 +64,8 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         };
     }
 
+    private static final String MAILTO_PREFIX = ResourceType.MAILTO.getScheme() + ':';
+
     private ResourceReferenceParser linkResourceReferenceParser;
 
     public LinkNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners,
@@ -76,8 +78,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
     public void visit(AutoLink node)
     {
         // This is an autolink to a URL. Autolinks to emails are calling visit(MailLink).
-        ResourceReference reference = new ResourceReference(node.getText().unescape(), ResourceType.URL);
-        reference.setTyped(false);
+        ResourceReference reference = createURIReference(node.getText().unescape());
 
         getListener().beginLink(reference, true, Collections.emptyMap());
         getListener().endLink(reference, true, Collections.emptyMap());
@@ -94,13 +95,9 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
 
     public void visit(Link node)
     {
-        // This can be a link to a URL or a link to an email address but since links to an email address will need to
-        // be prefixed with "mailto:" we can consider them URL links. Also, there's always a label since otherwise it
-        // would be an autolink.
-
-        // We consider all links to be URLs.
-        ResourceReference reference = new ResourceReference(node.getUrl().unescape(), ResourceType.URL);
-        reference.setTyped(false);
+        // This can be a link to a URL or a link to an email address (prefixed with "mailto:"). Also, there's always a
+        // label since otherwise it would be an autolink.
+        ResourceReference reference = createURIReference(node.getUrl().unescape());
 
         Map<String, String> parameters = new HashMap<>();
 
@@ -119,11 +116,9 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
             parseInline(node.getChars().unescape());
         } else {
             // Since XWiki doesn't support reference links, we generate a standard link instead.
-            // We consider all reference links to be URL links (ie not wikilinks).
+            // We consider all reference links to be URL or mailto links (ie not wikilinks).
             Reference reference = node.getReferenceNode(getReferenceRepository());
-            ResourceReference resourceReference =
-                new ResourceReference(reference.getUrl().toString(), ResourceType.URL);
-            resourceReference.setTyped(false);
+            ResourceReference resourceReference = createURIReference(reference.getUrl().toString());
 
             // Handle an optional link title
             Map<String, String> parameters = Collections.emptyMap();
@@ -135,6 +130,23 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
             getVisitor().visitChildren(node);
             getListener().endLink(resourceReference, false, parameters);
         }
+    }
+
+    /**
+     * @param uri the destination of a Markdown link
+     * @return a reference to the email address when the URI uses the mailto scheme (same as the XWiki Syntax), a
+     *     reference to the URL otherwise
+     */
+    private ResourceReference createURIReference(String uri)
+    {
+        ResourceReference reference;
+        if (StringUtils.startsWithIgnoreCase(uri, MAILTO_PREFIX)) {
+            reference = new ResourceReference(uri.substring(MAILTO_PREFIX.length()), ResourceType.MAILTO);
+        } else {
+            reference = new ResourceReference(uri, ResourceType.URL);
+            reference.setTyped(false);
+        }
+        return reference;
     }
 
     public void visit(WikiLink node)

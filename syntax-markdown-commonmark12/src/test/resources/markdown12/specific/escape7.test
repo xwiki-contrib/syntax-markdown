@@ -16,7 +16,7 @@
 .#-----------------------------------------------------
 .expect|markdown/1.2
 .#-----------------------------------------------------
-[[url:{{info}}a{{/info}}]] [\{{info}}a\{{/info}}](mailto:{{info}}a{{/info}}) <https://xwiki.org> <a@b.org>
+[[url:{{info}}a{{/info}}]] <mailto:{{info}}a{{/info}}> <https://xwiki.org> <a@b.org>
 
 [label](http://xwiki.org/a%20b\(c\)<d) [http://xwiki.org/a b](http://xwiki.org/a%20b)
 
