@@ -30,5 +30,8 @@ node('docker') {
         goals = 'clean deploy jacoco:report sonar:sonar'
         profiles = 'quality,integration-tests,docker'
         sonar = true
+        // Force Java 17 even though the parent POM only requires Java 11, because the SonarQube scanner requires
+        // Java 17.
+        javaTool = 'java17'
     }
 }
