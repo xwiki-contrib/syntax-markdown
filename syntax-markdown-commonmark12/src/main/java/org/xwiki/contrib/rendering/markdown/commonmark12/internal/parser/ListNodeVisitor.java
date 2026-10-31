@@ -161,9 +161,11 @@ public class ListNodeVisitor extends AbstractNodeVisitor
             getListener().beginDefinitionList(Collections.emptyMap());
         }
         getListener().beginDefinitionDescription();
-        if (!isEmptyDefinitionDescription(node)) {
-            visitChildrenAndSwallowParagraphs(node);
-        }
+        // The empty HTML comment that the Markdown renderer puts in the empty definition descriptions (since a
+        // definition description can't be empty in Markdown) is skipped. Note that it's not always the only content of
+        // the definition description: the following lines written with leading spaces (e.g. a paragraph starting with
+        // spaces) are part of it.
+        visitChildrenAndSwallowParagraphs(node, isEmptyDefinitionDescriptionMarker(node.getFirstChild()));
         getListener().endDefinitionDescription();
         if (isOutsideDefinitionList && !(node.getNext() instanceof DefinitionItem)) {
             getListener().endDefinitionList(Collections.emptyMap());
@@ -171,31 +173,32 @@ public class ListNodeVisitor extends AbstractNodeVisitor
     }
 
     /**
-     * @param node the definition description
-     * @return {@code true} if the only content of the definition description is the empty HTML comment that the
-     *     Markdown renderer puts in empty definition descriptions (since a definition description can't be empty in
-     *     Markdown), {@code false} otherwise
+     * @param node the first child of a definition description
+     * @return {@code true} if the node is the empty HTML comment that the Markdown renderer puts in empty definition
+     *     descriptions, {@code false} otherwise
      */
-    private boolean isEmptyDefinitionDescription(DefinitionItem node)
+    private boolean isEmptyDefinitionDescriptionMarker(Node node)
     {
-        Node child = node.getFirstChild();
-        return child instanceof HtmlCommentBlock && child.getNext() == null
-            && EMPTY_DEFINITION_DESCRIPTION.equals(child.getChars().trim().toString());
+        return node instanceof HtmlCommentBlock
+            && EMPTY_DEFINITION_DESCRIPTION.equals(node.getChars().trim().toString());
     }
 
     private void visitListItem(Node node)
     {
         getListener().beginListItem();
-        visitChildrenAndSwallowParagraphs(node);
+        visitChildrenAndSwallowParagraphs(node, false);
         getListener().endListItem();
     }
 
-    private void visitChildrenAndSwallowParagraphs(Node node)
+    private void visitChildrenAndSwallowParagraphs(Node node, boolean skipFirstChild)
     {
         WrappingListener paragraphListener = new ParagraphWrappingListener();
         paragraphListener.setWrappedListener(getListener());
         pushListener(paragraphListener);
         for (Node child : node.getChildren()) {
+            if (skipFirstChild && child == node.getFirstChild()) {
+                continue;
+            }
             if (child instanceof Paragraph && child != node.getFirstChild()) {
                 // Only the first paragraph of the list item (or definition description) is inlined in it. The
                 // following ones would be merged with the previous content otherwise, so they are kept in a Group

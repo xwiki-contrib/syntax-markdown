@@ -95,6 +95,8 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      */
     private static final String EMPTY_DEFINITION_DESCRIPTION = "<!-- -->";
 
+    private static final String DEFINITION_DESCRIPTION_MARKER = ":   ";
+
     private static final String LINE_ENDINGS = "\r\n|\r|\n";
 
     private static final Pattern HEADING_CLOSING_SEQUENCE = Pattern.compile("(^|\\p{Blank})(#+\\p{Blank}*)$");
@@ -449,7 +451,8 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private boolean isInDefinitionTerm;
 
     /**
-     * The Markdown of the last rendered definition term.
+     * The Markdown of the last rendered definition term, {@code null} if a definition description has been rendered
+     * after it or if its definition list has ended.
      */
     private String lastDefinitionTerm;
 
@@ -975,6 +978,18 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void endDefinitionList(Map<String, String> parameters)
     {
+        if (this.lastDefinitionTerm != null && !isInTableCell() && this.isLastDefinitionTermParagraph) {
+            // A definition list ending with a term (i.e. a term without description) would be read back as a
+            // paragraph, since a term must be followed by a definition description in Markdown. Thus we add an empty
+            // definition description (see endDefinitionDescription()), so that the definition list is kept when read
+            // back (with this additional empty definition description). This isn't possible when the terms aren't
+            // read back as a paragraph (e.g. when the term is empty, or read back as an HTML block or a standalone
+            // macro, which could contain the empty definition description), or in a table cell (where a definition
+            // list is rendered as text).
+            print(NEW_LINE + this.itemMarkerPrefixes.peek() + DEFINITION_DESCRIPTION_MARKER
+                + EMPTY_DEFINITION_DESCRIPTION);
+        }
+        this.lastDefinitionTerm = null;
         this.itemMarkerPrefixes.pop();
         this.definitionListHasTerm.pop();
         super.endDefinitionList(parameters);
@@ -1064,7 +1079,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             // otherwise the description marker would be appended to its last line (e.g. a code block closing fence).
             printBlockSeparator(markerPrefix);
         }
-        print(":   ");
+        print(DEFINITION_DESCRIPTION_MARKER);
         markBlockContentStart();
         this.isAtContainerStart = true;
         // A definition description must follow a term.

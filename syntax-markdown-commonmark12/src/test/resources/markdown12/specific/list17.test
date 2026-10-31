@@ -1,0 +1,27 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# An empty definition description (e.g. following a term without description, see list15.test) followed by a
+.# block written with leading spaces, which is thus part of the definition description: the empty HTML comment is
+.# ignored, as when it's the only content of the definition description
+.#-----------------------------------------------------
+t
+:   <!-- -->
+
+    a
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginDefinitionList
+beginDefinitionTerm
+onWord [t]
+endDefinitionTerm
+beginDefinitionDescription
+beginGroup
+beginParagraph
+onWord [a]
+endParagraph
+endGroup
+endDefinitionDescription
+endDefinitionList
+endDocument

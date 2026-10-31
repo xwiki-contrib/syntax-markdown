@@ -1,0 +1,44 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Definition terms without description, at the top level and in a list item: since a term must be followed by a
+.# definition description in Markdown, they are followed by an empty definition description, so that they are read
+.# back as definition terms (with this additional empty definition description, see list16.test). This isn't done
+.# for a term read back as another block (e.g. a standalone macro), which could contain the empty definition
+.# description.
+.#-----------------------------------------------------
+; a
+: b
+; c
+; d
+
+* e
+*; f
+* g
+
+; {{info}}x{{/info}}
+
+p
+
+; [[https://e.org]]
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+a
+:   b
+
+c
+d
+:   <!-- -->
+
+* e
+
+  f
+  :   <!-- -->
+* g
+
+{{info}}x{{/info}}
+
+p
+
+<https://e.org>
+:   <!-- -->
