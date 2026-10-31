@@ -28,7 +28,7 @@ onRawText [<table>
   <tr>
     <td>Foo</td>
   </tr>
-</table>] [xhtml/1.0]
+</table>] [html/5.0]
 endMacroMarkerStandalone [html] [clean=false] [<table>
   <tr>
     <td>Foo</td>

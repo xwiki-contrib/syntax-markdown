@@ -23,6 +23,7 @@ import java.util.Arrays;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.xwiki.component.internal.ContextComponentManagerProvider;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12BlockRenderer;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12ImageReferenceSerializer;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer.Markdown12LinkReferenceSerializer;
@@ -32,7 +33,9 @@ import org.xwiki.rendering.block.FormatBlock;
 import org.xwiki.rendering.block.ParagraphBlock;
 import org.xwiki.rendering.block.WordBlock;
 import org.xwiki.rendering.block.XDOM;
+import org.xwiki.rendering.internal.listener.ListenerRegistry;
 import org.xwiki.rendering.internal.renderer.xwiki20.reference.XWiki20ResourceReferenceTypeSerializer;
+import org.xwiki.rendering.internal.syntax.DefaultSyntaxRegistry;
 import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.renderer.BlockRenderer;
 import org.xwiki.rendering.renderer.printer.DefaultWikiPrinter;
@@ -57,7 +60,10 @@ import static org.mockito.Mockito.when;
     Markdown12Renderer.class,
     Markdown12LinkReferenceSerializer.class,
     Markdown12ImageReferenceSerializer.class,
-    XWiki20ResourceReferenceTypeSerializer.class
+    XWiki20ResourceReferenceTypeSerializer.class,
+    ListenerRegistry.class,
+    DefaultSyntaxRegistry.class,
+    ContextComponentManagerProvider.class
 })
 public class Markdown12ConfigurationTest
 {

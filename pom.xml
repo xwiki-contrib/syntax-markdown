@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.xwiki.contrib</groupId>
     <artifactId>parent-rendering</artifactId>
-    <version>12.10-9</version>
+    <version>15.10.15</version>
   </parent>
   <groupId>org.xwiki.contrib.markdown</groupId>
   <artifactId>syntax-markdown</artifactId>
@@ -64,72 +64,9 @@
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
     <xwiki.issueManagement.jira.id>MARKDOWN</xwiki.issueManagement.jira.id>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
-    <!-- Force Java 11 since the upgrade from Flexmark-java 0.62.2 to 0.64.0 seems to require it. -->
-    <xwiki.java.version>11</xwiki.java.version>
   </properties>
   <modules>
     <module>syntax-markdown-commonmark12</module>
     <module>syntax-markdown-github10</module>
   </modules>
-  <build>
-    <pluginManagement>
-      <plugins>
-        <!-- Use a more recent version of Spoon to avoid URL classloader issue with Java 17 (the build runs on Java 17 because of Sonar) -->
-        <plugin>
-          <groupId>fr.inria.gforge.spoon</groupId>
-          <artifactId>spoon-maven-plugin</artifactId>
-          <version>3.8.0</version>
-          <dependencies>
-            <dependency>
-              <groupId>fr.inria.gforge.spoon</groupId>
-              <artifactId>spoon-core</artifactId>
-              <version>10.4.2</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
-  <profiles>
-    <profile>
-      <!-- Profile used when the release plugin executes. -->
-      <id>release</id>
-      <activation>
-        <property>
-          <!-- This property is automatically defined by the Maven release plugin when executing
-               a release. Thus, this profile will be automatically enabled when releasing -->
-          <name>performRelease</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <!-- Force the Java version to Java 11 for the release since we need at least Java 11 (for Flexmark-Java),
-               and we want this extension to be installable in the maximum of situations, and thus to compile the code
-               with Java 11 and not more -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-enforcer-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>enforce-java</id>
-                <goals>
-                  <goal>enforce</goal>
-                </goals>
-                <configuration>
-                  <skip>${xwiki.enforcer.enforce-java.skip}</skip>
-                  <rules>
-                    <requireJavaVersion>
-                      <message>You must release with Java 11!</message>
-                      <version>${xwiki.java.version}</version>
-                    </requireJavaVersion>
-                  </rules>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>

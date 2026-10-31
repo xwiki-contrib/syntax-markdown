@@ -20,6 +20,6 @@ onWord [label]
 endLink [Typed = [false] Type = [doc] Reference = [Page]] [false]
 onSpace
 onSpecialSymbol [!]
-onImage [Typed = [false] Type = [attach] Reference = [c.png]] [false] [[alt]=[b.png]]
+onImage [Typed = [false] Type = [attach] Reference = [c.png]] [false] [Ic.png] [[alt]=[b.png]]
 endParagraph
 endDocument

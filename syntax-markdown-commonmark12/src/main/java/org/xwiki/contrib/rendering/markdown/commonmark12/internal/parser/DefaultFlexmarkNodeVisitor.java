@@ -36,6 +36,7 @@ import org.xwiki.rendering.parser.ResourceReferenceParser;
 import org.xwiki.rendering.parser.StreamParser;
 import org.xwiki.rendering.renderer.PrintRendererFactory;
 import org.xwiki.rendering.syntax.Syntax;
+import org.xwiki.rendering.util.IdGenerator;
 
 import com.vladsch.flexmark.ast.HardLineBreak;
 import com.vladsch.flexmark.ast.SoftLineBreak;
@@ -122,6 +123,10 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
         // Handle nodes not handled by a specific visitor
         this.visitor = new NodeVisitor(VISIT_HANDLERS(this));
 
+        // Generates the ids of headings and images. Shared so that ids are unique across the whole document, as done
+        // by the XWiki Syntax parsers.
+        IdGenerator idGenerator = new IdGenerator();
+
         // Handle Text nodes
         TextNodeVisitor textNodeVisitor = new TextNodeVisitor(this.visitor, this.listeners, this.plainTextStreamParser);
         this.visitor.addHandlers(TextNodeVisitor.VISIT_HANDLERS(textNodeVisitor));
@@ -136,7 +141,7 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
 
         // Handle Image nodes
         this.imageNodeVisitor = new ImageNodeVisitor(this.visitor, this.listeners, this.imageResourceReferenceParser,
-            this.componentManager, this.plainRendererFactory);
+            this.componentManager, this.plainRendererFactory, idGenerator);
         this.visitor.addHandlers(ImageNodeVisitor.VISIT_HANDLERS(this.imageNodeVisitor));
 
         // Handle Link nodes
@@ -154,7 +159,7 @@ public class DefaultFlexmarkNodeVisitor implements FlexmarkNodeVisitor
 
         // Handle Heading nodes
         HeadingNodeVisitor headingNodeVisitor = new HeadingNodeVisitor(this.visitor, this.listeners,
-            this.plainRendererFactory);
+            this.plainRendererFactory, idGenerator);
         this.visitor.addHandlers(HeadingNodeVisitor.VISIT_HANDLERS(headingNodeVisitor));
 
         // Handle Table nodes

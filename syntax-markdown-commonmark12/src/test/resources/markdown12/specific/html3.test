@@ -37,7 +37,7 @@ onSpace
 beginMacroMarkerInline [html] [clean=false] [<span
 class="red">good</span>]
 onRawText [<span
-class="red">good</span>] [xhtml/1.0]
+class="red">good</span>] [html/5.0]
 endMacroMarkerInline [html] [clean=false] [<span
 class="red">good</span>]
 endParagraph

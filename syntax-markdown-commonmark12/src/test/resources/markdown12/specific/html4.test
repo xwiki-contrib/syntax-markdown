@@ -13,7 +13,7 @@ beginDocument
 beginParagraph
 onWord [hello]
 beginMacroMarkerInline [html] [clean=false] [<wbr/>]
-onRawText [<wbr/>] [xhtml/1.0]
+onRawText [<wbr/>] [html/5.0]
 endMacroMarkerInline [html] [clean=false] [<wbr/>]
 onWord [closing]
 onSpace
@@ -29,13 +29,13 @@ onWord [their]
 onSpace
 onWord [own]
 beginMacroMarkerInline [html] [clean=false] [</a>]
-onRawText [</a>] [xhtml/1.0]
+onRawText [</a>] [html/5.0]
 endMacroMarkerInline [html] [clean=false] [</a>]
 onSpace
 onWord [and]
 onSpace
 beginMacroMarkerInline [html] [clean=false] [<em>]
-onRawText [<em>] [xhtml/1.0]
+onRawText [<em>] [html/5.0]
 endMacroMarkerInline [html] [clean=false] [<em>]
 onWord [non]
 onSpace

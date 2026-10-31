@@ -53,14 +53,16 @@ public class HeadingNodeVisitor extends AbstractNodeVisitor
     /**
      * Used to generate a unique id for Headings.
      */
-    private IdGenerator idGenerator = new IdGenerator();
+    private IdGenerator idGenerator;
 
     private PrintRendererFactory plainRendererFactory;
 
-    public HeadingNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners, PrintRendererFactory plainRendererFactory)
+    public HeadingNodeVisitor(NodeVisitor visitor, Deque<Listener> listeners, PrintRendererFactory plainRendererFactory,
+        IdGenerator idGenerator)
     {
         super(visitor, listeners);
         this.plainRendererFactory = plainRendererFactory;
+        this.idGenerator = idGenerator;
     }
 
     public void visit(Heading node)
