@@ -1,0 +1,75 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Test that the wiki link labels (see link13) are parsed as inline Markdown content, their HTML entities being read
+.# as text (including in the images they contain), see link21 for the content read as text
+.#-----------------------------------------------------
+[[**a** _b_ ~~c~~ ^d^ \{{info}}e\{{/info}} f\*g \<h> i&#124;j & k|Space.Page]] [[l&#10;m|Space.Page]] [[![[x.png&#124;x.png]] o|Space.Page]] [[![[p&#124;y.png]]|Space.Page]]
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+beginFormat [BOLD]
+onWord [a]
+endFormat [BOLD]
+onSpace
+beginFormat [ITALIC]
+onWord [b]
+endFormat [ITALIC]
+onSpace
+beginFormat [STRIKEDOUT]
+onWord [c]
+endFormat [STRIKEDOUT]
+onSpace
+beginFormat [SUPERSCRIPT]
+onWord [d]
+endFormat [SUPERSCRIPT]
+onSpace
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onWord [e]
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onSpecialSymbol [/]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onSpace
+onWord [f]
+onSpecialSymbol [*]
+onWord [g]
+onSpace
+onSpecialSymbol [<]
+onWord [h]
+onSpecialSymbol [>]
+onSpace
+onWord [i]
+onSpecialSymbol [|]
+onWord [j]
+onSpace
+onSpecialSymbol [&]
+onSpace
+onWord [k]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onWord [l]
+onNewLine
+onWord [m]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onImage [Typed = [false] Type = [attach] Reference = [x.png]] [false] [Ix.png]
+onSpace
+onWord [o]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onImage [Typed = [false] Type = [attach] Reference = [y.png]] [false] [Iy.png] [[alt]=[p]]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+endParagraph
+endDocument

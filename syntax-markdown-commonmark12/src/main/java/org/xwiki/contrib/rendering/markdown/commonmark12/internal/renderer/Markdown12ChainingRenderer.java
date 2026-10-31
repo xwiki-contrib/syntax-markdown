@@ -266,8 +266,7 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     public void onNewLine()
     {
         if (this.isInWikiLink) {
-            // The wiki link label is plain text, in which HTML entities are supported (and a blank line would end the
-            // wiki link).
+            // A blank line would end the wiki link, and the HTML entities of the wiki link labels are read as text.
             print(NEW_LINE_ENTITY);
         } else {
             super.onNewLine();
@@ -531,9 +530,9 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     private String escapeWikiLinkLabel(String label)
     {
-        // The wiki link label ends at the first pipe character (which can't be escaped with a backslash), but HTML
-        // entities are supported. Note that the pipes of a label located in a table cell are already escaped with a
-        // backslash.
+        // The wiki link label ends at the first pipe character (which can't be escaped with a backslash), but the HTML
+        // entities of the label are read as text. Note that the pipes of a label located in a table cell are already
+        // escaped with a backslash.
         StringBuilder builder = new StringBuilder(label.length());
         for (int i = 0; i < label.length(); i++) {
             char c = label.charAt(i);

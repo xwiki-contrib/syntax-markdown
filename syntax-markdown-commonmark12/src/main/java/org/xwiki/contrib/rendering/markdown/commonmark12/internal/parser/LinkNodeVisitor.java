@@ -20,6 +20,7 @@
 package org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -39,13 +40,22 @@ import org.xwiki.rendering.wikimodel.WikiParameter;
 import org.xwiki.rendering.wikimodel.impl.WikiScannerUtil;
 
 import com.vladsch.flexmark.ast.AutoLink;
+import com.vladsch.flexmark.ast.HtmlEntity;
+import com.vladsch.flexmark.ast.HtmlInline;
+import com.vladsch.flexmark.ast.HtmlInlineComment;
 import com.vladsch.flexmark.ast.Link;
 import com.vladsch.flexmark.ast.LinkRef;
 import com.vladsch.flexmark.ast.MailLink;
 import com.vladsch.flexmark.ast.Reference;
+import com.vladsch.flexmark.ast.Text;
 import com.vladsch.flexmark.ext.wikilink.WikiLink;
+import com.vladsch.flexmark.ext.wikilink.WikiLinkExtension;
+import com.vladsch.flexmark.ext.xwiki.macros.Macro;
+import com.vladsch.flexmark.ext.xwiki.macros.MacroClose;
+import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
+import com.vladsch.flexmark.util.sequence.BasedSequence;
 
 /**
  * Handle link events.
@@ -65,6 +75,13 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
                 new VisitHandler<>(WikiLink.class, node -> visitor.visit(node))
         };
     }
+
+    /**
+     * The nodes of the wiki link labels that are kept as text (see convertLabelToText()).
+     */
+    private static final List<Class<? extends Node>> LABEL_TEXT_CLASSES = Arrays.asList(HtmlEntity.class,
+        HtmlInline.class, HtmlInlineComment.class, Macro.class, MacroClose.class, AutoLink.class, MailLink.class,
+        Link.class, LinkRef.class, WikiLink.class);
 
     private static final String MAILTO_PREFIX = ResourceType.MAILTO.getScheme() + ':';
 
@@ -172,7 +189,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         // Parse any parameters specified using the format "label|reference|a=b c=d".
         // Important: We don't unescape() the link content since we need to support escape characters in wiki link
         // references (e.g. a reference with dots, etc).
-        String nodeRawReference = node.getLink().toString();
+        String nodeRawReference = getRawLink(node);
         String nodeReference = nodeRawReference;
         List<WikiParameter> parameterList = new ArrayList<>();
         int pos = nodeRawReference.indexOf('|');
@@ -194,10 +211,65 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         }
 
         getListener().beginLink(reference, false, parameters);
-        if (node.getText() != null) {
-            String label = node.getText().unescape();
-            parseInline(label);
+        if (node.getText().isNotNull()) {
+            if (WikiLinkExtension.ALLOW_INLINES.get(node.getDocument())) {
+                // The label has been parsed as inline Markdown content.
+                convertLabelToText(node);
+                getVisitor().visitChildren(node);
+            } else {
+                parseInline(node.getText().unescape());
+            }
         }
         getListener().endLink(reference, false, parameters);
+    }
+
+    /**
+     * @param node the wiki link
+     * @return the reference part of the wiki link syntax, as it's written (when there's no label and the labels are
+     *     parsed as inline Markdown content, the link of the node is the text of the parsed content, e.g. without
+     *     the escapes and the macros)
+     */
+    private String getRawLink(WikiLink node)
+    {
+        if (node.getText().isNull()) {
+            BasedSequence chars = node.getChars();
+            return chars.subSequence(node.getOpeningMarker().length(),
+                chars.length() - node.getClosingMarker().length()).toString();
+        }
+        return node.getLink().toString();
+    }
+
+    /**
+     * Convert into text the content of the wiki link label that is kept as text: the HTML entities, so that they are
+     * decoded (e.g. the pipes and the new lines of the wiki link labels are written as HTML entities, since a pipe
+     * ends the label and a blank line ends the paragraph), and the macros, the HTML and the links, which were not
+     * parsed in the wiki link labels written by older versions (the formatting and the images are kept).
+     *
+     * @param node the node whose descendants to convert
+     */
+    private void convertLabelToText(Node node)
+    {
+        Node child = node.getFirstChild();
+        while (child != null) {
+            Node next = child.getNext();
+            if (isTextInLabel(child)) {
+                // The text node visitor unescapes the text, which decodes the HTML entities.
+                child.insertBefore(new Text(child.getChars()));
+                child.unlink();
+            } else {
+                convertLabelToText(child);
+            }
+            child = next;
+        }
+    }
+
+    private boolean isTextInLabel(Node node)
+    {
+        for (Class<? extends Node> textClass : LABEL_TEXT_CLASSES) {
+            if (textClass.isInstance(node)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
