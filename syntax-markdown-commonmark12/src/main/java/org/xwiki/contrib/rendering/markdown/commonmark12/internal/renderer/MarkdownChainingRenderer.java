@@ -414,12 +414,6 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private boolean isDefinitionDescriptionReadBack;
 
     /**
-     * The number of list items and quotations in which the current block is located, whatever the Groups located
-     * between them.
-     */
-    private int listItemAndQuotationDepth;
-
-    /**
      * Whether nothing has been printed yet in the current container (list item, definition description).
      */
     private boolean isAtContainerStart;
@@ -940,7 +934,6 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         // List item content must be aligned with the first character following the list item marker.
         this.itemStates.push(new ItemState(markerPrefix, markerPrefix + StringUtils.repeat(' ', marker.length()),
             true));
-        this.listItemAndQuotationDepth++;
     }
 
     @Override
@@ -951,7 +944,6 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         // The list item may be empty: the blocks following it must not be considered as its first content.
         this.isAtContainerStart = false;
         this.itemStates.pop();
-        this.listItemAndQuotationDepth--;
         super.endListItem();
     }
 
@@ -999,11 +991,8 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         print(":   ");
         markBlockContentStart();
         this.isAtContainerStart = true;
-        // A definition description must follow a term, and in a list item or a quotation only the first description
-        // following a term is read back as a definition description (the following ones are read back as text).
-        this.isDefinitionDescriptionReadBack = this.definitionListHasTerm.peek()
-            && (getBlockState().getPreviousEvent() == BlockStateChainingListener.Event.DEFINITION_TERM
-                || this.listItemAndQuotationDepth == 0);
+        // A definition description must follow a term.
+        this.isDefinitionDescriptionReadBack = this.definitionListHasTerm.peek();
         this.itemStates.push(new ItemState(markerPrefix, markerPrefix + "    ", false));
     }
 
@@ -1056,14 +1045,12 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         state.definitionListDepth = getBlockState().getDefinitionListDepth();
         state.itemDepth = this.itemStates.size();
         this.quotationStates.push(state);
-        this.listItemAndQuotationDepth++;
     }
 
     @Override
     public void endQuotation(Map<String, String> parameters)
     {
         QuotationState state = this.quotationStates.pop();
-        this.listItemAndQuotationDepth--;
         if (state.isFlattened) {
             return;
         }

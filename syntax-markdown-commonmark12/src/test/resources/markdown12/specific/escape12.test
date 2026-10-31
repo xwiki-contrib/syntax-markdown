@@ -1,8 +1,7 @@
 .#-----------------------------------------------------
 .input|xhtml/1.0
-.# Empty definition descriptions that are not read back as definition descriptions (in a table cell, after the first
-.# description of a definition list located in a list item, in a definition list without term) are rendered without
-.# content
+.# Empty definition descriptions that are not read back as definition descriptions (in a table cell, in a definition
+.# list without term) are rendered without content
 .#-----------------------------------------------------
 <html><body><table><tr><td><dl><dt>t</dt><dd></dd></dl></td></tr></table><ul><li><dl><dt>t</dt><dd></dd><dd></dd></dl></li></ul><dl><dd></dd></dl></body></html>
 .#-----------------------------------------------------
@@ -14,6 +13,6 @@
 
 * t
   :   <!-- -->
-  :   
+  :   <!-- -->
 
 :   

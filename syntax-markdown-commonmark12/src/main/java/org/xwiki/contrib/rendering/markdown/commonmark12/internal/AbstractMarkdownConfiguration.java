@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
+import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.DefinitionItemExtension;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.GroupExtension;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.MacroBlockExtension;
 
@@ -56,6 +57,7 @@ public abstract class AbstractMarkdownConfiguration
         WikiLinkExtension.class,
         AutolinkExtension.class,
         DefinitionExtension.class,
+        DefinitionItemExtension.class,
         TablesExtension.class,
         StrikethroughSubscriptExtension.class,
         SuperscriptExtension.class,

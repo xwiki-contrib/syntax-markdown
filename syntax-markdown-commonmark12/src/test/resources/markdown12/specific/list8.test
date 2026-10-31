@@ -1,0 +1,55 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Several definition descriptions (including an empty one) for the same term in a list item and in a quotation: they
+.# are all read back as definition descriptions, as at the top level of the document
+.#-----------------------------------------------------
+* a
+
+  t
+  :   d1
+  :   <!-- -->
+  :   d3
+
+> t
+> :   d1
+> :   d2
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [a]
+beginDefinitionList
+beginDefinitionTerm
+onWord [t]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [d1]
+endDefinitionDescription
+beginDefinitionDescription
+endDefinitionDescription
+beginDefinitionDescription
+onWord [d3]
+endDefinitionDescription
+endDefinitionList
+endListItem
+endList [BULLETED]
+beginQuotation
+beginQuotationLine
+beginGroup
+beginDefinitionList
+beginDefinitionTerm
+onWord [t]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [d1]
+endDefinitionDescription
+beginDefinitionDescription
+onWord [d2]
+endDefinitionDescription
+endDefinitionList
+endGroup
+endQuotationLine
+endQuotation
+endDocument
