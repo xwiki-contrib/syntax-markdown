@@ -8,6 +8,6 @@
 .#-----------------------------------------------------
 beginDocument
 beginParagraph
-onImage [Typed = [false] Type = [attach] Reference = [ref with space]] [false] [[alt]=[alt]]
+onImage [Typed = [false] Type = [attach] Reference = [ref with space]] [false] [Irefwithspace] [[alt]=[alt]]
 endParagraph
 endDocument

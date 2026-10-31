@@ -107,7 +107,7 @@ beginTableCell
 onWord [Image]
 endTableCell
 beginTableCell
-onImage [Typed = [false] Type = [attach] Reference = [a.png]] [false]
+onImage [Typed = [false] Type = [attach] Reference = [a.png]] [false] [Ia.png]
 endTableCell
 endTableRow
 beginTableRow
@@ -117,7 +117,7 @@ onSpace
 onWord [image]
 endTableCell
 beginTableCell
-onImage [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/a.png]] [false] [[alt]=[a|b]]
+onImage [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/a.png]] [false] [Ihttps:2F2Fwww.xwiki.org2Fa.png] [[alt]=[a|b]]
 endTableCell
 endTableRow
 beginTableRow
@@ -197,7 +197,7 @@ onWord [a]
 onSpecialSymbol [|]
 onWord [b]
 onSpace
-onImage [Typed = [false] Type = [attach] Reference = [a.png]] [false]
+onImage [Typed = [false] Type = [attach] Reference = [a.png]] [false] [Ia.png-1]
 endFormat [BOLD]
 endTableCell
 endTableRow
@@ -215,7 +215,7 @@ onSpecialSymbol [|]
 onWord [b]
 endLink [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/]] [false]
 onSpace
-onImage [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/a.png]] [false] [[alt]=[a|b]]
+onImage [Typed = [false] Type = [url] Reference = [https://www.xwiki.org/a.png]] [false] [Ihttps:2F2Fwww.xwiki.org2Fa.png-1] [[alt]=[a|b]]
 endFormat [BOLD]
 endTableCell
 endTableRow

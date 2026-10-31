@@ -71,11 +71,11 @@ onWord [Page]
 endLink [Typed = [false] Type = [doc] Reference = [anchor="c\]\]{{info}}d{{/info}}"]] [false]
 endParagraph
 beginParagraph
-onImage [Typed = [false] Type = [url] Reference = [https://xwiki.org/a%20b%28c%29.png]] [false] [[alt]=[d]]{{info}}e{{/info}}]]
+onImage [Typed = [false] Type = [url] Reference = [https://xwiki.org/a%20b%28c%29.png]] [false] [Ihttps:2F2Fxwiki.org2Fa2520b2528c2529.png] [[alt]=[d]]{{info}}e{{/info}}]]
 onSpace
-onImage [Typed = [false] Type = [url] Reference = [https://xwiki.org/a.png]] [false] [[alt]=[f  [g]: https://xwiki.org]]
+onImage [Typed = [false] Type = [url] Reference = [https://xwiki.org/a.png]] [false] [Ihttps:2F2Fxwiki.org2Fa.png] [[alt]=[f  [g]: https://xwiki.org]]
 endParagraph
 beginParagraph
-onImage [Typed = [false] Type = [attach] Reference = [a.png]] [false] [[alt]=[b\]\]{{info}}c{{/info}}]]
+onImage [Typed = [false] Type = [attach] Reference = [a.png]] [false] [Ia.png] [[alt]=[b\]\]{{info}}c{{/info}}]]
 endParagraph
 endDocument

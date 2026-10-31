@@ -16,13 +16,13 @@ onSpace
 onWord [entities]
 onSpace
 beginMacroMarkerInline [html] [clean=false] [&amp;]
-onRawText [&amp;] [xhtml/1.0]
+onRawText [&amp;] [html/5.0]
 endMacroMarkerInline [html] [clean=false] [&amp;]
 onSpace
 onWord [and]
 onSpace
 beginMacroMarkerInline [html] [clean=false] [&#60;]
-onRawText [&#60;] [xhtml/1.0]
+onRawText [&#60;] [html/5.0]
 endMacroMarkerInline [html] [clean=false] [&#60;]
 endParagraph
 endDocument

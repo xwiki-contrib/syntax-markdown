@@ -15,7 +15,7 @@ beginParagraph
 onWord [The]
 onSpace
 beginMacroMarkerInline [html] [clean=false] [<abbr title="Hyper Text Markup Language">HTML</abbr>]
-onRawText [<abbr title="Hyper Text Markup Language">HTML</abbr>] [xhtml/1.0]
+onRawText [<abbr title="Hyper Text Markup Language">HTML</abbr>] [html/5.0]
 endMacroMarkerInline [html] [clean=false] [<abbr title="Hyper Text Markup Language">HTML</abbr>]
 onSpace
 onWord [specification]
@@ -29,7 +29,7 @@ onSpace
 onWord [the]
 onSpace
 beginMacroMarkerInline [html] [clean=false] [<abbr title="World Wide Web Consortium">W3C</abbr>]
-onRawText [<abbr title="World Wide Web Consortium">W3C</abbr>] [xhtml/1.0]
+onRawText [<abbr title="World Wide Web Consortium">W3C</abbr>] [html/5.0]
 endMacroMarkerInline [html] [clean=false] [<abbr title="World Wide Web Consortium">W3C</abbr>]
 onSpecialSymbol [.]
 endParagraph
