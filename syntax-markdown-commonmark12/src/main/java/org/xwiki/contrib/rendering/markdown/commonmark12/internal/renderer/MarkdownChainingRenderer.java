@@ -76,6 +76,20 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private static final String EMPTY_LINE = NEW_LINE + NEW_LINE;
 
+    private static final String BULLETED_LIST_MARKER = "*";
+
+    /**
+     * The marker used by a bulleted list that directly follows another bulleted list.
+     */
+    private static final String ALTERNATE_BULLETED_LIST_MARKER = "-";
+
+    private static final String NUMBERED_LIST_MARKER = "1.";
+
+    /**
+     * The marker used by a numbered list that directly follows another numbered list.
+     */
+    private static final String ALTERNATE_NUMBERED_LIST_MARKER = "1)";
+
     /**
      * The content of an empty definition description.
      */
@@ -347,7 +361,15 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private boolean isFirstElementRendered;
 
+    /**
+     * For each list being rendered, the marker of its items.
+     */
     private Stack<String> listStyle = new Stack<>();
+
+    /**
+     * The item marker of the last ended list, {@code null} if the last ended list is a definition list.
+     */
+    private String lastListStyle;
 
     /**
      * For each row of each table, its cells.
@@ -883,6 +905,19 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginList(ListType listType, Map<String, String> parameters)
     {
+        // Two consecutive lists of the same type must use different item markers, since they would be read back as a
+        // single list otherwise.
+        String previousListStyle = isAfterList() ? this.lastListStyle : null;
+        String style;
+        if (listType == ListType.BULLETED) {
+            style = BULLETED_LIST_MARKER.equals(previousListStyle) ? ALTERNATE_BULLETED_LIST_MARKER
+                : BULLETED_LIST_MARKER;
+        } else {
+            style = NUMBERED_LIST_MARKER.equals(previousListStyle) ? ALTERNATE_NUMBERED_LIST_MARKER
+                : NUMBERED_LIST_MARKER;
+        }
+        this.listStyle.push(style);
+
         ItemState itemState = getItemState();
         if (itemState != null && itemState.isListItem) {
             // Nested lists are indented relatively to the marker of the list item in which they're located. They are
@@ -904,12 +939,6 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
             printBlockSeparator(linePrefix);
             this.itemMarkerPrefixes.push(linePrefix);
         }
-
-        if (listType == ListType.BULLETED) {
-            this.listStyle.push("*");
-        } else {
-            this.listStyle.push("1");
-        }
     }
 
     /**
@@ -928,7 +957,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void endList(ListType listType, Map<String, String> parameters)
     {
-        this.listStyle.pop();
+        this.lastListStyle = this.listStyle.pop();
         this.itemMarkerPrefixes.pop();
         // Ensure that any not printed characters are flushed.
         // TODO: Fix this better by introducing a state listener to handle escapes
@@ -949,6 +978,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         this.itemMarkerPrefixes.pop();
         this.definitionListHasTerm.pop();
         super.endDefinitionList(parameters);
+        this.lastListStyle = null;
         markListEnd();
     }
 
@@ -960,11 +990,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         }
 
         String markerPrefix = this.itemMarkerPrefixes.peek();
-        String marker = this.listStyle.peek();
-        if (StringUtils.contains(marker, '1')) {
-            marker += ".";
-        }
-        marker += " ";
+        String marker = this.listStyle.peek() + SPACE;
         ItemState parentItemState = getItemState();
         if (getBlockState().getListItemIndex() > 0 || parentItemState != null && parentItemState.isListItem) {
             // The line prefix of the first item of a list that is not nested in a list item is printed with the
