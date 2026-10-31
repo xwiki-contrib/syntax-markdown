@@ -38,7 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Verify that rendering large content to Markdown 1.2 doesn't overflow the stack, i.e. that the regular expressions
- * used by the renderer don't need a recursion per repeated element.
+ * used by the renderer don't need a recursion per repeated element, and that its time stays proportional to the
+ * size of the content.
  *
  * @version $Id$
  */
@@ -87,6 +88,17 @@ class Markdown12LargeContentTest
         String html = "<!--" + StringUtils.repeat(" a", COUNT) + " -->";
 
         assertEquals("c " + html, renderToMarkdown("c {{html}}" + html + "{{/html}}"));
+    }
+
+    @Test
+    void manyConsecutiveDefinitionTerms() throws Exception
+    {
+        // The lines of the consecutive terms are checked to be read back as a paragraph, which must not depend on the
+        // number of terms written before (the number of terms is lower since each term is checked by parsing it).
+        int count = COUNT / 10;
+
+        assertEquals(StringUtils.repeat("t\n", count) + ":   d",
+            renderToMarkdown(StringUtils.repeat("; t\n", count) + ": d"));
     }
 
     @Test

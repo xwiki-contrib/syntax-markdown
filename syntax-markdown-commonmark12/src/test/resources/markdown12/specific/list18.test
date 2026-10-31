@@ -1,0 +1,55 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Consecutive definition terms whose lines wouldn't be read back as a paragraph (a term read back as a standalone
+.# macro, a term starting an HTML block): they are separated by an empty line, and the definition description
+.# following a term starting an HTML block too (the HTML block would contain it otherwise), see list19.test. The terms
+.# containing some inline HTML or a code span made of backticks are read back as a paragraph and are thus joined.
+.#-----------------------------------------------------
+; {{info}}x{{/info}}
+; a
+: b
+
+p1
+
+; {{html}}<b>x</b>{{/html}} c
+; d
+: e
+
+p2
+
+; ##```##
+; f
+: g
+
+p3
+
+; h
+; {{html}}<div>x</div>{{/html}}
+: i
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+{{info}}x{{/info}}
+
+a
+:   b
+
+p1
+
+<b>x</b> c
+d
+:   e
+
+p2
+
+```` ``` ````
+f
+:   g
+
+p3
+
+h
+
+<div>x</div>
+
+:   i

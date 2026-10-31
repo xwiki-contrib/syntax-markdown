@@ -1,0 +1,48 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# The Markdown generated in list13.test: the terms and definition descriptions following the HTML blocks are read
+.# back as is
+.#-----------------------------------------------------
+<br/>
+
+t
+:   \<b>x\</b>
+
+<p>y</p>
+
+u
+:   [z](http://e.org) {{info}}i{{/info}}
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+onMacroStandalone [html] [clean=false] [<br/>]
+beginDefinitionList
+beginDefinitionTerm
+onWord [t]
+endDefinitionTerm
+beginDefinitionDescription
+onSpecialSymbol [<]
+onWord [b]
+onSpecialSymbol [>]
+onWord [x]
+onSpecialSymbol [<]
+onSpecialSymbol [/]
+onWord [b]
+onSpecialSymbol [>]
+endDefinitionDescription
+endDefinitionList
+onMacroStandalone [html] [clean=false] [<p>y</p>]
+beginDefinitionList
+beginDefinitionTerm
+onWord [u]
+endDefinitionTerm
+beginDefinitionDescription
+beginLink [Typed = [false] Type = [url] Reference = [http://e.org]] [false]
+onWord [z]
+endLink [Typed = [false] Type = [url] Reference = [http://e.org]] [false]
+onSpace
+onMacroInline [info] [] [i]
+endDefinitionDescription
+endDefinitionList
+endDocument

@@ -424,6 +424,24 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private boolean isInDefinitionTerm;
 
     /**
+     * The Markdown of the last rendered definition term.
+     */
+    private String lastDefinitionTerm;
+
+    /**
+     * Whether the lines of the last rendered definition term and of the definition terms written before it on
+     * consecutive lines are read back as a paragraph, i.e. as definition terms when followed by a definition
+     * description.
+     */
+    private boolean isLastDefinitionTermParagraph;
+
+    /**
+     * The Markdown of the definition term directly preceding the definition term being rendered, {@code null} if the
+     * definition term being rendered doesn't follow another definition term.
+     */
+    private String previousDefinitionTerm;
+
+    /**
      * Line prefix of the container of the last rendered Group, set until something is printed after it, so that
      * any content following the Group in the same container is separated from it by an empty line (otherwise it
      * would be considered part of the HTML block of the Group closing tag).
@@ -980,8 +998,15 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginDefinitionDescription()
     {
+        // A definition description following terms that aren't read back as a paragraph (e.g. as an HTML block, which
+        // would contain the definition description) is separated from them, and is thus not read back as a definition
+        // description.
+        boolean isAfterTermBlock = this.lastDefinitionTerm != null && !this.isLastDefinitionTermParagraph;
+        this.lastDefinitionTerm = null;
         String markerPrefix = this.itemMarkerPrefixes.peek();
-        if (getBlockState().getDefinitionListItemIndex() > 0) {
+        if (isAfterTermBlock) {
+            print(EMPTY_LINE + markerPrefix);
+        } else if (getBlockState().getDefinitionListItemIndex() > 0) {
             print(NEW_LINE + markerPrefix);
         } else {
             // A definition list starting with a description (no term) must be separated from the previous block,
@@ -992,16 +1017,27 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         markBlockContentStart();
         this.isAtContainerStart = true;
         // A definition description must follow a term.
-        this.isDefinitionDescriptionReadBack = this.definitionListHasTerm.peek();
+        this.isDefinitionDescriptionReadBack = this.definitionListHasTerm.peek() && !isAfterTermBlock;
         this.itemStates.push(new ItemState(markerPrefix, markerPrefix + "    ", false));
     }
 
     @Override
     public void beginDefinitionTerm()
     {
-        // A term that is the first content of a list item directly follows the list item marker.
-        printBlockSeparator(this.itemMarkerPrefixes.peek());
-        markBlockContentStart();
+        if (getBlockState().getPreviousEvent() == BlockStateChainingListener.Event.DEFINITION_TERM) {
+            // The separator from the previous term depends on the Markdown of both terms, see endDefinitionTerm().
+            this.previousDefinitionTerm = this.lastDefinitionTerm;
+        } else {
+            this.previousDefinitionTerm = null;
+            // A term that is the first content of a list item directly follows the list item marker.
+            printBlockSeparator(this.itemMarkerPrefixes.peek());
+        }
+        // The term is rendered separately, at the beginning of a line, so that it can be checked once it's ended. Its
+        // pipes are escaped since the lines of consecutive terms (or the line of a single term) could be read back as
+        // a table otherwise.
+        MarkdownEscapeWikiPrinter termPrinter = createMarkdownPrinter(new DefaultWikiPrinter());
+        termPrinter.setInTableCell(true);
+        pushPrinter(termPrinter);
         this.isInDefinitionTerm = true;
         this.definitionListHasTerm.pop();
         this.definitionListHasTerm.push(true);
@@ -1026,8 +1062,48 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void endDefinitionTerm()
     {
-        getMarkdownPrinter().flush();
+        MarkdownEscapeWikiPrinter termPrinter = getMarkdownPrinter();
+        termPrinter.flush();
+        String term = termPrinter.toString();
+        popPrinter();
         this.isInDefinitionTerm = false;
+
+        if (this.previousDefinitionTerm != null) {
+            // Consecutive terms are written on consecutive lines (each line of the paragraph preceding a definition
+            // description is a term), since a term followed by an empty line is read back as a paragraph. They are
+            // separated by an empty line (the previous terms being then read back as a paragraph or as another block)
+            // when their lines wouldn't be read back as a paragraph (e.g. when the previous term is read back as an
+            // HTML block or a standalone macro, or when the term starts an HTML block interrupting the paragraph). Only
+            // the line of the previous term is checked with the line of the term (whether the terms written before are
+            // read back as a paragraph is known already), since whether a line continues a paragraph doesn't depend on
+            // the lines before the previous one.
+            String markerPrefix = this.itemMarkerPrefixes.peek();
+            boolean isJoined = isInTableCell() || (this.isLastDefinitionTermParagraph
+                && isParagraph(this.previousDefinitionTerm + NEW_LINE + term));
+            print((isJoined ? NEW_LINE : EMPTY_LINE) + markerPrefix);
+            this.isLastDefinitionTermParagraph = isJoined || isParagraph(term);
+        } else {
+            this.isLastDefinitionTermParagraph = isInTableCell() || isParagraph(term);
+        }
+        print(term);
+        this.lastDefinitionTerm = term;
+    }
+
+    /**
+     * Indicates if some Markdown, located at the beginning of a block, is read back as a single paragraph. This is
+     * used to check that the lines of the definition terms are read back as the paragraph preceding a definition
+     * description (whose lines are its terms), and not as another block (e.g. an HTML block or a standalone macro,
+     * the HTML block containing the following lines). This implementation is conservative: it only accepts the
+     * Markdown that doesn't contain a character that could start such a block.
+     *
+     * @param markdown the Markdown to check, made of one or several lines
+     * @return {@code true} if the Markdown is read back as a single paragraph, {@code false} otherwise
+     * @since 8.10.0
+     */
+    protected boolean isParagraph(String markdown)
+    {
+        return !StringUtils.isBlank(markdown) && markdown.indexOf('<') < 0 && markdown.indexOf('{') < 0
+            && !markdown.startsWith(TRIPLE_BACKTICK) && !markdown.startsWith("~~~");
     }
 
     @Override

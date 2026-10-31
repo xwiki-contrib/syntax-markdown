@@ -1,0 +1,88 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Consecutive definition terms, in a list item and at the top level: they are written on consecutive lines (the
+.# lines of the paragraph preceding a definition description are its terms), escaping the syntax that would be
+.# recognized at the beginning of a line and the pipes (the lines of the terms would be read back as a table
+.# otherwise)
+.#-----------------------------------------------------
+*; a
+*; t
+*: d
+
+; b
+; # c
+; ===
+: e
+; ~| f ~|
+; ~|~-~-~-~|
+: g
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.#-----------------------------------------------------
+* a
+  t
+  :   d
+
+b
+\# c
+\===
+:   e
+
+\| f \|
+\|---\|
+:   g
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+beginDefinitionList
+beginDefinitionTerm
+onWord [a]
+endDefinitionTerm
+beginDefinitionTerm
+onWord [t]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [d]
+endDefinitionDescription
+endDefinitionList
+endListItem
+endList [BULLETED]
+beginDefinitionList
+beginDefinitionTerm
+onWord [b]
+endDefinitionTerm
+beginDefinitionTerm
+onSpecialSymbol [#]
+onSpace
+onWord [c]
+endDefinitionTerm
+beginDefinitionTerm
+onSpecialSymbol [=]
+onSpecialSymbol [=]
+onSpecialSymbol [=]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [e]
+endDefinitionDescription
+beginDefinitionTerm
+onSpecialSymbol [|]
+onSpace
+onWord [f]
+onSpace
+onSpecialSymbol [|]
+endDefinitionTerm
+beginDefinitionTerm
+onSpecialSymbol [|]
+onSpecialSymbol [-]
+onSpecialSymbol [-]
+onSpecialSymbol [-]
+onSpecialSymbol [|]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [g]
+endDefinitionDescription
+endDefinitionList
+endDocument
