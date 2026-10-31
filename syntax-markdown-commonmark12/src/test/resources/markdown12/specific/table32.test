@@ -6,7 +6,7 @@
 .#-----------------------------------------------------
 |x|**[[label>>Space.Page||anchor="t"]]**|d
 |y|**[[Space.Page||queryString="c=d|e\f" target="_blank"]] [[h>>Space.Page]]**|i
-|z|[[label>>Space.Page||anchor="t" class="j|k"]] //[[image:c.png]] [[m\>>Space.Page]]//|n
+|z|[[label>>Space.Page||anchor="t" class="j|k"]] [[image:b.png||alt="l\"]] //[[image:c.png]] [[m\>>Space.Page]]//|n
 |w|[[o>>Space.p\\||anchor="q"]] [[s>>Space.Page||title="t\~|u"]]|r
 .#-----------------------------------------------------
 .expect|markdown/1.2
@@ -15,5 +15,5 @@
 | --- | --- | --- |
 |  x  | **[[label\|Space.Page\|anchor="t"]]** |  d  |
 |  y  | **[[\|Space.Page\|queryString="c=d\|e\\f" target="_blank"]] [[h\|Space.Page]]** |  i  |
-|  z  | [[label|Space.Page|anchor="t" class="j|k"]] _![[c.png\|c.png]] [[m\\\|Space.Page]]_ |  n  |
-|  w  | [[o|Space.p\\|anchor="q"]] [[s|Space.Page|title="t\\|u"]] |  r  |
+|  z  | [[label|Space.Page|anchor="t" class="j|k"]] ![[l&#92;|b.png]] _![[c.png\|c.png]] [[m\\\|Space.Page]]_ |  n  |
+|  w  | [[o|Space.p\&#92;|anchor="q"]] [[s|Space.Page|title="t\\|u"]] |  r  |

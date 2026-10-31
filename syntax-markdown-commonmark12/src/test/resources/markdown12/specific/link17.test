@@ -1,0 +1,57 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that the characters of the wiki link references and of the wiki image references and alternative texts that
+.# would break the syntax are written as HTML entities, which are decoded when reading them back (including for the
+.# images located in wiki link labels), and that their literal HTML entities are kept
+.#-----------------------------------------------------
+[[image:a.png||alt="x~|y"]] [[image:a.png||alt="~[~[c>>P~]~]"]] [[image:b~|c~]~].png||alt="d\"]]
+[[a>>Sp~|ace.Page]] [[Space.Pa~]~]ge~[~[x]] [[e>>Space.f&amp;g]] [[unc:\\h\i\]]
+[[[[image:j~|k.png||alt="l~|m&amp;"]] n>>Space.Page]]
+[[o>>Space.&#12345678;]] [[image:p.png||alt="&#12345678; &x"]] [[image:&#12345678;.png]]
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.#-----------------------------------------------------
+![[x&#124;y|a.png]] ![[&#91;&#91;c>>P&#93;&#93;|a.png]] ![[d&#92;|b&#124;c&#93;&#93;.png]]  
+[[a|Sp&#124;ace.Page]] [[Space.Pa&#93;&#93;ge&#91;&#91;x]] [[e|Space.f&amp;amp;g]] [[unc:\\h\i&#92;]]  
+[[![[l&amp;#124;m&amp;amp;amp;&#124;j&amp;#124;k.png]] n|Space.Page]]  
+[[o|Space.&amp;#12345678;]] ![[&amp;#12345678; &amp;x|p.png]] ![[&amp;#12345678;.png|&amp;#12345678;.png]]
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onImage [Typed = [false] Type = [attach] Reference = [a.png]] [false] [Ia.png] [[alt]=[x|y]]
+onSpace
+onImage [Typed = [false] Type = [attach] Reference = [a.png]] [false] [Ia.png-1] [[alt]=[[[c>>P]]]]
+onSpace
+onImage [Typed = [false] Type = [attach] Reference = [b|c]].png]] [false] [Ib7Cc5D5D.png] [[alt]=[d\]]
+onNewLine
+beginLink [Typed = [false] Type = [doc] Reference = [Sp|ace.Page]] [false]
+onWord [a]
+endLink [Typed = [false] Type = [doc] Reference = [Sp|ace.Page]] [false]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Pa]]ge[[x]] [false]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Pa]]ge[[x]] [false]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.f&amp;g]] [false]
+onWord [e]
+endLink [Typed = [false] Type = [doc] Reference = [Space.f&amp;g]] [false]
+onSpace
+beginLink [Typed = [true] Type = [unc] Reference = [\\h\i\]] [false]
+endLink [Typed = [true] Type = [unc] Reference = [\\h\i\]] [false]
+onNewLine
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onImage [Typed = [false] Type = [attach] Reference = [j|k.png]] [false] [Ij7Ck.png] [[alt]=[l|m&amp;]]
+onSpace
+onWord [n]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onNewLine
+beginLink [Typed = [false] Type = [doc] Reference = [Space.&#12345678;]] [false]
+onWord [o]
+endLink [Typed = [false] Type = [doc] Reference = [Space.&#12345678;]] [false]
+onSpace
+onImage [Typed = [false] Type = [attach] Reference = [p.png]] [false] [Ip.png] [[alt]=[&#12345678; &x]]
+onSpace
+onImage [Typed = [false] Type = [attach] Reference = [&#12345678;.png]] [false] [I2623123456783B.png]
+endParagraph
+endDocument

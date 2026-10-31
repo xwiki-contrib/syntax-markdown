@@ -1,0 +1,30 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that the closing brackets of the wiki link references and of the wiki image alternative texts escaped with a
+.# backslash (as written by older versions) are read as closing brackets, the other backslashes being kept
+.#-----------------------------------------------------
+[[label|doc:a\]\]b]] ![[c\]\]|d.png]] [[e|Space.f\\]] [[g|Space.h\.i]]
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+[[label|doc:a&#93;&#93;b]] ![[c&#93;&#93;|d.png]] [[e|Space.f\&#92;]] [[g|Space.h\.i]]
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [true] Type = [doc] Reference = [a]]b]] [false]
+onWord [label]
+endLink [Typed = [true] Type = [doc] Reference = [a]]b]] [false]
+onSpace
+onImage [Typed = [false] Type = [attach] Reference = [d.png]] [false] [Id.png] [[alt]=[c]]]]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.f\\]] [false]
+onWord [e]
+endLink [Typed = [false] Type = [doc] Reference = [Space.f\\]] [false]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.h\.i]] [false]
+onWord [g]
+endLink [Typed = [false] Type = [doc] Reference = [Space.h\.i]] [false]
+endParagraph
+endDocument

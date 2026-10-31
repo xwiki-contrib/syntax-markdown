@@ -39,6 +39,7 @@ import com.vladsch.flexmark.ast.util.ReferenceRepository;
 import com.vladsch.flexmark.ext.tables.TableCell;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
+import com.vladsch.flexmark.util.sequence.Escaping;
 
 public abstract class AbstractNodeVisitor
 {
@@ -196,6 +197,36 @@ public abstract class AbstractNodeVisitor
             count++;
         }
         return count % 2 == 1;
+    }
+
+    /**
+     * Decode a wiki link reference or a wiki image reference or alternative text, in which the characters that would
+     * break the wiki link and wiki image syntaxes (e.g. a pipe) are written as HTML entities. The closing brackets
+     * escaped with a backslash (as written by older versions) are unescaped too, the other backslashes being kept
+     * (e.g. they escape the special characters of the document references).
+     *
+     * @param text the text to decode
+     * @return the decoded text
+     */
+    protected static String decodeWikiLinkText(String text)
+    {
+        StringBuilder builder = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == ESCAPE_CHAR && i + 1 < text.length()) {
+                // Keep the escaped characters (including the escaped backslashes) except for the closing brackets.
+                i++;
+                char escaped = text.charAt(i);
+                if (escaped != ']') {
+                    builder.append(c);
+                }
+                builder.append(escaped);
+            } else {
+                builder.append(c);
+            }
+        }
+        // The HTML entities are decoded last so that a decoded backslash doesn't escape the following character.
+        return Escaping.unescapeHtml(builder);
     }
 
     protected void generateHTMLMacro(String html, boolean inline)

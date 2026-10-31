@@ -202,7 +202,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
             WikiScannerUtil.splitToPairs(nodeRawReference.substring(pos + 1), parameterList, null, null, '\\');
         }
 
-        ResourceReference reference = this.linkResourceReferenceParser.parse(nodeReference);
+        ResourceReference reference = this.linkResourceReferenceParser.parse(decodeWikiLinkText(nodeReference));
 
         Map<String, String> parameters = new LinkedHashMap<>();
         for (WikiParameter wikiParameter : parameterList) {

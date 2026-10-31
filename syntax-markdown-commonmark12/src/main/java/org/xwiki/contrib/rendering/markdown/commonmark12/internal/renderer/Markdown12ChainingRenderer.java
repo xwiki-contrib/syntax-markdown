@@ -443,12 +443,31 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     }
 
     /**
-     * Escape the closing brackets that could end the wiki link (the content of wiki links is not unescaped by the
-     * parser but backslash escapes are taken into account when looking for the end of the wiki link).
+     * Encode as HTML entities (which are decoded by the parser) the characters of a wiki link reference or of a wiki
+     * image reference or alternative text that would end it (the pipe and the closing brackets), that would start some
+     * other syntax (the opening brackets), that would start an HTML entity (the ampersand) or that would escape the
+     * following separator (a final backslash).
      */
     private String escapeWikiLinkReference(String reference)
     {
-        return StringUtils.replace(removeNewLines(reference), "]", MarkdownEscapeHandler.ESCAPE_CHAR + ']');
+        String text = removeNewLines(reference);
+        StringBuilder builder = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '&' && i + 1 < text.length()
+                && (text.charAt(i + 1) == '#' || Character.isLetter(text.charAt(i + 1))))
+            {
+                // The ampersand could start an HTML entity (the parser decodes more than the valid HTML entities).
+                builder.append("&amp;");
+            } else if (c == '|' || c == '[' || c == ']'
+                || (c == MarkdownEscapeHandler.ESCAPE_CHAR.charAt(0) && i == text.length() - 1))
+            {
+                builder.append("&#").append((int) c).append(';');
+            } else {
+                builder.append(c);
+            }
+        }
+        return builder.toString();
     }
 
     /**
@@ -477,8 +496,13 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         } else {
             onWikiSyntax();
             String escapedAlt = escapeWikiLinkReference(alt);
-            print("![[" + escapedAlt + getWikiSyntaxSeparator() + escapeWikiLinkReference(reference.getReference())
-                + "]]");
+            String escapedReference = escapeWikiLinkReference(reference.getReference());
+            if (this.isInWikiLink) {
+                // The HTML entities of the wiki link label are decoded before the image syntax is parsed.
+                escapedAlt = StringUtils.replace(escapedAlt, "&", "&amp;");
+                escapedReference = StringUtils.replace(escapedReference, "&", "&amp;");
+            }
+            print("![[" + escapedAlt + getWikiSyntaxSeparator() + escapedReference + "]]");
         }
     }
 

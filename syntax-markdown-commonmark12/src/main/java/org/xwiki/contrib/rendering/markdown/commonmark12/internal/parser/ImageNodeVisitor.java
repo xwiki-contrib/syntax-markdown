@@ -162,7 +162,7 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
         if (isInTableCell) {
             rawReference = unescapeTableCellPipes(rawReference);
         }
-        ResourceReference reference = this.imageResourceReferenceParser.parse(rawReference);
+        ResourceReference reference = this.imageResourceReferenceParser.parse(decodeWikiLinkText(rawReference));
         Map<String, String> parameters = new HashMap<>();
 
         // Handle alt text. Note that in order to have the same behavior as the XWiki Syntax 2.0+ we don't add the alt
@@ -174,6 +174,7 @@ public class ImageNodeVisitor extends AbstractNodeVisitor
                 // The backslash escapes the separator (see unescapeTableCellPipes()).
                 extractedAltValue = extractedAltValue.substring(0, extractedAltValue.length() - 1);
             }
+            extractedAltValue = decodeWikiLinkText(extractedAltValue);
             if (StringUtils.isNotEmpty(extractedAltValue) && !extractedAltValue.equals(computedAltValue)) {
                 parameters.put("alt", extractedAltValue);
             }

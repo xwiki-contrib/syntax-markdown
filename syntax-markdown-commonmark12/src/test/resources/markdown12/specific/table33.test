@@ -7,8 +7,8 @@
 | --- | --- | --- |
 |  x  | **[[label\|Space.Page\|anchor="t"]]** |  d  |
 |  y  | **[[\|Space.Page\|queryString="c=d\|e\\f" target="_blank"]] [[h\|Space.Page]]** |  i  |
-|  z  | [[label|Space.Page|anchor="t" class="j|k"]] _![[c.png\|c.png]] [[m\\\|Space.Page]]_ |  n  |
-|  w  | [[o|Space.p\\|anchor="q"]] [[s|Space.Page|title="t\\|u"]] |  r  |
+|  z  | [[label|Space.Page|anchor="t" class="j|k"]] ![[l&#92;|b.png]] _![[c.png\|c.png]] [[m\\\|Space.Page]]_ |  n  |
+|  w  | [[o|Space.p\&#92;|anchor="q"]] [[s|Space.Page|title="t\\|u"]] |  r  |
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -55,6 +55,8 @@ beginTableCell
 beginLink [Typed = [false] Type = [doc] Reference = [Space.Page] Parameters = [[anchor] = [t]]] [false] [[class]=[j|k]]
 onWord [label]
 endLink [Typed = [false] Type = [doc] Reference = [Space.Page] Parameters = [[anchor] = [t]]] [false] [[class]=[j|k]]
+onSpace
+onImage [Typed = [false] Type = [attach] Reference = [b.png]] [false] [Ib.png] [[alt]=[l\]]
 onSpace
 beginFormat [ITALIC]
 onImage [Typed = [false] Type = [attach] Reference = [c.png]] [false] [Ic.png]
