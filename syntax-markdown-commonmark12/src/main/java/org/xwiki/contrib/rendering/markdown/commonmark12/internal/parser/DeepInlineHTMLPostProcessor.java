@@ -45,7 +45,9 @@ import com.vladsch.flexmark.util.data.DataHolder;
 /**
  * Detects and merges nodes that are content of inline HTML open and close tags.
  * Opening tags without any corresponding closing tag in the same paragraph (including void elements such as
- * {@code <br>}) are left untouched so that the rest of the paragraph content is still parsed as Markdown.
+ * {@code <br>}) are left untouched so that the rest of the paragraph content is still parsed as Markdown. The content
+ * of a {@code <code>} tag without attributes isn't merged either: it's parsed as Markdown and put in a
+ * {@link MonospaceNode} instead, since it's read as monospace.
  *
  * @version $Id$
  * @since 8.9
@@ -59,6 +61,13 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
     private static final Pattern OPENING_TAG_REGEX = Pattern.compile("<" + TAG_NAME + "[\\s/>]");
 
     private static final Pattern CLOSING_TAG_REGEX = Pattern.compile("</" + TAG_NAME + "[\\s>]");
+
+    /**
+     * A {@code <code>} opening tag without attributes, read as the start of a monospace content.
+     */
+    private static final Pattern MONOSPACE_OPENING_TAG = Pattern.compile("<code\\s*+>", Pattern.CASE_INSENSITIVE);
+
+    private static final String CODE_TAG_NAME = "code";
 
     /**
      * HTML elements that cannot have any content and thus never have a closing tag. Includes obsolete void elements.
@@ -124,6 +133,11 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
             return;
         }
 
+        if (CODE_TAG_NAME.equals(inlineStartTag) && MONOSPACE_OPENING_TAG.matcher(inlineStartText).matches()) {
+            wrapMonospaceContent(nodeTracker, node, closingNode);
+            return;
+        }
+
         Node nextNode = node.getNext();
         Node currentNode;
         do {
@@ -140,6 +154,27 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
     }
 
     /**
+     * Replace the {@code <code>} and {@code </code>} tags by a {@link MonospaceNode} holding the nodes located between
+     * them, which are thus still parsed as Markdown.
+     */
+    private void wrapMonospaceContent(NodeTracker nodeTracker, Node openingNode, Node closingNode)
+    {
+        MonospaceNode monospace = new MonospaceNode();
+        Node child = openingNode.getNext();
+        while (child != closingNode) {
+            Node next = child.getNext();
+            // The moved nodes are still processed (e.g. the HTML tags located inside the monospace content).
+            monospace.appendChild(child);
+            child = next;
+        }
+        openingNode.insertBefore(monospace);
+        openingNode.unlink();
+        nodeTracker.nodeRemoved(openingNode);
+        closingNode.unlink();
+        nodeTracker.nodeRemoved(closingNode);
+    }
+
+    /**
      * @param node the HtmlInline node holding the opening tag
      * @return the sibling HtmlInline node holding the matching closing tag or {@code null} if there's none
      */
@@ -151,7 +186,10 @@ public class DeepInlineHTMLPostProcessor extends NodePostProcessor
         if (this.matchedParents.add(parent)) {
             matchTags(parent);
         }
-        return this.closingNodes.get(node);
+        Node closingNode = this.closingNodes.get(node);
+        // The tags matched before some of them were moved in a monospace content (e.g. an opening tag located in the
+        // monospace content and its closing tag located after it) are not siblings anymore.
+        return closingNode != null && closingNode.getParent() == parent ? closingNode : null;
     }
 
     /**

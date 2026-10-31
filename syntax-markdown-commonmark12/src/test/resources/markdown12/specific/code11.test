@@ -1,12 +1,12 @@
 .#-----------------------------------------------------
 .inputexpect|markdown/1.2
 .# The table generated for standalone code macros located in table cells (see code10.test) is valid and the code spans
-.# are read back as distinct inline code macros.
+.# and the code macros are read back as distinct inline code macros.
 .#-----------------------------------------------------
-|  a  |            b            |
-| --- | ----------------------- |
-|  x  | `int i = 0; int j = 1;` |
-|  y  |     ``a`b`` `c` `d`     |
+|  a  | b |
+| --- | --- |
+|  x  | {{code language="java"}}int i = 0; int j = 1;{{/code}} |
+|  y  | ``a`b`` `c`<br/><br/>{{verbatim}}d{{/verbatim}} |
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -25,7 +25,7 @@ beginTableCell
 onWord [x]
 endTableCell
 beginTableCell
-onMacroInline [code] [language=none] [int i = 0; int j = 1;]
+onMacroInline [code] [language=java] [int i = 0; int j = 1;]
 endTableCell
 endTableRow
 beginTableRow
@@ -36,8 +36,9 @@ beginTableCell
 onMacroInline [code] [language=none] [a`b]
 onSpace
 onMacroInline [code] [language=none] [c]
-onSpace
-onMacroInline [code] [language=none] [d]
+onNewLine
+onNewLine
+onVerbatim [d] [true]
 endTableCell
 endTableRow
 endTable

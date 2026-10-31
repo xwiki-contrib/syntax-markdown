@@ -12,10 +12,11 @@ a`{{code}}b{{/code}}` c
 .#-----------------------------------------------------
 .expect|markdown/1.2
 .#-----------------------------------------------------
-a `` b`{{info}}c{{/info}}` `` d
+a <code>b\`\{{info}}c\{{/info}}\`</code> d
 
-a `` `b `` `` c`{{info}}d{{/info}}` `` e
+a <code>\`b</code> {{code}}c`{{info}}d{{/info}}`{{/code}} e
 
-a `b   <span>c</span>` d
+a <code>b  
+\<span>c\</span></code> d
 
-a\``b`\` c
+a\`{{code}}b{{/code}}\` c

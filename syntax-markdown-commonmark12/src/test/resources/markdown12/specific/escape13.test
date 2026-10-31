@@ -1,0 +1,78 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# The monospace and the code macros generated in escape5.test are read back unchanged
+.#-----------------------------------------------------
+a <code>b\`\{{info}}c\{{/info}}\`</code> d
+
+a <code>\`b</code> {{code}}c`{{info}}d{{/info}}`{{/code}} e
+
+a <code>b  
+\<span>c\</span></code> d
+
+a\`{{code}}b{{/code}}\` c
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onSpace
+beginFormat [MONOSPACE]
+onWord [b]
+onSpecialSymbol [`]
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onWord [c]
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onSpecialSymbol [/]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onSpecialSymbol [`]
+endFormat [MONOSPACE]
+onSpace
+onWord [d]
+endParagraph
+beginParagraph
+onWord [a]
+onSpace
+beginFormat [MONOSPACE]
+onSpecialSymbol [`]
+onWord [b]
+endFormat [MONOSPACE]
+onSpace
+onMacroInline [code] [] [c`{{info}}d{{/info}}`]
+onSpace
+onWord [e]
+endParagraph
+beginParagraph
+onWord [a]
+onSpace
+beginFormat [MONOSPACE]
+onWord [b]
+onNewLine
+onSpecialSymbol [<]
+onWord [span]
+onSpecialSymbol [>]
+onWord [c]
+onSpecialSymbol [<]
+onSpecialSymbol [/]
+onWord [span]
+onSpecialSymbol [>]
+endFormat [MONOSPACE]
+onSpace
+onWord [d]
+endParagraph
+beginParagraph
+onWord [a]
+onSpecialSymbol [`]
+onMacroInline [code] [] [b]
+onSpecialSymbol [`]
+onSpace
+onWord [c]
+endParagraph
+endDocument

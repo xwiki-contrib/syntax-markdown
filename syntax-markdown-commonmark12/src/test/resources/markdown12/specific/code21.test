@@ -1,7 +1,7 @@
 .#-----------------------------------------------------
 .input|xwiki/2.1
-.# Code blocks without language that can't be rendered as indented code blocks: directly after a list or a
-.# definition list (they would be part of the last item) and at the beginning of a list item
+.# Code macros without language (written using the macro syntax) directly after a list or a definition list (they
+.# must not be part of the last item) and at the beginning of a list item
 .#-----------------------------------------------------
 * item
 
@@ -23,18 +23,25 @@
 .#-----------------------------------------------------
 * item
 
-```
+{{code}}
 <b>a</b>
-```
+{{/code}}
 
 term
 :   def
 
-```
+{{code}}
 <b>b</b>
-```
+{{/code}}
 
 * a
     * b
-*     <b>c</b>
+* <div>
+
+  {{code}}
+  <b>c</b>
+  {{/code}}
+
+  </div>
+
     * d

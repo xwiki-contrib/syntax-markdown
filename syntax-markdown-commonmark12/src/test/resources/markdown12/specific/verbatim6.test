@@ -1,24 +1,24 @@
 .#-----------------------------------------------------
 .input|markdown/1.2
-.# Code spans and code blocks generated for verbatim located in headings, list items, quotations and table cells
-.# (see verbatim5.test) are read back with the same content.
+.# The verbatim macro syntax generated for verbatim located in headings, list items, quotations and table cells
+.# (see verbatim5.test) is read back as verbatim with the same content.
 .#-----------------------------------------------------
 # Heading ``a`b``
 
-* item `x*y`
-    * nested `multi line`
+* item {{verbatim}}x*y{{/verbatim}}
+    * nested {{verbatim}}multi line{{/verbatim}}
 
->  quote `[[not a link]]`
+>  quote {{verbatim}}[[not a link]]{{/verbatim}}
 
-| head `a|b` |         head2         |
-| ---------- | --------------------- |
-| cell `c|d` | `block in table cell` |
+| head {{verbatim}}a|b{{/verbatim}} |                    head2                     |
+| --------------------------------- | -------------------------------------------- |
+| cell {{verbatim}}c|d{{/verbatim}} | {{verbatim}}block in table cell{{/verbatim}} |
 
 * <div>
 
-  ```
+  {{verbatim}}
   block in list
-  ```
+  {{/verbatim}}
 
   </div>
 .#-----------------------------------------------------
@@ -35,12 +35,12 @@ beginList [BULLETED]
 beginListItem
 onWord [item]
 onSpace
-onMacroInline [code] [language=none] [x*y]
+onVerbatim [x*y] [true]
 beginList [BULLETED]
 beginListItem
 onWord [nested]
 onSpace
-onMacroInline [code] [language=none] [multi line]
+onVerbatim [multi line] [true]
 endListItem
 endList [BULLETED]
 endListItem
@@ -49,7 +49,7 @@ beginQuotation
 beginQuotationLine
 onWord [quote]
 onSpace
-onMacroInline [code] [language=none] [[[not a link]]]
+onVerbatim [[[not a link]]] [true]
 endQuotationLine
 endQuotation
 beginTable
@@ -57,7 +57,7 @@ beginTableRow
 beginTableHeadCell
 onWord [head]
 onSpace
-onMacroInline [code] [language=none] [a|b]
+onVerbatim [a|b] [true]
 endTableHeadCell
 beginTableHeadCell
 onWord [head2]
@@ -67,17 +67,19 @@ beginTableRow
 beginTableCell
 onWord [cell]
 onSpace
-onMacroInline [code] [language=none] [c|d]
+onVerbatim [c|d] [true]
 endTableCell
 beginTableCell
-onMacroInline [code] [language=none] [block in table cell]
+onVerbatim [block in table cell] [true]
 endTableCell
 endTableRow
 endTable
 beginList [BULLETED]
 beginListItem
 beginGroup
-onMacroStandalone [code] [language=none] [block in list]
+onVerbatim [
+block in list
+] [false]
 endGroup
 endListItem
 endList [BULLETED]

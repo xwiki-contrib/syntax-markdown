@@ -1,9 +1,11 @@
 .#-----------------------------------------------------
 .input|xwiki/2.1
-.# Standalone code macros located in table cells are rendered as code spans since Markdown table cells can only
-.# contain inline content. The language is lost since Markdown has no syntax to specify the language of a code span,
-.# and line endings are replaced by spaces (as for verbatim). Consecutive code spans are separated by a space so that
-.# they're not read back as a single code span. See code11.test for the parsing of the generated Markdown.
+.# Standalone code macros located in table cells are rendered inline since Markdown table cells can only contain
+.# inline content: as code spans when their language is "none", and using the macro syntax otherwise (except when the
+.# macro syntax can't be used, e.g. for a content containing a backtick that doesn't start a code span, in which case a
+.# code span is used and the parameters are lost). Line endings are replaced by spaces (as for verbatim). Consecutive
+.# code spans are separated by a space so that they're not read back as a single code span. See code11.test for the
+.# parsing of the generated Markdown.
 .#-----------------------------------------------------
 |=a|=b
 |x|(((
@@ -22,7 +24,7 @@ int j = 1;
 .#-----------------------------------------------------
 .expect|markdown/1.2
 .#-----------------------------------------------------
-|  a  |            b            |
-| --- | ----------------------- |
-|  x  | `int i = 0; int j = 1;` |
-|  y  |     ``a`b`` `c` `d`     |
+|  a  | b |
+| --- | --- |
+|  x  | {{code language="java"}}int i = 0; int j = 1;{{/code}} |
+|  y  | ``a`b`` `c`<br/><br/>{{verbatim}}d{{/verbatim}} |

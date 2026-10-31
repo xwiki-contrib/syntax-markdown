@@ -77,6 +77,14 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     private static final String CODE_MACRO_ID = "code";
 
+    private static final String CODE_LANGUAGE_PARAMETER = "language";
+
+    /**
+     * The reserved macro id used to write verbatim content, which the Markdown parser reads as verbatim (not as a
+     * macro).
+     */
+    private static final String VERBATIM_ID = "verbatim";
+
     private static final String NEW_LINE_ENTITY = "&#10;";
 
     /**
@@ -536,12 +544,12 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     {
         if (content == null) {
             return true;
-        } else if (isInTableCell()) {
+        } else if (isInTableCell() && !CODE_MACRO_ID.equals(id)) {
             // The macros located in table cells are written as inline macros on the line of the table row, the line
             // endings of their content being written as line break tags.
             return isInlineMacroSupported(
                 replaceTableCellLineBreaks(this.macroSyntaxPrinter.renderTableCellMacro(id, parameters, content)));
-        } else if (isInline) {
+        } else if (isInline || isInTableCell()) {
             return isInlineMacroSupported(this.macroSyntaxPrinter.renderInlineMacro(id, parameters, content));
         } else {
             return MacroBlockParser.isStandaloneMacroContent(id, content);
@@ -683,33 +691,102 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         return isHandled;
     }
 
+    /**
+     * Prepare the writing of an inline macro using the macro syntax, so that it's not read back as a standalone macro
+     * when it's the only content of its line. This is the case when the macro is the first content of a paragraph or
+     * of a quotation line: it's then preceded by a space, which isn't part of the paragraph content and which prevents
+     * the line from being read as a standalone macro. This isn't possible for the first content of a list item or
+     * definition description (the space would be part of the item marker).
+     *
+     * @return {@code true} if the inline macro can be written using the macro syntax, {@code false} otherwise
+     */
+    private boolean prepareInlineMacroSyntax()
+    {
+        if (isInTableCell() || !isAtBlockStart()) {
+            return true;
+        } else if (isAtItemStart()) {
+            return false;
+        }
+        print(" ");
+        return true;
+    }
+
+    @Override
+    public void onVerbatim(String content, boolean isInline, Map<String, String> parameters)
+    {
+        // Verbatim is written using the macro syntax with the reserved verbatim id, which keeps its content as is
+        // (without any escaping) and its parameters. The verbatim located in table cells is written inline, its line
+        // endings being replaced by spaces (as for the code macro, since the line break tags would be displayed).
+        boolean isWrittenInline = isInline || isInTableCell();
+        String text = isInline ? content : getStandaloneVerbatimText(content);
+        boolean isSupported;
+        if (!isMacroSyntaxSupported(VERBATIM_ID, parameters)) {
+            isSupported = false;
+        } else if (isWrittenInline) {
+            isSupported =
+                isInlineMacroSupported(this.macroSyntaxPrinter.renderInlineMacro(VERBATIM_ID, parameters, text))
+                    && (!isInline || prepareInlineMacroSyntax());
+        } else {
+            isSupported = MacroBlockParser.isStandaloneMacroContent(VERBATIM_ID, text);
+        }
+        if (!isSupported) {
+            // The content would end the verbatim (e.g. it contains the closing tag), or the inline verbatim would be
+            // read back as standalone: it's written as code instead, which is displayed the same way (but read back
+            // as a code macro).
+            super.onVerbatim(content, isInline, parameters);
+            return;
+        }
+
+        onWikiSyntax();
+        if (isWrittenInline) {
+            if (!isInline) {
+                // A standalone verbatim located in a table cell is separated from the previous blocks of the cell.
+                printEmptyLine();
+            }
+            print(this.macroSyntaxPrinter.renderInlineMacro(VERBATIM_ID, parameters, text));
+        } else {
+            printStandaloneBlock(this.macroSyntaxPrinter.renderBlockMacro(VERBATIM_ID, parameters, text));
+        }
+    }
+
     @Override
     public void onMacro(String id, Map<String, String> parameters, String content, boolean isInline)
     {
-        if (handleHtmlMacro(id, parameters, content, isInline)) {
+        if (handleHtmlMacro(id, parameters, content, isInline) || handleCodeMacro(id, parameters, content, isInline)) {
             return;
         }
 
-        if (!CODE_MACRO_ID.equals(id)
-            && (!isMacroSyntaxSupported(id, parameters) || !isMacroContentSupported(id, parameters, content, isInline)))
+        boolean isCode = CODE_MACRO_ID.equals(id);
+        if (!isMacroSyntaxSupported(id, parameters) || !isMacroContentSupported(id, parameters, content, isInline)
+            || (isCode && isInline && !StringUtils.isEmpty(content) && !prepareInlineMacroSyntax()))
         {
-            // The macro can't be written using the Markdown macro syntax, which would then be read back as Markdown or
-            // as other macros. Write it as text instead, so that it's at least read back as the same text.
-            printMacroAsText(id, parameters, content, isInline);
+            if (isCode && !StringUtils.isEmpty(content)) {
+                // The code macro is written using the Markdown code syntax instead, which is read back as a code
+                // macro having the same content (but possibly not the same parameters).
+                printCode(content, parameters.get(CODE_LANGUAGE_PARAMETER), isInline);
+            } else {
+                // The macro can't be written using the Markdown macro syntax, which would then be read back as
+                // Markdown or as other macros. Write it as text instead, so that it's at least read back as the same
+                // text.
+                printMacroAsText(id, parameters, content, isInline);
+            }
             return;
         }
 
-        if (isInTableCell() && !CODE_MACRO_ID.equals(id)) {
+        if (isInTableCell()) {
             // Markdown table cells can only contain inline content on a single line, thus a standalone macro located
             // in a table cell is rendered as an inline macro (the line endings around its content would be rendered
             // as line breaks, and thus added to its content, otherwise), separated from the previous blocks of the
             // cell by an empty line, as other blocks. The line endings of the content of the macros located in table
-            // cells are kept, and written as line break tags when the table cell ends.
+            // cells are kept, and written as line break tags when the table cell ends, except for the code macro
+            // whose content is displayed as is (the line break tags would be displayed): they are replaced by spaces,
+            // as for the inline macros.
             if (!isInline) {
                 printEmptyLine();
             }
             onWikiSyntax();
-            print(this.macroSyntaxPrinter.renderTableCellMacro(id, parameters, content));
+            print(isCode ? this.macroSyntaxPrinter.renderInlineMacro(id, parameters, content)
+                : this.macroSyntaxPrinter.renderTableCellMacro(id, parameters, content));
             return;
         }
 
