@@ -27,4 +27,4 @@ int j = 1;
 |  a  | b |
 | --- | --- |
 |  x  | {{code language="java"}}int i = 0; int j = 1;{{/code}} |
-|  y  | ``a`b`` `c` `d` |
+|  y  | ``a`b`` `c`<br/><br/>{{verbatim}}d{{/verbatim}} |

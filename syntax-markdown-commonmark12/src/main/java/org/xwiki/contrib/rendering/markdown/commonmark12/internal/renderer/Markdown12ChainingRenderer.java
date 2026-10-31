@@ -79,6 +79,12 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     private static final String CODE_LANGUAGE_PARAMETER = "language";
 
+    /**
+     * The reserved macro id used to write verbatim content, which the Markdown parser reads as verbatim (not as a
+     * macro).
+     */
+    private static final String VERBATIM_ID = "verbatim";
+
     private static final String NEW_LINE_ENTITY = "&#10;";
 
     /**
@@ -703,6 +709,44 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         }
         print(" ");
         return true;
+    }
+
+    @Override
+    public void onVerbatim(String content, boolean isInline, Map<String, String> parameters)
+    {
+        // Verbatim is written using the macro syntax with the reserved verbatim id, which keeps its content as is
+        // (without any escaping) and its parameters. The verbatim located in table cells is written inline, its line
+        // endings being replaced by spaces (as for the code macro, since the line break tags would be displayed).
+        boolean isWrittenInline = isInline || isInTableCell();
+        String text = isInline ? content : getStandaloneVerbatimText(content);
+        boolean isSupported;
+        if (!isMacroSyntaxSupported(VERBATIM_ID, parameters)) {
+            isSupported = false;
+        } else if (isWrittenInline) {
+            isSupported =
+                isInlineMacroSupported(this.macroSyntaxPrinter.renderInlineMacro(VERBATIM_ID, parameters, text))
+                    && (!isInline || prepareInlineMacroSyntax());
+        } else {
+            isSupported = MacroBlockParser.isStandaloneMacroContent(VERBATIM_ID, text);
+        }
+        if (!isSupported) {
+            // The content would end the verbatim (e.g. it contains the closing tag), or the inline verbatim would be
+            // read back as standalone: it's written as code instead, which is displayed the same way (but read back
+            // as a code macro).
+            super.onVerbatim(content, isInline, parameters);
+            return;
+        }
+
+        onWikiSyntax();
+        if (isWrittenInline) {
+            if (!isInline) {
+                // A standalone verbatim located in a table cell is separated from the previous blocks of the cell.
+                printEmptyLine();
+            }
+            print(this.macroSyntaxPrinter.renderInlineMacro(VERBATIM_ID, parameters, text));
+        } else {
+            printStandaloneBlock(this.macroSyntaxPrinter.renderBlockMacro(VERBATIM_ID, parameters, text));
+        }
     }
 
     @Override

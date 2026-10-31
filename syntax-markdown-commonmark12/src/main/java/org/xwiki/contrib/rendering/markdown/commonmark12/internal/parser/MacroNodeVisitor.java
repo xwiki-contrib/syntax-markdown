@@ -33,6 +33,7 @@ import com.vladsch.flexmark.ext.xwiki.macros.Macro;
 import com.vladsch.flexmark.ext.xwiki.macros.MacroBlock;
 import com.vladsch.flexmark.ext.xwiki.macros.MacroClose;
 import com.vladsch.flexmark.ext.xwiki.macros.MacroVisitor;
+import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
 
@@ -48,9 +49,16 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
     private static final String CODE_MACRO_ID = "code";
 
     /**
+     * The reserved macro id used to write verbatim content, which is read as verbatim (not as a macro).
+     */
+    private static final String VERBATIM_ID = "verbatim";
+
+    /**
      * The line ending located at the end of the content of a macro written on several lines, just before the line of
      * the closing tag.
      */
+    private static final Pattern LINE_ENDING = Pattern.compile("\\r\\n|\\r|\\n");
+
     private static final Pattern FINAL_LINE_ENDING = Pattern.compile("(?:\\r\\n|\\r|\\n)\\z");
 
     static {
@@ -81,7 +89,11 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
             Map<String, String> parameters = decodeParameterValues(node.getAttributes());
             String name = node.getName().toString();
             String content = node.isClosedTag() ? null : node.getMacroContentChars().toString();
-            getListener().onMacro(name, parameters, normalizeMacroContent(name, content, true), true);
+            if (VERBATIM_ID.equals(name)) {
+                getListener().onVerbatim(StringUtils.defaultString(content), true, parameters);
+            } else {
+                getListener().onMacro(name, parameters, normalizeMacroContent(name, content, true), true);
+            }
         }
     }
 
@@ -98,7 +110,11 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
         // (e.g. quotation, list item) in which the macro is located.
         String name = node.getMacroNode().getName().toString();
         String content = node.isClosedTag() ? null : node.getContentChars().toString();
-        getListener().onMacro(name, parameters, normalizeMacroContent(name, content, false), false);
+        if (VERBATIM_ID.equals(name)) {
+            getListener().onVerbatim(getStandaloneVerbatimContent(node, content), false, parameters);
+        } else {
+            getListener().onMacro(name, parameters, normalizeMacroContent(name, content, false), false);
+        }
     }
 
     /**
@@ -140,6 +156,26 @@ public class MacroNodeVisitor extends AbstractNodeVisitor implements MacroVisito
             normalizedContent = content.trim();
         }
         return normalizedContent;
+    }
+
+    /**
+     * @param node the standalone verbatim
+     * @param content the content lines of the standalone verbatim, {@code null} if it has no content
+     * @return the content written between the verbatim tags, including the line endings that follow the opening tag
+     *     and that precede the closing tag when it's written on several lines (as for the XWiki Syntax 2.1 verbatim,
+     *     whose content starts and ends with a line ending when it's written on its own lines)
+     */
+    private String getStandaloneVerbatimContent(MacroBlock node, String content)
+    {
+        if (content == null) {
+            return "";
+        }
+        Macro macro = node.getMacroNode();
+        Node closingTag = node.getLastChild();
+        int contentEnd = closingTag instanceof MacroClose ? closingTag.getStartOffset() : node.getEndOffset();
+        Matcher lineEnding = LINE_ENDING.matcher(macro.baseSubSequence(macro.getEndOffset(), contentEnd));
+        // The content lines end with their line ending, and don't include the end of the opening tag line.
+        return lineEnding.find() ? lineEnding.group() + content : content;
     }
 
     /**

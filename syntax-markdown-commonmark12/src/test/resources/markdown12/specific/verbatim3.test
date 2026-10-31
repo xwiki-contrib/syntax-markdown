@@ -1,7 +1,7 @@
 .#-----------------------------------------------------
 .input|xwiki/2.1
-.# Standalone verbatim is rendered as a fenced code block, using a fence longer than any backtick string located
-.# in the content. Verbatim parameters are dropped since Markdown code blocks can't have attributes.
+.# Standalone verbatim is rendered using the macro syntax with the reserved "verbatim" id, which keeps its content as
+.# is and its parameters. See verbatim4.test for the parsing of the generated Markdown.
 .#-----------------------------------------------------
 before
 
@@ -19,11 +19,11 @@ with parameters
 .#-----------------------------------------------------
 before
 
-````
+{{verbatim}}
   indented ```
 **not bold**
-````
+{{/verbatim}}
 
-```
+{{verbatim class="myclass"}}
 with parameters
-```
+{{/verbatim}}

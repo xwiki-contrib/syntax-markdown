@@ -77,6 +77,11 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private static final String CODE_END_TAG = "</code>";
 
+    /**
+     * The line ending that starts the content of a standalone verbatim written on its own lines.
+     */
+    private static final Pattern LEADING_LINE_ENDING = Pattern.compile("^(?:\\r\\n|\\r|\\n)");
+
     private static final String CODE_MACRO_ID = "code";
 
     private static final String CODE_LANGUAGE_PARAMETER = "language";
@@ -1907,9 +1912,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         if (isInline) {
             printCodeSpan(content);
         } else {
-            // The content of a standalone verbatim written on its own lines starts and ends with a line ending (e.g.
-            // "{{{\ncontent\n}}}" in XWiki Syntax 2.1), which isn't part of the content to display.
-            String text = StringUtils.chomp(content.replaceFirst("^(\r\n|\r|\n)", ""));
+            String text = getStandaloneVerbatimText(content);
             if (isInTableCell()) {
                 // Markdown table cells can only contain inline content.
                 printTableCellCodeSpan(text);
@@ -1918,6 +1921,17 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
                 printFencedCodeBlock(text, "");
             }
         }
+    }
+
+    /**
+     * @param content the content of a standalone verbatim
+     * @return the content to display: the content of a standalone verbatim written on its own lines starts and ends
+     *     with a line ending (e.g. "{{{\ncontent\n}}}" in XWiki Syntax 2.1), which isn't part of the content to display
+     * @since 8.10.0
+     */
+    protected static String getStandaloneVerbatimText(String content)
+    {
+        return StringUtils.chomp(LEADING_LINE_ENDING.matcher(content).replaceFirst(""));
     }
 
     /**
