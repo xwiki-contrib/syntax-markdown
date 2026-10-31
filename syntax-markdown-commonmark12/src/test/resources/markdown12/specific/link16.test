@@ -1,0 +1,21 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that the interwiki alias written as a wiki link parameter (which was the case of the interwiki links written
+.# by older versions) is read as a parameter of the interwiki reference, and is not written anymore since it is part
+.# of the interwiki reference syntax
+.#-----------------------------------------------------
+[[i|interwiki:wikipedia:XWiki|interWikiAlias="wikipedia"]]
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+[[i|interwiki:wikipedia:XWiki]]
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [true] Type = [interwiki] Reference = [XWiki] Parameters = [[interWikiAlias] = [wikipedia]]] [false]
+onWord [i]
+endLink [Typed = [true] Type = [interwiki] Reference = [XWiki] Parameters = [[interWikiAlias] = [wikipedia]]] [false]
+endParagraph
+endDocument

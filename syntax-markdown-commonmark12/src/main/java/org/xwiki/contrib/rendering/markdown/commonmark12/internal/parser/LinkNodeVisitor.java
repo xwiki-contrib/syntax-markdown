@@ -23,12 +23,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.xwiki.contrib.rendering.markdown.commonmark12.internal.WikiLinkReferenceParameters;
 import org.xwiki.rendering.listener.Listener;
-import org.xwiki.rendering.listener.reference.DocumentResourceReference;
+import org.xwiki.rendering.listener.reference.InterWikiResourceReference;
 import org.xwiki.rendering.listener.reference.ResourceReference;
 import org.xwiki.rendering.listener.reference.ResourceType;
 import org.xwiki.rendering.parser.ResourceReferenceParser;
@@ -102,7 +104,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         Map<String, String> parameters = new HashMap<>();
 
         // Handle optional title
-        addTitle(parameters, node.getTitle().toString());
+        addTitle(parameters, node.getTitle().unescape());
 
         getListener().beginLink(reference, false, parameters);
         getVisitor().visitChildren(node);
@@ -123,7 +125,7 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
             // Handle an optional link title
             Map<String, String> parameters = Collections.emptyMap();
             if (StringUtils.isNotEmpty(reference.getTitle())) {
-                parameters = Collections.singletonMap(TITLE_ATTRIBUTE, reference.getTitle().toString());
+                parameters = Collections.singletonMap(TITLE_ATTRIBUTE, reference.getTitle().unescape());
             }
 
             getListener().beginLink(resourceReference, false, parameters);
@@ -149,6 +151,22 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         return reference;
     }
 
+    /**
+     * Same as the XWiki Syntax: the anchor and the query string are parameters of the document references, the query
+     * string is a parameter of the attachment references, the other parameters are parameters of the link. The
+     * interwiki alias parameter, which is part of the interwiki reference syntax, is also accepted as a parameter.
+     *
+     * @param type the type of the link reference
+     * @param key the name of a parameter written in the wiki link syntax
+     * @return {@code true} if the parameter is a parameter of the link reference, {@code false} if it's a parameter of
+     *     the link
+     */
+    private static boolean isReferenceParameter(ResourceType type, String key)
+    {
+        return WikiLinkReferenceParameters.isReferenceParameter(type, key)
+            || (ResourceType.INTERWIKI.equals(type) && InterWikiResourceReference.INTERWIKI_ALIAS.equals(key));
+    }
+
     public void visit(WikiLink node)
     {
         // Parse any parameters specified using the format "label|reference|a=b c=d".
@@ -156,42 +174,30 @@ public class LinkNodeVisitor extends AbstractNodeVisitor
         // references (e.g. a reference with dots, etc).
         String nodeRawReference = node.getLink().toString();
         String nodeReference = nodeRawReference;
-        String queryString = null;
-        String anchor = null;
+        List<WikiParameter> parameterList = new ArrayList<>();
         int pos = nodeRawReference.indexOf('|');
         if (pos > -1) {
             nodeReference = nodeRawReference.substring(0, pos);
-            if (pos < nodeRawReference.length()) {
-                String parameters = nodeRawReference.substring(pos + 1);
-                List<WikiParameter> parameterList = new ArrayList<>();
-                WikiScannerUtil.splitToPairs(parameters, parameterList, null, null, '\\');
-                for (WikiParameter wikiParameter : parameterList) {
-                    if (wikiParameter.getKey().equals("queryString")) {
-                        queryString = wikiParameter.getValue();
-                    } else if (wikiParameter.getKey().equals("anchor")) {
-                        anchor = wikiParameter.getValue();
-                    }
-                }
-            }
+            WikiScannerUtil.splitToPairs(nodeRawReference.substring(pos + 1), parameterList, null, null, '\\');
         }
 
         ResourceReference reference = this.linkResourceReferenceParser.parse(nodeReference);
 
-        if (reference instanceof DocumentResourceReference) {
-            DocumentResourceReference documentResourceReference = (DocumentResourceReference) reference;
-            if (queryString != null) {
-                documentResourceReference.setQueryString(queryString);
-            }
-            if (anchor != null) {
-                documentResourceReference.setAnchor(anchor);
+        Map<String, String> parameters = new LinkedHashMap<>();
+        for (WikiParameter wikiParameter : parameterList) {
+            String key = wikiParameter.getKey();
+            if (isReferenceParameter(reference.getType(), key)) {
+                reference.setParameter(key, wikiParameter.getValue());
+            } else {
+                parameters.put(key, wikiParameter.getValue());
             }
         }
 
-        getListener().beginLink(reference, false, Collections.emptyMap());
+        getListener().beginLink(reference, false, parameters);
         if (node.getText() != null) {
             String label = node.getText().unescape();
             parseInline(label);
         }
-        getListener().endLink(reference, false, Collections.emptyMap());
+        getListener().endLink(reference, false, parameters);
     }
 }

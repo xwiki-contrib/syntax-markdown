@@ -22,11 +22,13 @@ package org.xwiki.contrib.rendering.markdown.commonmark12.internal.renderer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.MarkdownConfiguration;
+import org.xwiki.contrib.rendering.markdown.commonmark12.internal.WikiLinkReferenceParameters;
 import org.xwiki.contrib.rendering.markdown.commonmark12.internal.parser.MacroBlockParser;
 import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
@@ -60,6 +62,13 @@ import com.vladsch.flexmark.util.sequence.BasedSequence;
 public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 {
     private static final String STRIKEDOUT_SYMBOL = "~~";
+
+    private static final String TITLE_PARAMETER = "title";
+
+    /**
+     * The start of the untyped references that are read as URL references (same as the XWiki Syntax).
+     */
+    private static final Pattern URL_SCHEME = Pattern.compile("[a-zA-Z0-9+.-]*+://");
 
     private static final char QUOTE = '"';
 
@@ -249,7 +258,7 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     @Override
     public void beginLink(ResourceReference reference, boolean isFreeStandingURI, Map<String, String> parameters)
     {
-        this.isInWikiLink = !isMarkdownLink(reference);
+        this.isInWikiLink = !isMarkdownLink(reference, parameters);
         super.beginLink(reference, isFreeStandingURI, parameters);
     }
 
@@ -270,7 +279,7 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     {
         // Overridden from Markdown11ChainingRenderer since in markdown/1.2 we've changed the link syntax to use
         // depending on the reference type:
-        // - [...](...) and <...> for URL and mailto
+        // - [...](...) and <...> for URL and mailto, unless the link has parameters
         // - [[...]] for Document, UNC, DataURI and all other types or references
 
         this.isInWikiLink = false;
@@ -279,39 +288,103 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         String label = linkBlocksPrinter.toString();
         popPrinter();
 
-        if (isMarkdownLink(reference)) {
+        // The title of the links without label is kept using the wiki link syntax, the autolink syntax not supporting
+        // it (unless the reference can't be written using the wiki link syntax).
+        if (isMarkdownLink(reference, parameters)
+            && (parameters.isEmpty() || StringUtils.isNotEmpty(label) || !isWikiLinkURL(reference)))
+        {
             String rawReference = reference.getReference();
             // The destination of the Markdown link syntax is a URL: the email addresses must be prefixed with the
             // mailto scheme.
             String linkReference = ResourceType.MAILTO.equals(reference.getType())
                 ? ResourceType.MAILTO.getScheme() + ':' + rawReference : rawReference;
-            // Now decide if we should use an autolink or not
+            String title = formatLinkTitle(parameters.get(TITLE_PARAMETER));
+            // Now decide if we should use an autolink or not (it doesn't support the title)
             if (StringUtils.isNotEmpty(label)) {
-                printLink(label, escapeLinkReference(linkReference));
-            } else if (isAutoLink(reference)) {
+                printLink(label, escapeLinkReference(linkReference) + title);
+            } else if (title.isEmpty() && isAutoLink(reference)) {
                 // Don't output the type prefix.
                 printAutoLink(rawReference);
-            } else if (URI_AUTOLINK.matcher(linkReference).matches()) {
+            } else if (title.isEmpty() && URI_AUTOLINK.matcher(linkReference).matches()) {
                 // An email address that can't be written using the email autolink syntax (e.g. with a query string).
                 printAutoLink(linkReference);
             } else {
                 // The reference can't be written using the autolink syntax.
-                printLink(escapeText(rawReference), escapeLinkReference(linkReference));
+                printLink(escapeText(rawReference), escapeLinkReference(linkReference) + title);
             }
         } else {
             onWikiSyntax();
+            // Same as the XWiki Syntax, the parameters of the resource reference (anchor and query string) and the
+            // parameters of the link are written together. The other parameters of the resource reference (e.g. the
+            // interwiki alias) are part of the serialized reference.
+            Map<String, String> wikiLinkParameters = new LinkedHashMap<>();
+            for (String name : WikiLinkReferenceParameters.NAMES) {
+                String value = reference.getParameter(name);
+                if (StringUtils.isNotEmpty(value)
+                    && WikiLinkReferenceParameters.isReferenceParameter(reference.getType(), name))
+                {
+                    wikiLinkParameters.put(name, value);
+                }
+            }
+            parameters.forEach(wikiLinkParameters::putIfAbsent);
             printWikiLink(label, escapeWikiLinkReference(this.linkReferenceSerializer.serialize(reference)),
-                reference.getParameters());
+                wikiLinkParameters);
         }
     }
 
     /**
      * @return {@code true} if the link is rendered using the Markdown link syntax, {@code false} if it's rendered using
-     *     the wiki link syntax
+     *     the wiki link syntax (which supports the link parameters other than the title)
      */
-    private boolean isMarkdownLink(ResourceReference reference)
+    private boolean isMarkdownLink(ResourceReference reference, Map<String, String> parameters)
     {
-        return ResourceType.URL.equals(reference.getType()) || ResourceType.MAILTO.equals(reference.getType());
+        // The URL references that would not be read back as URL references from the wiki link syntax (e.g. a relative
+        // URL, which can only come from the Markdown link syntax that supports only a title) are written using the
+        // Markdown link syntax, even if they have parameters other than the title.
+        return ResourceType.MAILTO.equals(reference.getType()) && isTitleOnly(parameters)
+            || ResourceType.URL.equals(reference.getType()) && (isTitleOnly(parameters) || !isWikiLinkURL(reference));
+    }
+
+    private boolean isTitleOnly(Map<String, String> parameters)
+    {
+        return parameters.isEmpty() || (parameters.size() == 1 && parameters.containsKey(TITLE_PARAMETER));
+    }
+
+    /**
+     * @return {@code true} if the reference is read back as a URL reference when written using the wiki link syntax,
+     *     {@code false} otherwise
+     */
+    private boolean isWikiLinkURL(ResourceReference reference)
+    {
+        return !ResourceType.URL.equals(reference.getType())
+            || URL_SCHEME.matcher(reference.getReference()).lookingAt();
+    }
+
+    /**
+     * @param title the title of a link, or {@code null}
+     * @return the title written using the Markdown link title syntax (preceded by a space), or an empty string if
+     *     there's no title
+     */
+    private String formatLinkTitle(String title)
+    {
+        if (StringUtils.isEmpty(title)) {
+            return "";
+        }
+        // The title is unescaped by the parser: escape the characters that would end it or start an HTML entity, and
+        // the pipes of the table cells.
+        String text = removeNewLines(title);
+        StringBuilder builder = new StringBuilder(" \"");
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == QUOTE || c == MarkdownEscapeHandler.ESCAPE_CHAR.charAt(0) || (c == '|' && isInTableCell())
+                || (c == '&' && i + 1 < text.length() && (text.charAt(i + 1) == '#'
+                    || Character.isLetter(text.charAt(i + 1)))))
+            {
+                builder.append(MarkdownEscapeHandler.ESCAPE_CHAR);
+            }
+            builder.append(c);
+        }
+        return builder.append(QUOTE).toString();
     }
 
     private boolean isAutoLink(ResourceReference reference)
@@ -420,13 +493,11 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
 
     protected void printWikiLink(String label, String serializedReference, Map<String, String> parameters)
     {
-        if (StringUtils.isEmpty(label)) {
-            if (parameters.isEmpty()) {
-                printWikiLink(serializedReference);
-            } else {
-                print(String.format(FORMAT_TWO_PARAMS, serializedReference, serializeParameters(parameters)));
-            }
+        if (StringUtils.isEmpty(label) && parameters.isEmpty()) {
+            printWikiLink(serializedReference);
         } else {
+            // A separator makes the first part of the wiki link syntax the label, so an empty label is written when
+            // there are parameters but no label (XWiki then generates the label).
             // Only the separator located after the label can be escaped (the backslash being kept in the label).
             String wikiLinkLabel = escapeWikiLinkLabel(label)
                 + (isWikiSyntaxSeparatorEscaped() ? MarkdownEscapeHandler.ESCAPE_CHAR : "");
@@ -491,10 +562,28 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
         while (iterator.hasNext()) {
             Map.Entry<String, String> entry = iterator.next();
             builder.append(entry.getKey()).append('=').append(QUOTE)
-                .append(escapeWikiLinkReference(entry.getValue())).append(QUOTE);
+                .append(escapeWikiLinkParameterValue(entry.getValue())).append(QUOTE);
             if (iterator.hasNext()) {
                 builder.append(' ');
             }
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Escape the characters that would end the parameter value (the parameter values are unescaped by the parser) or
+     * the wiki link.
+     */
+    private String escapeWikiLinkParameterValue(String value)
+    {
+        String text = removeNewLines(StringUtils.defaultString(value));
+        StringBuilder builder = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == QUOTE || c == '[' || c == ']' || c == MarkdownEscapeHandler.ESCAPE_CHAR.charAt(0)) {
+                builder.append(MarkdownEscapeHandler.ESCAPE_CHAR);
+            }
+            builder.append(c);
         }
         return builder.toString();
     }
