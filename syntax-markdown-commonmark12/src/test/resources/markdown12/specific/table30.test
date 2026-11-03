@@ -24,7 +24,7 @@
 .#-----------------------------------------------------
 |      Element      | Content |
 | ----------------- | --- |
-|       Text        | a\|b `c|d` |
+|       Text        | a\|b <code>c\|d</code> |
 |       Link        | [[label|Space.Page]] |
 |    Link label     | [[a&#124;b|Space.Page]] |
 |     URL link      | [a\|b](https://www.xwiki.org/) <https://www.xwiki.org/a|b> |

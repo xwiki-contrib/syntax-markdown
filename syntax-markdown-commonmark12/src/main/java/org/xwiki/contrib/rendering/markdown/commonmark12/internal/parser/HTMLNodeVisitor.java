@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.Listener;
 
 import com.vladsch.flexmark.ast.HtmlBlock;
@@ -99,7 +100,8 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
                 new VisitHandler<>(HtmlBlock.class, node -> visitor.visit(node)),
                 new VisitHandler<>(HtmlCommentBlock.class, node -> visitor.visit(node)),
                 new VisitHandler<>(HtmlEntity.class, node -> visitor.visit(node)),
-                new VisitHandler<>(HtmlInlineComment.class, node -> visitor.visit(node))
+                new VisitHandler<>(HtmlInlineComment.class, node -> visitor.visit(node)),
+                new VisitHandler<>(MonospaceNode.class, node -> visitor.visit(node))
         };
     }
 
@@ -163,6 +165,17 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
         return extensions.stream()
             .filter(extension -> !EXCLUDED_INLINE_HTML_EXTENSIONS.contains(extension.getClass()))
             .collect(Collectors.toList());
+    }
+
+    /**
+     * @param node the content of a {@code <code>} tag without attributes, which is read as monospace
+     * @since 8.10.0
+     */
+    public void visit(MonospaceNode node)
+    {
+        getListener().beginFormat(Format.MONOSPACE, Listener.EMPTY_PARAMETERS);
+        getVisitor().visitChildren(node);
+        getListener().endFormat(Format.MONOSPACE, Listener.EMPTY_PARAMETERS);
     }
 
     public void visit(HtmlBlock node)

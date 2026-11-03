@@ -1,18 +1,18 @@
 .#-----------------------------------------------------
-.input|markdown/1.2
-.# Fenced code blocks generated for standalone verbatim (see verbatim3.test) are read back with the same content,
-.# including leading spaces.
+.inputexpect|markdown/1.2
+.# The verbatim macro syntax generated for standalone verbatim (see verbatim3.test) is read back as standalone verbatim
+.# with the same content (including leading spaces) and parameters.
 .#-----------------------------------------------------
 before
 
-````
+{{verbatim}}
   indented ```
 **not bold**
-````
+{{/verbatim}}
 
-```
+{{verbatim class="myclass"}}
 with parameters
-```
+{{/verbatim}}
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -20,7 +20,11 @@ beginDocument
 beginParagraph
 onWord [before]
 endParagraph
-onMacroStandalone [code] [language=none] [  indented ```
-**not bold**]
-onMacroStandalone [code] [language=none] [with parameters]
+onVerbatim [
+  indented ```
+**not bold**
+] [false]
+onVerbatim [
+with parameters
+] [false] [[class]=[myclass]]
 endDocument

@@ -5,7 +5,7 @@
 .#-----------------------------------------------------
 |      Element      | Content |
 | ----------------- | --- |
-|       Text        | a\|b `c|d` |
+|       Text        | a\|b `c|d` <code>e\|f</code> |
 |       Link        | [[label|Space.Page]] |
 |    Link label     | [[a&#124;b|Space.Page]] |
 |     URL link      | [a\|b](https://www.xwiki.org/) <https://www.xwiki.org/a|b> |
@@ -41,6 +41,12 @@ onSpecialSymbol [|]
 onWord [b]
 onSpace
 onMacroInline [code] [language=none] [c|d]
+onSpace
+beginFormat [MONOSPACE]
+onWord [e]
+onSpecialSymbol [|]
+onWord [f]
+endFormat [MONOSPACE]
 endTableCell
 endTableRow
 beginTableRow

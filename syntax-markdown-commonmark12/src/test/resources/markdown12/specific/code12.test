@@ -1,8 +1,9 @@
 .#-----------------------------------------------------
 .input|xwiki/2.1
-.# Consecutive standalone code macros without language. An indented code block directly following another one would
-.# be merged with it when read back, thus it's rendered as a fenced code block without info string instead. See
-.# code13.test for the parsing of the generated Markdown.
+.# Consecutive standalone code macros. The code macros having only a language are rendered as fenced code blocks (the
+.# info string being the language, or empty for "none"), the other ones (e.g. without language) using the macro syntax
+.# since a fenced code block without info string is read back as a code macro with language="none". See code13.test
+.# for the parsing of the generated Markdown.
 .#-----------------------------------------------------
 {{code}}a{{/code}}
 
@@ -22,28 +23,36 @@
 .#-----------------------------------------------------
 .expect|markdown/1.2
 .#-----------------------------------------------------
-    a
+{{code}}
+a
+{{/code}}
 
-```
+{{code}}
 b
-```
+{{/code}}
 
-    c
+```
+c
+```
 
 ```java
 d
 ```
 
-    e
+{{code}}
+e
+{{/code}}
 
 * item
 
   <div>
 
-      f
+  {{code}}
+  f
+  {{/code}}
 
-  ```
+  {{code}}
   g
-  ```
+  {{/code}}
 
   </div>

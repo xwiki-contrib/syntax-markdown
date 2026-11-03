@@ -11,9 +11,9 @@
 
     * b
 
-```
+{{verbatim}}
 c
-```
+{{/verbatim}}
 
 :   d
 
@@ -44,7 +44,9 @@ endListItem
 endList [BULLETED]
 endListItem
 endList [BULLETED]
-onMacroStandalone [code] [language=none] [c]
+onVerbatim [
+c
+] [false]
 beginParagraph
 onSpecialSymbol [:]
 onSpace

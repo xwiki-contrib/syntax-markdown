@@ -1,7 +1,7 @@
 .#-----------------------------------------------------
 .input|markdown/1.2
 .# Code blocks without language located in ordered list items, nested list items and definition descriptions:
-.# the indented code blocks are indented relatively to the content of the container
+.# the fenced code blocks are indented relatively to the content of the container
 .#-----------------------------------------------------
 1. text
 
@@ -58,14 +58,20 @@ endDocument
 .#-----------------------------------------------------
 1. text
 
-       <b>a</b>
+   ```
+   <b>a</b>
+   ```
 
 term
 :   para
 
-        <b>b</b>
+    ```
+    <b>b</b>
+    ```
 
 * a
     1. b
 
-           <b>c</b>
+       ```
+       <b>c</b>
+       ```

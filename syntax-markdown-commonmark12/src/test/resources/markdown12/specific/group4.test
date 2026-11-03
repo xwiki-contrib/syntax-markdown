@@ -70,7 +70,9 @@ endDocument
   after
 * <div class="d">
 
-      code
+  ```
+  code
+  ```
 
   </div>
 

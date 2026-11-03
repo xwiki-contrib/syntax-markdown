@@ -19,14 +19,20 @@
 .#-----------------------------------------------------
 * bbb
 
-      code2
+  ```
+  code2
+  ```
 * ccc
 
-      code3
+  ```
+  code3
+  ```
 * ddd
     * eee
 
-          code4
+      ```
+      code4
+      ```
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -34,24 +40,18 @@ beginDocument
 beginList [BULLETED]
 beginListItem
 onWord [bbb]
-beginGroup
 onMacroStandalone [code] [language=none] [code2]
-endGroup
 endListItem
 beginListItem
 onWord [ccc]
-beginGroup
 onMacroStandalone [code] [language=none] [code3]
-endGroup
 endListItem
 beginListItem
 onWord [ddd]
 beginList [BULLETED]
 beginListItem
 onWord [eee]
-beginGroup
 onMacroStandalone [code] [language=none] [code4]
-endGroup
 endListItem
 endList [BULLETED]
 endListItem

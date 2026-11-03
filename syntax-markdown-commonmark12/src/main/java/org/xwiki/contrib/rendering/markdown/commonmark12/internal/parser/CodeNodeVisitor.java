@@ -29,7 +29,6 @@ import org.xwiki.rendering.listener.Listener;
 import com.vladsch.flexmark.ast.Code;
 import com.vladsch.flexmark.ast.FencedCodeBlock;
 import com.vladsch.flexmark.ast.IndentedCodeBlock;
-import com.vladsch.flexmark.ast.ListItem;
 import com.vladsch.flexmark.util.ast.Block;
 import com.vladsch.flexmark.util.ast.NodeVisitor;
 import com.vladsch.flexmark.util.ast.VisitHandler;
@@ -91,17 +90,9 @@ public class CodeNodeVisitor extends AbstractNodeVisitor
 
     public void visit(IndentedCodeBlock node)
     {
-        // Since XWiki doesn't have a Code Block we generate a Code Macro Block
-        // Insert a Group Block if we are in an inline context since the code macro is a standalone macro.
-        // We consider that we are in an inline context if the parent node is a list item.
-        // Note that Markdown syntax doesn't support indented code blocks inside table cells!
-        if (node.getParent() instanceof ListItem) {
-            getListener().beginGroup(Collections.emptyMap());
-        }
+        // Since XWiki doesn't have a Code Block we generate a Code Macro Block (located directly in the list item when
+        // the code block is located in a list item, as for the fenced code blocks).
         getListener().onMacro(CODE_MACRO_ID, getCodeMacroParameters(null), getCodeContent(node), false);
-        if (node.getParent() instanceof ListItem) {
-            getListener().endGroup(Collections.emptyMap());
-        }
     }
 
     private String getCodeContent(Block node)

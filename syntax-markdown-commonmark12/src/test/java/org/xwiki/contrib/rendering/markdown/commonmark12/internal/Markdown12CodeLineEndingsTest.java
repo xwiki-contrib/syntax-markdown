@@ -37,8 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Verify that the content containing carriage returns (which can't be expressed in the test files since their line
- * endings are normalized) is rendered properly to Markdown 1.2: code blocks stay code blocks and table rows stay on a
- * single line.
+ * endings are normalized) is rendered properly to Markdown 1.2: code blocks and code macros stay in their container
+ * and table rows stay on a single line.
  *
  * @version $Id$
  */
@@ -59,16 +59,23 @@ class Markdown12CodeLineEndingsTest
     void codeBlocksWithCarriageReturns() throws Exception
     {
         String markdown = render(parse("{{code}}a\r<b>b</b>{{/code}}\n\n"
-            + "* (((\n{{code language=\"java\"}}c\r<b>d</b>{{/code}}\n)))", "xwiki/2.1"), "markdown/1.2");
+            + "* (((\n{{code language=\"java\"}}c\r<b>d</b>{{/code}}\n)))\n"
+            + "* (((\n{{code}}e\r<b>f</b>{{/code}}\n)))", "xwiki/2.1"), "markdown/1.2");
 
-        assertEquals("    a\n    <b>b</b>\n\n* <div>\n\n  ```java\n  c\n  <b>d</b>\n  ```\n\n  </div>", markdown);
+        assertEquals("{{code}}\na\n<b>b</b>\n{{/code}}\n\n* <div>\n\n  ```java\n  c\n  <b>d</b>\n  ```\n\n  </div>\n"
+            + "* <div>\n\n  {{code}}\n  e\n  <b>f</b>\n  {{/code}}\n\n  </div>", markdown);
 
         assertEquals("beginDocument [[syntax]=[CommonMark Markdown 1.2]]\n"
-            + "onMacroStandalone [code] [language=none] [a\n<b>b</b>]\n"
+            + "onMacroStandalone [code] [] [a\n<b>b</b>]\n"
             + "beginList [BULLETED]\n"
             + "beginListItem\n"
             + "beginGroup\n"
             + "onMacroStandalone [code] [language=java] [c\n<b>d</b>]\n"
+            + "endGroup\n"
+            + "endListItem\n"
+            + "beginListItem\n"
+            + "beginGroup\n"
+            + "onMacroStandalone [code] [] [e\n<b>f</b>]\n"
             + "endGroup\n"
             + "endListItem\n"
             + "endList [BULLETED]\n"

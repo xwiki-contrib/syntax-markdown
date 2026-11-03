@@ -1,10 +1,10 @@
 .#-----------------------------------------------------
 .inputexpect|markdown/1.2
-.# Code spans generated for inline verbatim (see verbatim1.test) are read back with the same content. Note that
-.# a single space is stripped from both sides of the content when it both begins and ends with a space, unless
-.# it contains only spaces.
+.# The verbatim macro syntax generated for inline verbatim (see verbatim1.test) is read back as inline verbatim with
+.# the same content (not as a macro), and the code span generated for a content containing a backtick is read back
+.# as an inline code macro with the same content.
 .#-----------------------------------------------------
-a `x|y` b `**not bold**` c ``a`b`` d ``` `a``b` ``` e `  f  ` g  h ` ` i
+a {{verbatim}}x|y{{/verbatim}} b {{verbatim}}**not bold**{{/verbatim}} c ``a`b`` d {{verbatim}}`a``b`{{/verbatim}} e {{verbatim}} f {{/verbatim}} g {{verbatim}}{{/verbatim}} h {{verbatim}} {{/verbatim}} i
 .#-----------------------------------------------------
 .expect|event/1.0
 .#-----------------------------------------------------
@@ -12,11 +12,11 @@ beginDocument
 beginParagraph
 onWord [a]
 onSpace
-onMacroInline [code] [language=none] [x|y]
+onVerbatim [x|y] [true]
 onSpace
 onWord [b]
 onSpace
-onMacroInline [code] [language=none] [**not bold**]
+onVerbatim [**not bold**] [true]
 onSpace
 onWord [c]
 onSpace
@@ -24,18 +24,19 @@ onMacroInline [code] [language=none] [a`b]
 onSpace
 onWord [d]
 onSpace
-onMacroInline [code] [language=none] [`a``b`]
+onVerbatim [`a``b`] [true]
 onSpace
 onWord [e]
 onSpace
-onMacroInline [code] [language=none] [ f ]
+onVerbatim [ f ] [true]
 onSpace
 onWord [g]
 onSpace
+onVerbatim [] [true]
 onSpace
 onWord [h]
 onSpace
-onMacroInline [code] [language=none] [ ]
+onVerbatim [ ] [true]
 onSpace
 onWord [i]
 endParagraph
