@@ -1,0 +1,19 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that the separators of the wiki links and images located inside some emphasis in table cells are escaped,
+.# including the separator of the parameters and the pipes of the parameter values, and that an escaped backslash
+.# located before a pipe doesn't escape it (see table33 for the round trip)
+.#-----------------------------------------------------
+|x|**[[label>>Space.Page||anchor="t"]]**|d
+|y|**[[Space.Page||queryString="c=d|e\f" target="_blank"]] [[h>>Space.Page]]**|i
+|z|[[label>>Space.Page||anchor="t" class="j|k"]] [[image:b.png||alt="l\"]] //[[image:c.png]] [[m\>>Space.Page]]//|n
+|w|[[o>>Space.p\\||anchor="q"]] [[s>>Space.Page||title="t\~|u"]]|r
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+|     |  |     |
+| --- | --- | --- |
+|  x  | **[[label\|Space.Page\|anchor="t"]]** |  d  |
+|  y  | **[[\|Space.Page\|queryString="c=d\|e\\f" target="_blank"]] [[h\|Space.Page]]** |  i  |
+|  z  | [[label|Space.Page|anchor="t" class="j|k"]] ![[l&#92;|b.png]] _![[c.png\|c.png]] [[m\\\|Space.Page]]_ |  n  |
+|  w  | [[o|Space.p\&#92;|anchor="q"]] [[s|Space.Page|title="t\\|u"]] |  r  |

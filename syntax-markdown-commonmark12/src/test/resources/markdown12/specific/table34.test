@@ -1,0 +1,51 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that the wiki link references and the wiki image alternative texts written as HTML entities work inside
+.# some emphasis in table cells
+.#-----------------------------------------------------
+|a|**[[image:b.png||alt="c\"]] [[d>>Sp~|ace.Page||anchor="e"]] [[image:f.png||alt="g~|h"]]**
+|i|[[image:j.png||alt="k\"]] //[[l>>Space.m~]~]n]]//
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.#-----------------------------------------------------
+|     |  |
+| --- | --- |
+|  a  | **![[c&#92;\|b.png]] [[d\|Sp&#124;ace.Page\|anchor="e"]] ![[g&#124;h\|f.png]]** |
+|  i  | ![[k&#92;|j.png]] _[[l\|Space.m&#93;&#93;n]]_ |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableCell
+onWord [a]
+endTableCell
+beginTableCell
+beginFormat [BOLD]
+onImage [Typed = [false] Type = [attach] Reference = [b.png]] [false] [Ib.png] [[alt]=[c\]]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Sp|ace.Page] Parameters = [[anchor] = [e]]] [false]
+onWord [d]
+endLink [Typed = [false] Type = [doc] Reference = [Sp|ace.Page] Parameters = [[anchor] = [e]]] [false]
+onSpace
+onImage [Typed = [false] Type = [attach] Reference = [f.png]] [false] [If.png] [[alt]=[g|h]]
+endFormat [BOLD]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [i]
+endTableCell
+beginTableCell
+onImage [Typed = [false] Type = [attach] Reference = [j.png]] [false] [Ij.png] [[alt]=[k\]]
+onSpace
+beginFormat [ITALIC]
+beginLink [Typed = [false] Type = [doc] Reference = [Space.m]]n]] [false]
+onWord [l]
+endLink [Typed = [false] Type = [doc] Reference = [Space.m]]n]] [false]
+endFormat [ITALIC]
+endTableCell
+endTableRow
+endTable
+endDocument

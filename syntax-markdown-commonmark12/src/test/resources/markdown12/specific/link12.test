@@ -1,0 +1,23 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Test that the link parameters written with the anchor and the query string (see link11) are read back as link
+.# parameters
+.#-----------------------------------------------------
+[[label|Space.Page|target="_blank"]] [[|Space.Page|queryString="c=d" anchor="a" class="b"]]  
+[[|attach:a.png|queryString="e=f" title="g\"h\\i\]j"]]
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false] [[target]=[_blank]]
+onWord [label]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false] [[target]=[_blank]]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page] Parameters = [[queryString] = [c=d], [anchor] = [a]]] [false] [[class]=[b]]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page] Parameters = [[queryString] = [c=d], [anchor] = [a]]] [false] [[class]=[b]]
+onNewLine
+beginLink [Typed = [true] Type = [attach] Reference = [a.png] Parameters = [[queryString] = [e=f]]] [false] [[title]=[g"h\i]j]]
+endLink [Typed = [true] Type = [attach] Reference = [a.png] Parameters = [[queryString] = [e=f]]] [false] [[title]=[g"h\i]j]]
+endParagraph
+endDocument

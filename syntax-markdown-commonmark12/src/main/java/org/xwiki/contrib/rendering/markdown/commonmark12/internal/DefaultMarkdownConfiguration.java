@@ -47,6 +47,8 @@ public class DefaultMarkdownConfiguration extends AbstractMarkdownConfiguration 
 
         // Configure other options
         options.set(WikiLinkExtension.IMAGE_LINKS, true);
+        // Parse the wiki link labels as inline Markdown content (e.g. to support formatting).
+        options.set(WikiLinkExtension.ALLOW_INLINES, true);
 
         return options;
     }

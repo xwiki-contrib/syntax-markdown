@@ -1,0 +1,10 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that the email address of a mailto link having a label or not written using the email autolink syntax is
+.# prefixed with the mailto scheme (see link10 for the round trip)
+.#-----------------------------------------------------
+[[x>>mailto:a@b.c]] [[mailto:d@e.f]] [[**y**>>mailto:g@h.i?subject=a b]] [[mailto:j@k.l?subject=m]]
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+[x](mailto:a@b.c) <d@e.f> [**y**](mailto:g@h.i?subject=a%20b) <mailto:j@k.l?subject=m>

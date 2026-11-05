@@ -1,0 +1,11 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that the formatting and the images located in wiki link labels are kept (see link14 for the round trip, in
+.# which the macros located in the wiki link labels are read as text)
+.#-----------------------------------------------------
+[[**a** //b// --c-- ^^d^^ {{info}}e{{/info}} f*g <h> i~|j & k>>Space.Page]] [[l
+m>>Space.Page]] [[[[image:x.png]] o>>Space.Page]] [[[[image:y.png||alt="p"]]>>Space.Page]]
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+[[**a** _b_ ~~c~~ ^d^ {{info}}e{{/info}} f\*g \<h> i&#124;j & k|Space.Page]] [[l&#10;m|Space.Page]] [[![[x.png&#124;x.png]] o|Space.Page]] [[![[p&#124;y.png]]|Space.Page]]

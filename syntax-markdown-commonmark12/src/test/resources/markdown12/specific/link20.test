@@ -1,0 +1,49 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Test that the escaped titles of the links to a URL (see link19) are read back unchanged, including in table cells
+.#-----------------------------------------------------
+[a](/rel "t") [b](#h "c\"d") [e](u "f\"g'h") [i](/rel "j\\\\ \\& & k|l") [m](u "\&amp;")
+
+|       n       |
+| ------------- |
+| [o](u "p\|q") |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [false] Type = [url] Reference = [/rel]] [false] [[title]=[t]]
+onWord [a]
+endLink [Typed = [false] Type = [url] Reference = [/rel]] [false] [[title]=[t]]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [#h]] [false] [[title]=[c"d]]
+onWord [b]
+endLink [Typed = [false] Type = [url] Reference = [#h]] [false] [[title]=[c"d]]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [u]] [false] [[title]=[f"g'h]]
+onWord [e]
+endLink [Typed = [false] Type = [url] Reference = [u]] [false] [[title]=[f"g'h]]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [/rel]] [false] [[title]=[j\\ \& & k|l]]
+onWord [i]
+endLink [Typed = [false] Type = [url] Reference = [/rel]] [false] [[title]=[j\\ \& & k|l]]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [u]] [false] [[title]=[&amp;]]
+onWord [m]
+endLink [Typed = [false] Type = [url] Reference = [u]] [false] [[title]=[&amp;]]
+endParagraph
+beginTable
+beginTableRow
+beginTableHeadCell
+onWord [n]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+beginLink [Typed = [false] Type = [url] Reference = [u]] [false] [[title]=[p|q]]
+onWord [o]
+endLink [Typed = [false] Type = [url] Reference = [u]] [false] [[title]=[p|q]]
+endTableCell
+endTableRow
+endTable
+endDocument

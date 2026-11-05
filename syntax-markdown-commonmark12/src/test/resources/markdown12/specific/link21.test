@@ -1,0 +1,102 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that the macros, the HTML and the links located in wiki link labels (which were not parsed in the wiki link
+.# labels written by older versions) are read as text, while the formatting and the images are kept
+.#-----------------------------------------------------
+[[a {{info}}x{{/info}} b|Space.Page]] [[c <b>d</b> <!-- e -->|Space.Page]] [[f <http://x.org> g@h.org|Space.Page]]
+[[i [[j]] k|Space.Page]] [[**n** ![[o.png]] ![p](q.png)|Space.Page]]
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+[[a \{{info}}x\{{/info}} b|Space.Page]] [[c \<b>d\</b> \<!-- e -->|Space.Page]] [[f \<http://x.org> g@h.org|Space.Page]] [[i \[\[j\]\] k|Space.Page]] [[**n** ![[o.png&#124;o.png]] ![p](q.png)|Space.Page]]
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onWord [a]
+onSpace
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onWord [x]
+onSpecialSymbol [{]
+onSpecialSymbol [{]
+onSpecialSymbol [/]
+onWord [info]
+onSpecialSymbol [}]
+onSpecialSymbol [}]
+onSpace
+onWord [b]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onWord [c]
+onSpace
+onSpecialSymbol [<]
+onWord [b]
+onSpecialSymbol [>]
+onWord [d]
+onSpecialSymbol [<]
+onSpecialSymbol [/]
+onWord [b]
+onSpecialSymbol [>]
+onSpace
+onSpecialSymbol [<]
+onSpecialSymbol [!]
+onSpecialSymbol [-]
+onSpecialSymbol [-]
+onSpace
+onWord [e]
+onSpace
+onSpecialSymbol [-]
+onSpecialSymbol [-]
+onSpecialSymbol [>]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onWord [f]
+onSpace
+onSpecialSymbol [<]
+onWord [http]
+onSpecialSymbol [:]
+onSpecialSymbol [/]
+onSpecialSymbol [/]
+onWord [x]
+onSpecialSymbol [.]
+onWord [org]
+onSpecialSymbol [>]
+onSpace
+onWord [g]
+onSpecialSymbol [@]
+onWord [h]
+onSpecialSymbol [.]
+onWord [org]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onWord [i]
+onSpace
+onSpecialSymbol [[]
+onSpecialSymbol [[]
+onWord [j]
+onSpecialSymbol []]
+onSpecialSymbol []]
+onSpace
+onWord [k]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+beginFormat [BOLD]
+onWord [n]
+endFormat [BOLD]
+onSpace
+onImage [Typed = [false] Type = [attach] Reference = [o.png]] [false] [Io.png]
+onSpace
+onImage [Typed = [false] Type = [url] Reference = [q.png]] [false] [Iq.png] [[alt]=[p]]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+endParagraph
+endDocument

@@ -3,7 +3,7 @@
 .# Test that only the pipes of the text located in table cells are escaped, and not the pipes located inside some
 .# syntax (links, images, macros, HTML tags, code spans), which would be kept in their content (see table31 for the
 .# round trip). The separator of the wiki links and images located inside some emphasis is escaped, since a pipe
-.# breaks the emphasis and the wiki link (splitting the cell), even if the backslash is then kept in their label.
+.# breaks the emphasis and the wiki link (splitting the cell).
 .#-----------------------------------------------------
 |=Element|=Content
 |Text|a~|b ##c~|d##
@@ -35,5 +35,5 @@
 |       HTML        | <span title="a|b">c\|d</span> |
 |  HTML backticks   | <span title="`">\|a</span><span title="`">b</span> |
 |   Invalid HTML    | \<!-- a -- b\|c --> \<span title={\|}>d</span> |
-|       Bold        | **a\|b [[label\|Space.Page]] ![[a.png]] ![[c\|b.png]]** |
+|       Bold        | **a\|b [[label\|Space.Page]] ![[a.png\|a.png]] ![[c\|b.png]]** |
 |     Bold URL      | **[a\|b](https://www.xwiki.org/) ![a\|b](https://www.xwiki.org/a.png)** |

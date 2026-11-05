@@ -1,0 +1,12 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that the link parameters are kept, written with the anchor and the query string (see link12 for the round
+.# trip)
+.#-----------------------------------------------------
+[[label>>Space.Page||target="_blank"]] [[Space.Page||anchor="a" class="b" queryString="c=d"]]
+[[attach:a.png||queryString="e=f" title="g~"h\i]j"]]
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+[[label|Space.Page|target="_blank"]] [[|Space.Page|queryString="c=d" anchor="a" class="b"]]  
+[[|attach:a.png|queryString="e=f" title="g\"h\\i\]j"]]

@@ -1,0 +1,32 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Test that the links to a URL having a title are written using the Markdown link syntax, their title being escaped
+.# (see link20 for the round trip)
+.#-----------------------------------------------------
+[a](/rel "t") [b](#h 'c"d') [e](u (f"g'h)) [i](/rel "j\\\\ \\&amp; &amp; k|l")
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+[a](/rel "t") [b](#h "c\"d") [e](u "f\"g'h") [i](/rel "j\\\\ \\& & k|l")
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [false] Type = [url] Reference = [/rel]] [false] [[title]=[t]]
+onWord [a]
+endLink [Typed = [false] Type = [url] Reference = [/rel]] [false] [[title]=[t]]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [#h]] [false] [[title]=[c"d]]
+onWord [b]
+endLink [Typed = [false] Type = [url] Reference = [#h]] [false] [[title]=[c"d]]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [u]] [false] [[title]=[f"g'h]]
+onWord [e]
+endLink [Typed = [false] Type = [url] Reference = [u]] [false] [[title]=[f"g'h]]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [/rel]] [false] [[title]=[j\\ \& & k|l]]
+onWord [i]
+endLink [Typed = [false] Type = [url] Reference = [/rel]] [false] [[title]=[j\\ \& & k|l]]
+endParagraph
+endDocument

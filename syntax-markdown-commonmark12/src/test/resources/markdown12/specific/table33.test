@@ -1,0 +1,91 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Test that the escaped separators of the wiki links and images located in table cells (see table32) are read as
+.# separators, and that the escaped pipes of their parameters are read as pipes
+.#-----------------------------------------------------
+|     |  |     |
+| --- | --- | --- |
+|  x  | **[[label\|Space.Page\|anchor="t"]]** |  d  |
+|  y  | **[[\|Space.Page\|queryString="c=d\|e\\f" target="_blank"]] [[h\|Space.Page]]** |  i  |
+|  z  | [[label|Space.Page|anchor="t" class="j|k"]] ![[l&#92;|b.png]] _![[c.png\|c.png]] [[m\\\|Space.Page]]_ |  n  |
+|  w  | [[o|Space.p\&#92;|anchor="q"]] [[s|Space.Page|title="t\\|u"]] |  r  |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginTable
+beginTableRow
+beginTableCell
+onWord [x]
+endTableCell
+beginTableCell
+beginFormat [BOLD]
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page] Parameters = [[anchor] = [t]]] [false]
+onWord [label]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page] Parameters = [[anchor] = [t]]] [false]
+endFormat [BOLD]
+endTableCell
+beginTableCell
+onWord [d]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [y]
+endTableCell
+beginTableCell
+beginFormat [BOLD]
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page] Parameters = [[queryString] = [c=d|e\f]]] [false] [[target]=[_blank]]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page] Parameters = [[queryString] = [c=d|e\f]]] [false] [[target]=[_blank]]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onWord [h]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+endFormat [BOLD]
+endTableCell
+beginTableCell
+onWord [i]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [z]
+endTableCell
+beginTableCell
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page] Parameters = [[anchor] = [t]]] [false] [[class]=[j|k]]
+onWord [label]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page] Parameters = [[anchor] = [t]]] [false] [[class]=[j|k]]
+onSpace
+onImage [Typed = [false] Type = [attach] Reference = [b.png]] [false] [Ib.png] [[alt]=[l\]]
+onSpace
+beginFormat [ITALIC]
+onImage [Typed = [false] Type = [attach] Reference = [c.png]] [false] [Ic.png]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+onWord [m\]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false]
+endFormat [ITALIC]
+endTableCell
+beginTableCell
+onWord [n]
+endTableCell
+endTableRow
+beginTableRow
+beginTableCell
+onWord [w]
+endTableCell
+beginTableCell
+beginLink [Typed = [false] Type = [doc] Reference = [Space.p\\] Parameters = [[anchor] = [q]]] [false]
+onWord [o]
+endLink [Typed = [false] Type = [doc] Reference = [Space.p\\] Parameters = [[anchor] = [q]]] [false]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false] [[title]=[t\|u]]
+onWord [s]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false] [[title]=[t\|u]]
+endTableCell
+beginTableCell
+onWord [r]
+endTableCell
+endTableRow
+endTable
+endDocument

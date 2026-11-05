@@ -1,0 +1,63 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Test that the link parameters are read back with the same events as the XWiki Syntax: the anchor and the query
+.# string are parameters of the document references, the query string is a parameter of the attachment references and
+.# the other parameters (including the anchor and the query string of the other references) are link parameters. The
+.# links to a URL or an email address having parameters other than a title are written using the wiki link syntax.
+.#-----------------------------------------------------
+[[a>>space:A||anchor="b" queryString="c" target="d"]] [[e>>attach:f.png||anchor="g" queryString="h"]]
+[[i>>interwiki:wikipedia:XWiki]] [[j>>interwiki:wikipedia:XWiki||anchor="k" queryString="l"]]
+[[m>>https://x.org||target="_blank"]] [[https://x.org||target="_blank"]] [[n>>mailto:a@b.c||class="o"]]
+[[p>>https://x.org||title="q"]] [[r>>https://x.org||title="s~"t"]] [[u>>Space.Page||title="~[~[v~]~]"]]
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.#-----------------------------------------------------
+[[a|space:A|queryString="c" anchor="b" target="d"]] [[e|attach:f.png|queryString="h" anchor="g"]]  
+[[i|interwiki:wikipedia:XWiki]] [[j|interwiki:wikipedia:XWiki|anchor="k" queryString="l"]]  
+[[m|https://x.org|target="_blank"]] [[|https://x.org|target="_blank"]] [[n|mailto:a@b.c|class="o"]]  
+[p](https://x.org "q") [r](https://x.org "s\"t") [[u|Space.Page|title="\[\[v\]\]"]]
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+beginLink [Typed = [true] Type = [space] Reference = [A] Parameters = [[queryString] = [c], [anchor] = [b]]] [false] [[target]=[d]]
+onWord [a]
+endLink [Typed = [true] Type = [space] Reference = [A] Parameters = [[queryString] = [c], [anchor] = [b]]] [false] [[target]=[d]]
+onSpace
+beginLink [Typed = [true] Type = [attach] Reference = [f.png] Parameters = [[queryString] = [h]]] [false] [[anchor]=[g]]
+onWord [e]
+endLink [Typed = [true] Type = [attach] Reference = [f.png] Parameters = [[queryString] = [h]]] [false] [[anchor]=[g]]
+onNewLine
+beginLink [Typed = [true] Type = [interwiki] Reference = [XWiki] Parameters = [[interWikiAlias] = [wikipedia]]] [false]
+onWord [i]
+endLink [Typed = [true] Type = [interwiki] Reference = [XWiki] Parameters = [[interWikiAlias] = [wikipedia]]] [false]
+onSpace
+beginLink [Typed = [true] Type = [interwiki] Reference = [XWiki] Parameters = [[interWikiAlias] = [wikipedia]]] [false] [[anchor]=[k][queryString]=[l]]
+onWord [j]
+endLink [Typed = [true] Type = [interwiki] Reference = [XWiki] Parameters = [[interWikiAlias] = [wikipedia]]] [false] [[anchor]=[k][queryString]=[l]]
+onNewLine
+beginLink [Typed = [false] Type = [url] Reference = [https://x.org]] [false] [[target]=[_blank]]
+onWord [m]
+endLink [Typed = [false] Type = [url] Reference = [https://x.org]] [false] [[target]=[_blank]]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [https://x.org]] [false] [[target]=[_blank]]
+endLink [Typed = [false] Type = [url] Reference = [https://x.org]] [false] [[target]=[_blank]]
+onSpace
+beginLink [Typed = [true] Type = [mailto] Reference = [a@b.c]] [false] [[class]=[o]]
+onWord [n]
+endLink [Typed = [true] Type = [mailto] Reference = [a@b.c]] [false] [[class]=[o]]
+onNewLine
+beginLink [Typed = [false] Type = [url] Reference = [https://x.org]] [false] [[title]=[q]]
+onWord [p]
+endLink [Typed = [false] Type = [url] Reference = [https://x.org]] [false] [[title]=[q]]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [https://x.org]] [false] [[title]=[s"t]]
+onWord [r]
+endLink [Typed = [false] Type = [url] Reference = [https://x.org]] [false] [[title]=[s"t]]
+onSpace
+beginLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false] [[title]=[[[v]]]]
+onWord [u]
+endLink [Typed = [false] Type = [doc] Reference = [Space.Page]] [false] [[title]=[[[v]]]]
+endParagraph
+endDocument
