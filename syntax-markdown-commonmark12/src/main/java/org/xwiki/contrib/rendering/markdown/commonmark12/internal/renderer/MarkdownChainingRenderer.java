@@ -45,8 +45,11 @@ import org.xwiki.rendering.listener.Format;
 import org.xwiki.rendering.listener.HeaderLevel;
 import org.xwiki.rendering.listener.ListType;
 import org.xwiki.rendering.listener.MetaData;
+import org.xwiki.rendering.listener.QueueListener;
 import org.xwiki.rendering.listener.chaining.BlockStateChainingListener;
+import org.xwiki.rendering.listener.chaining.EventType;
 import org.xwiki.rendering.listener.chaining.ListenerChain;
+import org.xwiki.rendering.listener.chaining.LookaheadChainingListener;
 import org.xwiki.rendering.listener.reference.ResourceReference;
 import org.xwiki.rendering.listener.reference.ResourceType;
 import org.xwiki.rendering.renderer.AbstractChainingPrintRenderer;
@@ -73,10 +76,26 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private static final String EMPTY_LINE = NEW_LINE + NEW_LINE;
 
+    private static final String BULLETED_LIST_MARKER = "*";
+
+    /**
+     * The marker used by a bulleted list that directly follows another bulleted list.
+     */
+    private static final String ALTERNATE_BULLETED_LIST_MARKER = "-";
+
+    private static final String NUMBERED_LIST_MARKER = "1.";
+
+    /**
+     * The marker used by a numbered list that directly follows another numbered list.
+     */
+    private static final String ALTERNATE_NUMBERED_LIST_MARKER = "1)";
+
     /**
      * The content of an empty definition description.
      */
     private static final String EMPTY_DEFINITION_DESCRIPTION = "<!-- -->";
+
+    private static final String DEFINITION_DESCRIPTION_MARKER = ":   ";
 
     private static final String LINE_ENDINGS = "\r\n|\r|\n";
 
@@ -344,7 +363,15 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
 
     private boolean isFirstElementRendered;
 
+    /**
+     * For each list being rendered, the marker of its items.
+     */
     private Stack<String> listStyle = new Stack<>();
+
+    /**
+     * The item marker of the last ended list, {@code null} if the last ended list is a definition list.
+     */
+    private String lastListStyle;
 
     /**
      * For each row of each table, its cells.
@@ -414,12 +441,6 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     private boolean isDefinitionDescriptionReadBack;
 
     /**
-     * The number of list items and quotations in which the current block is located, whatever the Groups located
-     * between them.
-     */
-    private int listItemAndQuotationDepth;
-
-    /**
      * Whether nothing has been printed yet in the current container (list item, definition description).
      */
     private boolean isAtContainerStart;
@@ -428,6 +449,25 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
      * Whether the current events are located in a definition term (which must fit on a single line).
      */
     private boolean isInDefinitionTerm;
+
+    /**
+     * The Markdown of the last rendered definition term, {@code null} if a definition description has been rendered
+     * after it or if its definition list has ended.
+     */
+    private String lastDefinitionTerm;
+
+    /**
+     * Whether the lines of the last rendered definition term and of the definition terms written before it on
+     * consecutive lines are read back as a paragraph, i.e. as definition terms when followed by a definition
+     * description.
+     */
+    private boolean isLastDefinitionTermParagraph;
+
+    /**
+     * The Markdown of the definition term directly preceding the definition term being rendered, {@code null} if the
+     * definition term being rendered doesn't follow another definition term.
+     */
+    private String previousDefinitionTerm;
 
     /**
      * Line prefix of the container of the last rendered Group, set until something is printed after it, so that
@@ -868,30 +908,59 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginList(ListType listType, Map<String, String> parameters)
     {
+        // Two consecutive lists of the same type must use different item markers, since they would be read back as a
+        // single list otherwise.
+        String previousListStyle = isAfterList() ? this.lastListStyle : null;
+        String style;
+        if (listType == ListType.BULLETED) {
+            style = BULLETED_LIST_MARKER.equals(previousListStyle) ? ALTERNATE_BULLETED_LIST_MARKER
+                : BULLETED_LIST_MARKER;
+        } else {
+            style = NUMBERED_LIST_MARKER.equals(previousListStyle) ? ALTERNATE_NUMBERED_LIST_MARKER
+                : NUMBERED_LIST_MARKER;
+        }
+        this.listStyle.push(style);
+
         ItemState itemState = getItemState();
         if (itemState != null && itemState.isListItem) {
-            // Nested lists are indented relatively to the marker of the list item in which they're located. A list
-            // directly following a definition list would be read back as part of its last definition description.
-            print(getBlockState().getPreviousEvent() == BlockStateChainingListener.Event.DEFINITION_LIST ? EMPTY_LINE
-                : NEW_LINE);
+            // Nested lists are indented relatively to the marker of the list item in which they're located. They are
+            // separated from the previous content of the list item by an empty line when they would be read back as
+            // part of it otherwise:
+            // - after a definition list, since they would be part of its last definition description
+            // - when their first item starts with an empty line (i.e. when it's empty or starts with a nested list),
+            //   since a list item starting with an empty line can't interrupt a paragraph
+            // A single new line is enough when the previous content ends with a new line already (e.g. a line break).
+            MarkdownEscapeWikiPrinter printer = getMarkdownPrinter();
+            boolean isSeparated =
+                getBlockState().getPreviousEvent() == BlockStateChainingListener.Event.DEFINITION_LIST
+                    || (!this.isAtContainerStart && !isInTableCell() && isNextListItemStartingWithEmptyLine()
+                        && !(printer.isOnNewLine() && StringUtils.isBlank(printer.getBuffer())));
+            print(isSeparated ? EMPTY_LINE : NEW_LINE);
             this.itemMarkerPrefixes.push(itemState.markerPrefix + "    ");
         } else {
             String linePrefix = getContainerLinePrefix();
             printBlockSeparator(linePrefix);
             this.itemMarkerPrefixes.push(linePrefix);
         }
+    }
 
-        if (listType == ListType.BULLETED) {
-            this.listStyle.push("*");
-        } else {
-            this.listStyle.push("1");
-        }
+    /**
+     * @return {@code true} if the next event is the start of a list item whose Markdown starts with an empty line,
+     *     i.e. a list item that is empty or whose first content is a nested list (which starts on the next line)
+     */
+    private boolean isNextListItemStartingWithEmptyLine()
+    {
+        LookaheadChainingListener lookahead = getXWikiSyntaxListenerChain().getLookaheadChainingListener();
+        QueueListener.Event itemStart = lookahead.getNextEvent(1);
+        QueueListener.Event itemContent = lookahead.getNextEvent(2);
+        return itemStart != null && itemStart.eventType == EventType.BEGIN_LIST_ITEM && itemContent != null
+            && (itemContent.eventType == EventType.END_LIST_ITEM || itemContent.eventType == EventType.BEGIN_LIST);
     }
 
     @Override
     public void endList(ListType listType, Map<String, String> parameters)
     {
-        this.listStyle.pop();
+        this.lastListStyle = this.listStyle.pop();
         this.itemMarkerPrefixes.pop();
         // Ensure that any not printed characters are flushed.
         // TODO: Fix this better by introducing a state listener to handle escapes
@@ -909,9 +978,22 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void endDefinitionList(Map<String, String> parameters)
     {
+        if (this.lastDefinitionTerm != null && !isInTableCell() && this.isLastDefinitionTermParagraph) {
+            // A definition list ending with a term (i.e. a term without description) would be read back as a
+            // paragraph, since a term must be followed by a definition description in Markdown. Thus we add an empty
+            // definition description (see endDefinitionDescription()), so that the definition list is kept when read
+            // back (with this additional empty definition description). This isn't possible when the terms aren't
+            // read back as a paragraph (e.g. when the term is empty, or read back as an HTML block or a standalone
+            // macro, which could contain the empty definition description), or in a table cell (where a definition
+            // list is rendered as text).
+            print(NEW_LINE + this.itemMarkerPrefixes.peek() + DEFINITION_DESCRIPTION_MARKER
+                + EMPTY_DEFINITION_DESCRIPTION);
+        }
+        this.lastDefinitionTerm = null;
         this.itemMarkerPrefixes.pop();
         this.definitionListHasTerm.pop();
         super.endDefinitionList(parameters);
+        this.lastListStyle = null;
         markListEnd();
     }
 
@@ -923,11 +1005,7 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         }
 
         String markerPrefix = this.itemMarkerPrefixes.peek();
-        String marker = this.listStyle.peek();
-        if (StringUtils.contains(marker, '1')) {
-            marker += ".";
-        }
-        marker += " ";
+        String marker = this.listStyle.peek() + SPACE;
         ItemState parentItemState = getItemState();
         if (getBlockState().getListItemIndex() > 0 || parentItemState != null && parentItemState.isListItem) {
             // The line prefix of the first item of a list that is not nested in a list item is printed with the
@@ -940,7 +1018,6 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         // List item content must be aligned with the first character following the list item marker.
         this.itemStates.push(new ItemState(markerPrefix, markerPrefix + StringUtils.repeat(' ', marker.length()),
             true));
-        this.listItemAndQuotationDepth++;
     }
 
     @Override
@@ -951,7 +1028,6 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         // The list item may be empty: the blocks following it must not be considered as its first content.
         this.isAtContainerStart = false;
         this.itemStates.pop();
-        this.listItemAndQuotationDepth--;
         super.endListItem();
     }
 
@@ -988,31 +1064,46 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void beginDefinitionDescription()
     {
+        // A definition description following terms that aren't read back as a paragraph (e.g. as an HTML block, which
+        // would contain the definition description) is separated from them, and is thus not read back as a definition
+        // description.
+        boolean isAfterTermBlock = this.lastDefinitionTerm != null && !this.isLastDefinitionTermParagraph;
+        this.lastDefinitionTerm = null;
         String markerPrefix = this.itemMarkerPrefixes.peek();
-        if (getBlockState().getDefinitionListItemIndex() > 0) {
+        if (isAfterTermBlock) {
+            print(EMPTY_LINE + markerPrefix);
+        } else if (getBlockState().getDefinitionListItemIndex() > 0) {
             print(NEW_LINE + markerPrefix);
         } else {
             // A definition list starting with a description (no term) must be separated from the previous block,
             // otherwise the description marker would be appended to its last line (e.g. a code block closing fence).
             printBlockSeparator(markerPrefix);
         }
-        print(":   ");
+        print(DEFINITION_DESCRIPTION_MARKER);
         markBlockContentStart();
         this.isAtContainerStart = true;
-        // A definition description must follow a term, and in a list item or a quotation only the first description
-        // following a term is read back as a definition description (the following ones are read back as text).
-        this.isDefinitionDescriptionReadBack = this.definitionListHasTerm.peek()
-            && (getBlockState().getPreviousEvent() == BlockStateChainingListener.Event.DEFINITION_TERM
-                || this.listItemAndQuotationDepth == 0);
+        // A definition description must follow a term.
+        this.isDefinitionDescriptionReadBack = this.definitionListHasTerm.peek() && !isAfterTermBlock;
         this.itemStates.push(new ItemState(markerPrefix, markerPrefix + "    ", false));
     }
 
     @Override
     public void beginDefinitionTerm()
     {
-        // A term that is the first content of a list item directly follows the list item marker.
-        printBlockSeparator(this.itemMarkerPrefixes.peek());
-        markBlockContentStart();
+        if (getBlockState().getPreviousEvent() == BlockStateChainingListener.Event.DEFINITION_TERM) {
+            // The separator from the previous term depends on the Markdown of both terms, see endDefinitionTerm().
+            this.previousDefinitionTerm = this.lastDefinitionTerm;
+        } else {
+            this.previousDefinitionTerm = null;
+            // A term that is the first content of a list item directly follows the list item marker.
+            printBlockSeparator(this.itemMarkerPrefixes.peek());
+        }
+        // The term is rendered separately, at the beginning of a line, so that it can be checked once it's ended. Its
+        // pipes are escaped since the lines of consecutive terms (or the line of a single term) could be read back as
+        // a table otherwise.
+        MarkdownEscapeWikiPrinter termPrinter = createMarkdownPrinter(new DefaultWikiPrinter());
+        termPrinter.setInTableCell(true);
+        pushPrinter(termPrinter);
         this.isInDefinitionTerm = true;
         this.definitionListHasTerm.pop();
         this.definitionListHasTerm.push(true);
@@ -1037,8 +1128,48 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
     @Override
     public void endDefinitionTerm()
     {
-        getMarkdownPrinter().flush();
+        MarkdownEscapeWikiPrinter termPrinter = getMarkdownPrinter();
+        termPrinter.flush();
+        String term = termPrinter.toString();
+        popPrinter();
         this.isInDefinitionTerm = false;
+
+        if (this.previousDefinitionTerm != null) {
+            // Consecutive terms are written on consecutive lines (each line of the paragraph preceding a definition
+            // description is a term), since a term followed by an empty line is read back as a paragraph. They are
+            // separated by an empty line (the previous terms being then read back as a paragraph or as another block)
+            // when their lines wouldn't be read back as a paragraph (e.g. when the previous term is read back as an
+            // HTML block or a standalone macro, or when the term starts an HTML block interrupting the paragraph). Only
+            // the line of the previous term is checked with the line of the term (whether the terms written before are
+            // read back as a paragraph is known already), since whether a line continues a paragraph doesn't depend on
+            // the lines before the previous one.
+            String markerPrefix = this.itemMarkerPrefixes.peek();
+            boolean isJoined = isInTableCell() || (this.isLastDefinitionTermParagraph
+                && isParagraph(this.previousDefinitionTerm + NEW_LINE + term));
+            print((isJoined ? NEW_LINE : EMPTY_LINE) + markerPrefix);
+            this.isLastDefinitionTermParagraph = isJoined || isParagraph(term);
+        } else {
+            this.isLastDefinitionTermParagraph = isInTableCell() || isParagraph(term);
+        }
+        print(term);
+        this.lastDefinitionTerm = term;
+    }
+
+    /**
+     * Indicates if some Markdown, located at the beginning of a block, is read back as a single paragraph. This is
+     * used to check that the lines of the definition terms are read back as the paragraph preceding a definition
+     * description (whose lines are its terms), and not as another block (e.g. an HTML block or a standalone macro,
+     * the HTML block containing the following lines). This implementation is conservative: it only accepts the
+     * Markdown that doesn't contain a character that could start such a block.
+     *
+     * @param markdown the Markdown to check, made of one or several lines
+     * @return {@code true} if the Markdown is read back as a single paragraph, {@code false} otherwise
+     * @since 8.10.0
+     */
+    protected boolean isParagraph(String markdown)
+    {
+        return !StringUtils.isBlank(markdown) && markdown.indexOf('<') < 0 && markdown.indexOf('{') < 0
+            && !markdown.startsWith(TRIPLE_BACKTICK) && !markdown.startsWith("~~~");
     }
 
     @Override
@@ -1056,14 +1187,12 @@ public class MarkdownChainingRenderer extends AbstractChainingPrintRenderer
         state.definitionListDepth = getBlockState().getDefinitionListDepth();
         state.itemDepth = this.itemStates.size();
         this.quotationStates.push(state);
-        this.listItemAndQuotationDepth++;
     }
 
     @Override
     public void endQuotation(Map<String, String> parameters)
     {
         QuotationState state = this.quotationStates.pop();
-        this.listItemAndQuotationDepth--;
         if (state.isFlattened) {
             return;
         }

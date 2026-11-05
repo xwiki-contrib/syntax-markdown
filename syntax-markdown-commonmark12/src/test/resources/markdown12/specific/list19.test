@@ -1,0 +1,87 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# The Markdown generated in list18.test: the content following the standalone macro and the HTML block is read back
+.# as is (the definition description following the HTML block as text)
+.#-----------------------------------------------------
+{{info}}x{{/info}}
+
+a
+:   b
+
+p1
+
+<b>x</b> c
+d
+:   e
+
+p2
+
+```` ``` ````
+f
+:   g
+
+p3
+
+h
+
+<div>x</div>
+
+:   i
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+onMacroStandalone [info] [] [x]
+beginDefinitionList
+beginDefinitionTerm
+onWord [a]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [b]
+endDefinitionDescription
+endDefinitionList
+beginParagraph
+onWord [p1]
+endParagraph
+beginDefinitionList
+beginDefinitionTerm
+onMacroInline [html] [clean=false] [<b>x</b>]
+onSpace
+onWord [c]
+endDefinitionTerm
+beginDefinitionTerm
+onWord [d]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [e]
+endDefinitionDescription
+endDefinitionList
+beginParagraph
+onWord [p2]
+endParagraph
+beginDefinitionList
+beginDefinitionTerm
+onMacroInline [code] [language=none] [```]
+endDefinitionTerm
+beginDefinitionTerm
+onWord [f]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [g]
+endDefinitionDescription
+endDefinitionList
+beginParagraph
+onWord [p3]
+endParagraph
+beginParagraph
+onWord [h]
+endParagraph
+onMacroStandalone [html] [clean=false] [<div>x</div>]
+beginParagraph
+onSpecialSymbol [:]
+onSpace
+onSpace
+onSpace
+onWord [i]
+endParagraph
+endDocument

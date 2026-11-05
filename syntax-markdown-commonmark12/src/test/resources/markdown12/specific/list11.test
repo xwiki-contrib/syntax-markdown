@@ -1,0 +1,54 @@
+.#-----------------------------------------------------
+.input|xhtml/1.0
+.# Consecutive lists of the same type: they use alternately two different item markers, since a list directly
+.# following a list using the same item marker would be read back as part of it
+.#-----------------------------------------------------
+<html><body><ul><li>a</li></ul><ul><li></li></ul><ul><li>b</li></ul><ol><li>c</li></ol><ol><li>d</li></ol><ol><li>e</li></ol></body></html>
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.#-----------------------------------------------------
+* a
+
+- 
+
+* b
+
+1. c
+
+1) d
+
+1. e
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [a]
+endListItem
+endList [BULLETED]
+beginList [BULLETED]
+beginListItem
+endListItem
+endList [BULLETED]
+beginList [BULLETED]
+beginListItem
+onWord [b]
+endListItem
+endList [BULLETED]
+beginList [NUMBERED]
+beginListItem
+onWord [c]
+endListItem
+endList [NUMBERED]
+beginList [NUMBERED]
+beginListItem
+onWord [d]
+endListItem
+endList [NUMBERED]
+beginList [NUMBERED]
+beginListItem
+onWord [e]
+endListItem
+endList [NUMBERED]
+endDocument

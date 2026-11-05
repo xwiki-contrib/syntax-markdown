@@ -1,0 +1,55 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# Consecutive nested lists of the same type: they use alternately two different item markers
+.#-----------------------------------------------------
+* a
+    * b
+    - c
+    * d
+    1. e
+    1) f
+
+    * 
+* g
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginList [BULLETED]
+beginListItem
+onWord [a]
+beginList [BULLETED]
+beginListItem
+onWord [b]
+endListItem
+endList [BULLETED]
+beginList [BULLETED]
+beginListItem
+onWord [c]
+endListItem
+endList [BULLETED]
+beginList [BULLETED]
+beginListItem
+onWord [d]
+endListItem
+endList [BULLETED]
+beginList [NUMBERED]
+beginListItem
+onWord [e]
+endListItem
+endList [NUMBERED]
+beginList [NUMBERED]
+beginListItem
+onWord [f]
+endListItem
+endList [NUMBERED]
+beginList [BULLETED]
+beginListItem
+endListItem
+endList [BULLETED]
+endListItem
+beginListItem
+onWord [g]
+endListItem
+endList [BULLETED]
+endDocument

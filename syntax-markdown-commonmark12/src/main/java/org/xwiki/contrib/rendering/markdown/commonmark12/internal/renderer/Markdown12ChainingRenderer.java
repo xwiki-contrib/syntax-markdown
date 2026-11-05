@@ -126,9 +126,9 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
     private final Markdown12MacroRenderer macroSyntaxPrinter = new Markdown12MacroRenderer();
 
     /**
-     * The parser used to check the inline macros, created when needed.
+     * The parser used to check how some generated Markdown is read back (e.g. inline macros), created when needed.
      */
-    private Parser macroCheckParser;
+    private Parser checkParser;
 
     /**
      * The number of emphasis (e.g. bold) currently open, which are written using delimiters (e.g. "**").
@@ -560,17 +560,33 @@ public class Markdown12ChainingRenderer extends Markdown11ChainingRenderer
      */
     private boolean isInlineMacroSupported(String macro)
     {
-        if (this.macroCheckParser == null) {
-            this.macroCheckParser = Parser.builder(this.configuration.getOptions()).build();
-        }
         int macroStart = INLINE_MACRO_CHECK_PREFIX.length();
-        Node paragraph = this.macroCheckParser.parse(INLINE_MACRO_CHECK_PREFIX + macro).getFirstChild();
+        Node paragraph = getCheckParser().parse(INLINE_MACRO_CHECK_PREFIX + macro).getFirstChild();
         Node macroNode =
             paragraph instanceof Paragraph && paragraph.getNext() == null ? paragraph.getLastChild() : null;
         return macroNode instanceof Macro && macroNode.getStartOffset() == macroStart
             && macroNode.getLastChild() instanceof MacroClose
             && macroNode.getLastChild().getEndOffset() == macroStart + macro.length()
             && !hasUnendedInlineSyntax(macroNode);
+    }
+
+    /**
+     * @return the parser used to check how some generated Markdown is read back
+     */
+    private Parser getCheckParser()
+    {
+        if (this.checkParser == null) {
+            this.checkParser = Parser.builder(this.configuration.getOptions()).build();
+        }
+        return this.checkParser;
+    }
+
+    @Override
+    protected boolean isParagraph(String markdown)
+    {
+        // The Markdown is parsed on its own, as it's located at the beginning of a block.
+        Node block = getCheckParser().parse(markdown).getFirstChild();
+        return block instanceof Paragraph && block.getNext() == null;
     }
 
     /**

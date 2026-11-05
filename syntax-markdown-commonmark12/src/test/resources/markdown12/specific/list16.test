@@ -1,0 +1,72 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# The Markdown generated in list15.test: the definition terms without description are read back as definition
+.# terms followed by an empty definition description
+.#-----------------------------------------------------
+a
+:   b
+
+c
+d
+:   <!-- -->
+
+* e
+
+  f
+  :   <!-- -->
+* g
+
+{{info}}x{{/info}}
+
+p
+
+<https://e.org>
+:   <!-- -->
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginDefinitionList
+beginDefinitionTerm
+onWord [a]
+endDefinitionTerm
+beginDefinitionDescription
+onWord [b]
+endDefinitionDescription
+beginDefinitionTerm
+onWord [c]
+endDefinitionTerm
+beginDefinitionTerm
+onWord [d]
+endDefinitionTerm
+beginDefinitionDescription
+endDefinitionDescription
+endDefinitionList
+beginList [BULLETED]
+beginListItem
+onWord [e]
+beginDefinitionList
+beginDefinitionTerm
+onWord [f]
+endDefinitionTerm
+beginDefinitionDescription
+endDefinitionDescription
+endDefinitionList
+endListItem
+beginListItem
+onWord [g]
+endListItem
+endList [BULLETED]
+onMacroStandalone [info] [] [x]
+beginParagraph
+onWord [p]
+endParagraph
+beginDefinitionList
+beginDefinitionTerm
+beginLink [Typed = [false] Type = [url] Reference = [https://e.org]] [true]
+endLink [Typed = [false] Type = [url] Reference = [https://e.org]] [true]
+endDefinitionTerm
+beginDefinitionDescription
+endDefinitionDescription
+endDefinitionList
+endDocument

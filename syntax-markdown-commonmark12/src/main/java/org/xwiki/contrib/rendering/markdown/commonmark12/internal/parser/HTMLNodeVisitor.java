@@ -69,7 +69,8 @@ public class HTMLNodeVisitor extends AbstractNodeVisitor
         MacroBlockExtension.class,
         GroupExtension.class,
         TablesExtension.class,
-        DefinitionExtension.class
+        DefinitionExtension.class,
+        DefinitionItemExtension.class
     ));
 
     /**
