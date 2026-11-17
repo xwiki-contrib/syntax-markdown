@@ -1,0 +1,122 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Verbatim containing Markdown, HTML and XWiki syntax, which is kept as is, and verbatim containing its closing tag,
+.# which is rendered as code instead (and thus read back as a code macro). An inline verbatim starting a paragraph is
+.# preceded by a space so that it's not read back as a standalone verbatim, and an inline verbatim starting a list item
+.# is rendered as code. The empty lines located at the beginning and at the end of a standalone verbatim are kept. See
+.# verbatim10.test for the parsing of the generated Markdown.
+.#-----------------------------------------------------
+a {{{**not bold** <b>x</b> [[link]]}}} b
+
+(% class="box" %)
+{{{
+**not bold**
+<b>x</b> & {{info}}y{{/info}}
+}}}
+
+a {{{x {{/verbatim}} y}}} b
+
+{{{
+x
+{{/verbatim}}
+y
+}}}
+
+{{{
+{{verbatim}}
+x
+{{/verbatim}}
+}}}
+
+{{{x}}}
+next
+
+* {{{y}}}
+
+{{{
+
+z
+
+}}}
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+a {{verbatim}}**not bold** <b>x</b> [[link]]{{/verbatim}} b
+
+{{verbatim class="box"}}
+**not bold**
+<b>x</b> & {{info}}y{{/info}}
+{{/verbatim}}
+
+a `x {{/verbatim}} y` b
+
+```
+x
+{{/verbatim}}
+y
+```
+
+{{verbatim}}
+{{verbatim}}
+x
+{{/verbatim}}
+{{/verbatim}}
+
+ {{verbatim}}x{{/verbatim}}  
+next
+
+* `y`
+
+{{verbatim}}
+
+z
+
+{{/verbatim}}
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onSpace
+onVerbatim [**not bold** <b>x</b> [[link]]] [true]
+onSpace
+onWord [b]
+endParagraph
+onVerbatim [
+**not bold**
+<b>x</b> & {{info}}y{{/info}}
+] [false] [[class]=[box]]
+beginParagraph
+onWord [a]
+onSpace
+onVerbatim [x {{/verbatim}} y] [true]
+onSpace
+onWord [b]
+endParagraph
+onVerbatim [
+x
+{{/verbatim}}
+y
+] [false]
+onVerbatim [
+{{verbatim}}
+x
+{{/verbatim}}
+] [false]
+beginParagraph
+onVerbatim [x] [true]
+onNewLine
+onWord [next]
+endParagraph
+beginList [BULLETED]
+beginListItem
+onVerbatim [y] [true]
+endListItem
+endList [BULLETED]
+onVerbatim [
+
+z
+
+] [false]
+endDocument

@@ -1,0 +1,112 @@
+.#-----------------------------------------------------
+.input|markdown/1.2
+.# Only the code tags without attributes having a matching closing tag in the same paragraph are read as monospace:
+.# the other code tags are read as HTML, as other tags. The tags overlapping a monospace content are not matched.
+.#-----------------------------------------------------
+a <code>b *c*</code> <CODE >d</Code> <code class="x">e</code> f
+
+a <code>b <span>c</span> <code>d</code></code> e
+
+a <span><code>b</code></span> c
+
+a <code>b <span>c</code> d</span> e
+
+a <code>b
+
+c</code> d
+
+*a <code>b* c</code>
+
+a <code>b</code ></code>
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onSpace
+beginFormat [MONOSPACE]
+onWord [b]
+onSpace
+beginFormat [ITALIC]
+onWord [c]
+endFormat [ITALIC]
+endFormat [MONOSPACE]
+onSpace
+beginFormat [MONOSPACE]
+onWord [d]
+endFormat [MONOSPACE]
+onSpace
+onMacroInline [html] [clean=false] [<code class="x">e</code>]
+onSpace
+onWord [f]
+endParagraph
+beginParagraph
+onWord [a]
+onSpace
+beginFormat [MONOSPACE]
+onWord [b]
+onSpace
+onMacroInline [html] [clean=false] [<span>c</span>]
+onSpace
+beginFormat [MONOSPACE]
+onWord [d]
+endFormat [MONOSPACE]
+endFormat [MONOSPACE]
+onSpace
+onWord [e]
+endParagraph
+beginParagraph
+onWord [a]
+onSpace
+onMacroInline [html] [clean=false] [<span><code>b</code></span>]
+onSpace
+onWord [c]
+endParagraph
+beginParagraph
+onWord [a]
+onSpace
+beginFormat [MONOSPACE]
+onWord [b]
+onSpace
+onMacroInline [html] [clean=false] [<span>]
+onWord [c]
+endFormat [MONOSPACE]
+onSpace
+onWord [d]
+onMacroInline [html] [clean=false] [</span>]
+onSpace
+onWord [e]
+endParagraph
+beginParagraph
+onWord [a]
+onSpace
+onMacroInline [html] [clean=false] [<code>]
+onWord [b]
+endParagraph
+beginParagraph
+onWord [c]
+onMacroInline [html] [clean=false] [</code>]
+onSpace
+onWord [d]
+endParagraph
+beginParagraph
+beginFormat [ITALIC]
+onWord [a]
+onSpace
+onMacroInline [html] [clean=false] [<code>]
+onWord [b]
+endFormat [ITALIC]
+onSpace
+onWord [c]
+onMacroInline [html] [clean=false] [</code>]
+endParagraph
+beginParagraph
+onWord [a]
+onSpace
+beginFormat [MONOSPACE]
+onWord [b]
+endFormat [MONOSPACE]
+onMacroInline [html] [clean=false] [</code>]
+endParagraph
+endDocument

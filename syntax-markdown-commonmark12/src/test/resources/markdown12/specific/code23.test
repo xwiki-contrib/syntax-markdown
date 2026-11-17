@@ -1,0 +1,153 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Code macros that can't be written using the Markdown code syntax (code spans can't have a language, and code
+.# blocks can't have parameters other than the language) are written using the macro syntax, which keeps their content
+.# exactly (including the white spaces). When the macro syntax can't be used either (e.g. when the content contains the
+.# closing tag, or when the inline macro is the first content of a list item or definition description where it would be
+.# read back as a standalone macro), the Markdown code syntax is used. An inline macro starting a paragraph is preceded
+.# by a space so that it's not read back as a standalone macro. See code24.test for the parsing of the generated
+.# Markdown.
+.#-----------------------------------------------------
+a {{code language="java"}}int i;{{/code}} b {{code}}c{{/code}} d {{code language="none"}}{{/code}} e {{code/}} f
+
+{{code language="java" layout="plain"}}
+int i;
+{{/code}}
+
+{{code language="java"}}
+
+  int j;
+
+{{/code}}
+
+{{code language="java"}}{{/code}}
+
+{{code language="java"/}}
+
+{{code language=""}}x{{/code}}
+
+a {{code language="java"}}x`y{{/code}} b
+
+{{code}}x{{/code}}
+next
+
+* {{code language="none"}}
+a
+{{/code}}
+** {{code}}
+b
+{{/code}}
+* (((
+{{code}}
+  c
+{{/code}}
+)))
+
+; term
+: {{code}}d{{/code}}
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+a {{code language="java"}}int i;{{/code}} b {{code}}c{{/code}} d {{code language="none"}}{{/code}} e {{code/}} f
+
+{{code language="java" layout="plain"}}
+int i;
+{{/code}}
+
+```java
+
+  int j;
+
+```
+
+{{code language="java"}}{{/code}}
+
+{{code language="java"/}}
+
+{{code language=""}}
+x
+{{/code}}
+
+a ``x`y`` b
+
+ {{code}}x{{/code}}  
+next
+
+* `a`
+    * `b`
+* <div>
+
+  {{code}}
+    c
+  {{/code}}
+
+  </div>
+
+term
+:   `d`
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onSpace
+onMacroInline [code] [language=java] [int i;]
+onSpace
+onWord [b]
+onSpace
+onMacroInline [code] [] [c]
+onSpace
+onWord [d]
+onSpace
+onMacroInline [code] [language=none] []
+onSpace
+onWord [e]
+onSpace
+onMacroInline [code] []
+onSpace
+onWord [f]
+endParagraph
+onMacroStandalone [code] [language=java|layout=plain] [int i;]
+onMacroStandalone [code] [language=java] [
+  int j;
+]
+onMacroStandalone [code] [language=java] []
+onMacroStandalone [code] [language=java]
+onMacroStandalone [code] [language=] [x]
+beginParagraph
+onWord [a]
+onSpace
+onMacroInline [code] [language=java] [x`y]
+onSpace
+onWord [b]
+endParagraph
+beginParagraph
+onMacroInline [code] [] [x]
+onNewLine
+onWord [next]
+endParagraph
+beginList [BULLETED]
+beginListItem
+onMacroInline [code] [language=none] [a]
+beginList [BULLETED]
+beginListItem
+onMacroInline [code] [] [b]
+endListItem
+endList [BULLETED]
+endListItem
+beginListItem
+beginGroup
+onMacroStandalone [code] [] [  c]
+endGroup
+endListItem
+endList [BULLETED]
+beginDefinitionList
+beginDefinitionTerm
+onWord [term]
+endDefinitionTerm
+beginDefinitionDescription
+onMacroInline [code] [] [d]
+endDefinitionDescription
+endDefinitionList
+endDocument

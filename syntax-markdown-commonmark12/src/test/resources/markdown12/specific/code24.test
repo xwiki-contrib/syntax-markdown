@@ -1,0 +1,107 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# The code macros written using the macro syntax (see code23.test) are read back unchanged
+.#-----------------------------------------------------
+a {{code language="java"}}int i;{{/code}} b {{code}}c{{/code}} d {{code language="none"}}{{/code}} e {{code/}} f
+
+{{code language="java" layout="plain"}}
+int i;
+{{/code}}
+
+```java
+
+  int j;
+
+```
+
+{{code language="java"}}{{/code}}
+
+{{code language="java"/}}
+
+{{code language=""}}
+x
+{{/code}}
+
+a ``x`y`` b
+
+ {{code}}x{{/code}}  
+next
+
+* `a`
+    * `b`
+* <div>
+
+  {{code}}
+    c
+  {{/code}}
+
+  </div>
+
+term
+:   `d`
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onSpace
+onMacroInline [code] [language=java] [int i;]
+onSpace
+onWord [b]
+onSpace
+onMacroInline [code] [] [c]
+onSpace
+onWord [d]
+onSpace
+onMacroInline [code] [language=none] []
+onSpace
+onWord [e]
+onSpace
+onMacroInline [code] []
+onSpace
+onWord [f]
+endParagraph
+onMacroStandalone [code] [language=java|layout=plain] [int i;]
+onMacroStandalone [code] [language=java] [
+  int j;
+]
+onMacroStandalone [code] [language=java] []
+onMacroStandalone [code] [language=java]
+onMacroStandalone [code] [language=] [x]
+beginParagraph
+onWord [a]
+onSpace
+onMacroInline [code] [language=none] [x`y]
+onSpace
+onWord [b]
+endParagraph
+beginParagraph
+onMacroInline [code] [] [x]
+onNewLine
+onWord [next]
+endParagraph
+beginList [BULLETED]
+beginListItem
+onMacroInline [code] [language=none] [a]
+beginList [BULLETED]
+beginListItem
+onMacroInline [code] [language=none] [b]
+endListItem
+endList [BULLETED]
+endListItem
+beginListItem
+beginGroup
+onMacroStandalone [code] [] [  c]
+endGroup
+endListItem
+endList [BULLETED]
+beginDefinitionList
+beginDefinitionTerm
+onWord [term]
+endDefinitionTerm
+beginDefinitionDescription
+onMacroInline [code] [language=none] [d]
+endDefinitionDescription
+endDefinitionList
+endDocument

@@ -1,6 +1,7 @@
 .#-----------------------------------------------------
-.inputexpect|markdown/1.2
-.# Code blocks located at the beginning of list items and definition descriptions
+.input|markdown/1.2
+.# Code blocks located at the beginning of list items and definition descriptions (the indented code blocks being
+.# rendered back as fenced code blocks)
 .#-----------------------------------------------------
 * ```
   <b>a</b>
@@ -23,18 +24,14 @@ beginListItem
 onMacroStandalone [code] [language=none] [<b>a</b>]
 endListItem
 beginListItem
-beginGroup
 onMacroStandalone [code] [language=none] [<b>b</b>]
-endGroup
 endListItem
 beginListItem
 onWord [x]
 beginList [BULLETED]
 beginListItem
-beginGroup
 onMacroStandalone [code] [language=none] [<b>c</b>
 <b>d</b>]
-endGroup
 endListItem
 endList [BULLETED]
 endListItem
@@ -48,3 +45,22 @@ onMacroStandalone [code] [language=java] [<b>e</b>]
 endDefinitionDescription
 endDefinitionList
 endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+* ```
+  <b>a</b>
+  ```
+* ```
+  <b>b</b>
+  ```
+* x
+    * ```
+      <b>c</b>
+      <b>d</b>
+      ```
+
+term
+:   ```java
+    <b>e</b>
+    ```

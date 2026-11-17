@@ -20,6 +20,7 @@
 package org.xwiki.contrib.rendering.markdown.commonmark12.internal;
 
 import java.io.StringReader;
+import java.time.Duration;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
@@ -35,10 +36,11 @@ import org.xwiki.test.junit5.mockito.InjectComponentManager;
 import org.xwiki.test.mockito.MockitoComponentManager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 /**
  * Verify that rendering large content to Markdown 1.2 doesn't overflow the stack, i.e. that the regular expressions
- * used by the renderer don't need a recursion per repeated element.
+ * used by the renderer don't need a recursion per repeated element, and that its duration is linear.
  *
  * @version $Id$
  */
@@ -97,6 +99,16 @@ class Markdown12LargeContentTest
         assertEquals("beginDocument [[syntax]=[CommonMark Markdown 1.2]]\n"
             + "onMacroStandalone [info] [a=b] [c]\n"
             + "endDocument [[syntax]=[CommonMark Markdown 1.2]]", render(parse(markdown, "markdown/1.2"), "event/1.0"));
+    }
+
+    @Test
+    void manyMonospaceLines()
+    {
+        // The duration would be quadratic if the whole rendered content was inspected for each monospace or new line.
+        String markdown = assertTimeoutPreemptively(Duration.ofSeconds(30),
+            () -> renderToMarkdown(StringUtils.repeat("##a## b", "\n", COUNT)));
+
+        assertEquals(StringUtils.repeat("<code>a</code> b", "  \n", COUNT), markdown);
     }
 
     private String renderToMarkdown(String input) throws Exception

@@ -1,11 +1,12 @@
 .#-----------------------------------------------------
 .input|xwiki/2.1
-.# Inline verbatim is rendered as code spans, using a backtick string that doesn't appear in the content and
-.# padding spaces when needed so that the content is preserved. Empty inline
-.# verbatim is dropped since code spans can't be empty.
+.# Inline verbatim is rendered using the macro syntax with the reserved "verbatim" id, which keeps its content as is
+.# (without any escaping, including the spaces and the empty content). A content containing a backtick that doesn't
+.# start a code span (which could hide the closing tag) is rendered as a code span instead, using a backtick string that
+.# doesn't appear in the content. See verbatim2.test for the parsing of the generated Markdown.
 .#-----------------------------------------------------
 a {{{x|y}}} b {{{**not bold**}}} c {{{a`b}}} d {{{`a``b`}}} e {{{ f }}} g {{{}}} h {{{ }}} i
 .#-----------------------------------------------------
 .expect|markdown/1.2
 .#-----------------------------------------------------
-a `x|y` b `**not bold**` c ``a`b`` d ``` `a``b` ``` e `  f  ` g  h ` ` i
+a {{verbatim}}x|y{{/verbatim}} b {{verbatim}}**not bold**{{/verbatim}} c ``a`b`` d {{verbatim}}`a``b`{{/verbatim}} e {{verbatim}} f {{/verbatim}} g {{verbatim}}{{/verbatim}} h {{verbatim}} {{/verbatim}} i

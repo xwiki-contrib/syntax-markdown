@@ -6,9 +6,9 @@
 t
 :   <!-- -->
 
-```
+{{verbatim}}
 <b>
-```
+{{/verbatim}}
 
 t2
 :   <!-- -->
@@ -28,7 +28,9 @@ endDefinitionTerm
 beginDefinitionDescription
 endDefinitionDescription
 endDefinitionList
-onMacroStandalone [code] [language=none] [<b>]
+onVerbatim [
+<b>
+] [false]
 beginDefinitionList
 beginDefinitionTerm
 onWord [t2]

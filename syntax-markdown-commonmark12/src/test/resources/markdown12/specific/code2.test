@@ -1,6 +1,7 @@
 .#-----------------------------------------------------
-.inputexpect|markdown/1.2
-.# Test standalone code using fenced blocks
+.input|markdown/1.2
+.# Indented code blocks are read as code macros without language (language="none"), and rendered back as fenced code
+.# blocks without info string, which are read back the same way.
 .#-----------------------------------------------------
     code line1
     code line2
@@ -11,3 +12,10 @@ beginDocument
 onMacroStandalone [code] [language=none] [code line1
 code line2]
 endDocument
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+```
+code line1
+code line2
+```

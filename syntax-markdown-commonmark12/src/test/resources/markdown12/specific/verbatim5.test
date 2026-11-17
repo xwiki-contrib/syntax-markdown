@@ -28,19 +28,19 @@ block in list
 .#-----------------------------------------------------
 # Heading ``a`b``
 
-* item `x*y`
-    * nested `multi line`
+* item {{verbatim}}x*y{{/verbatim}}
+    * nested {{verbatim}}multi line{{/verbatim}}
 
->  quote `[[not a link]]`
+>  quote {{verbatim}}[[not a link]]{{/verbatim}}
 
-| head `a|b` |         head2         |
-| ---------- | --------------------- |
-| cell `c|d` | `block in table cell` |
+| head {{verbatim}}a|b{{/verbatim}} |                    head2                     |
+| --------------------------------- | -------------------------------------------- |
+| cell {{verbatim}}c|d{{/verbatim}} | {{verbatim}}block in table cell{{/verbatim}} |
 
 * <div>
 
-  ```
+  {{verbatim}}
   block in list
-  ```
+  {{/verbatim}}
 
   </div>

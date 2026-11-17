@@ -1,0 +1,152 @@
+.#-----------------------------------------------------
+.input|xwiki/2.1
+.# Monospace is rendered as code tags, whose content is written as Markdown (and thus escaped, and formatted). A line
+.# break directly following the opening tag is written as a line break tag, since the opening tag would start an HTML
+.# block otherwise. See monospace2.test for the parsing of the generated Markdown.
+.#-----------------------------------------------------
+a ##b **c** //d// [[e>>https://www.xwiki.org]] *f* `g` </code> <b>##h
+
+##
+i## j
+
+= ##Heading## =
+
+* ##item##
+** ##nested
+item##
+
+> ##quote##
+
+|=##head##|=b
+|##c~|d##|(((
+##e##
+)))
+.#-----------------------------------------------------
+.expect|markdown/1.2
+.#-----------------------------------------------------
+a <code>b **c** _d_ [e](https://www.xwiki.org) \*f\* \`g\` \</code> \<b></code>h
+
+<code><br/>i</code> j
+
+# <code>Heading</code>
+
+* <code>item</code>
+    * <code>nested  
+item</code>
+
+>  <code>quote</code>
+
+| <code>head</code> |       b        |
+| ----------------- | -------------- |
+| <code>c\|d</code> | <code>e</code> |
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onSpace
+beginFormat [MONOSPACE]
+onWord [b]
+onSpace
+beginFormat [BOLD]
+onWord [c]
+endFormat [BOLD]
+onSpace
+beginFormat [ITALIC]
+onWord [d]
+endFormat [ITALIC]
+onSpace
+beginLink [Typed = [false] Type = [url] Reference = [https://www.xwiki.org]] [false]
+onWord [e]
+endLink [Typed = [false] Type = [url] Reference = [https://www.xwiki.org]] [false]
+onSpace
+onSpecialSymbol [*]
+onWord [f]
+onSpecialSymbol [*]
+onSpace
+onSpecialSymbol [`]
+onWord [g]
+onSpecialSymbol [`]
+onSpace
+onSpecialSymbol [<]
+onSpecialSymbol [/]
+onWord [code]
+onSpecialSymbol [>]
+onSpace
+onSpecialSymbol [<]
+onWord [b]
+onSpecialSymbol [>]
+endFormat [MONOSPACE]
+onWord [h]
+endParagraph
+beginParagraph
+beginFormat [MONOSPACE]
+onNewLine
+onWord [i]
+endFormat [MONOSPACE]
+onSpace
+onWord [j]
+endParagraph
+beginSection
+beginHeader [1, HHeading]
+beginFormat [MONOSPACE]
+onWord [Heading]
+endFormat [MONOSPACE]
+endHeader [1, HHeading]
+beginList [BULLETED]
+beginListItem
+beginFormat [MONOSPACE]
+onWord [item]
+endFormat [MONOSPACE]
+beginList [BULLETED]
+beginListItem
+beginFormat [MONOSPACE]
+onWord [nested]
+onNewLine
+onWord [item]
+endFormat [MONOSPACE]
+endListItem
+endList [BULLETED]
+endListItem
+endList [BULLETED]
+beginQuotation
+beginQuotationLine
+onSpace
+beginFormat [MONOSPACE]
+onWord [quote]
+endFormat [MONOSPACE]
+endQuotationLine
+endQuotation
+beginTable
+beginTableRow
+beginTableHeadCell
+beginFormat [MONOSPACE]
+onWord [head]
+endFormat [MONOSPACE]
+endTableHeadCell
+beginTableHeadCell
+onWord [b]
+endTableHeadCell
+endTableRow
+beginTableRow
+beginTableCell
+beginFormat [MONOSPACE]
+onWord [c]
+onSpecialSymbol [|]
+onWord [d]
+endFormat [MONOSPACE]
+endTableCell
+beginTableCell
+beginGroup
+beginParagraph
+beginFormat [MONOSPACE]
+onWord [e]
+endFormat [MONOSPACE]
+endParagraph
+endGroup
+endTableCell
+endTableRow
+endTable
+endSection
+endDocument

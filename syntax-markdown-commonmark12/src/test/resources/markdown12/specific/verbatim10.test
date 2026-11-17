@@ -1,0 +1,82 @@
+.#-----------------------------------------------------
+.inputexpect|markdown/1.2
+.# The verbatim macro syntax is read as verbatim (not as a macro), with its parameters, and its content is kept as is
+.# (see verbatim9.test)
+.#-----------------------------------------------------
+a {{verbatim}}**not bold** <b>x</b> [[link]]{{/verbatim}} b
+
+{{verbatim class="box"}}
+**not bold**
+<b>x</b> & {{info}}y{{/info}}
+{{/verbatim}}
+
+a `x {{/verbatim}} y` b
+
+```
+x
+{{/verbatim}}
+y
+```
+
+{{verbatim}}
+{{verbatim}}
+x
+{{/verbatim}}
+{{/verbatim}}
+
+ {{verbatim}}x{{/verbatim}}  
+next
+
+* `y`
+
+{{verbatim}}
+
+z
+
+{{/verbatim}}
+.#-----------------------------------------------------
+.expect|event/1.0
+.#-----------------------------------------------------
+beginDocument
+beginParagraph
+onWord [a]
+onSpace
+onVerbatim [**not bold** <b>x</b> [[link]]] [true]
+onSpace
+onWord [b]
+endParagraph
+onVerbatim [
+**not bold**
+<b>x</b> & {{info}}y{{/info}}
+] [false] [[class]=[box]]
+beginParagraph
+onWord [a]
+onSpace
+onMacroInline [code] [language=none] [x {{/verbatim}} y]
+onSpace
+onWord [b]
+endParagraph
+onMacroStandalone [code] [language=none] [x
+{{/verbatim}}
+y]
+onVerbatim [
+{{verbatim}}
+x
+{{/verbatim}}
+] [false]
+beginParagraph
+onVerbatim [x] [true]
+onNewLine
+onWord [next]
+endParagraph
+beginList [BULLETED]
+beginListItem
+onMacroInline [code] [language=none] [y]
+endListItem
+endList [BULLETED]
+onVerbatim [
+
+z
+
+] [false]
+endDocument
